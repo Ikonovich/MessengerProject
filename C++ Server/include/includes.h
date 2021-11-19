@@ -1,6 +1,8 @@
 #ifndef INCLUDES_H
 #define INCLUDES_H
 
+// Including the namespace
+#include "MessengerSystem.h" 
 
 #include <iostream>
 

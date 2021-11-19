@@ -2,7 +2,6 @@
 #define SERVER_H
 
 #include "includes.h"
-#include "MessengerSystem.h"
 
 using namespace std;
 using namespace MessengerSystem;

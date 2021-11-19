@@ -1,8 +1,9 @@
 #ifndef MESSENGER_H
 #define MESSENGER_H
 
-#include "Server.h"
-#include "Security.h"
+
+//#include "Security.h"
+//#include "Server.h"
 
 namespace MessengerSystem
 {

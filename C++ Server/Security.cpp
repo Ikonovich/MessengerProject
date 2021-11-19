@@ -1,41 +1,41 @@
-// #include "include/includes.h"
-// #include "include/MessengerSystem.h"
+#include "include/includes.h"
+#include "include/MessengerSystem.h"
 
 
-// #include "include/Server.h"
-// #include "include/Security.h"
+#include "include/Server.h"
+#include "include/Security.h"
 
-// public:
+public:
 
-//     Security::Security() {}
+    Security::Security() {}
 
-//     int Security::GenerateHash(string input, string& output) 
-//     {
+    int Security::GenerateHash(string input, string& output) 
+    {
 
-//         string saltString;
+        string saltString;
 
-//         if (GenerateSalt(saltString) != 1) {
-//             return -1;
-//         }
+        if (GenerateSalt(saltString) != 1) {
+            return -1;
+        }
 
-//         char hashInput[] = strcpy(saltString + input);
+        char hashInput[] = strcpy(saltString + input);
 
-//         char hashOutput[32];
-//         SHA256(hashInput, strlen(hashInput), hashOutput);
+        char hashOutput[32];
+        SHA256(hashInput, strlen(hashInput), hashOutput);
 
-//         output = hashOutput;
+        output = hashOutput;
 
-//         return 0;
+        return 0;
 
-//     }
+    }
 
-// private:
+private:
 
         
 
-//     int Security::GenerateSalt(string& saltString) {
+    int Security::GenerateSalt(string& saltString) {
 
-//         byte saltBuffer[256];
+        byte saltBuffer[256];
 
-//         return RAND_bytes(saltBuffer, sizeof(buffer));
-//     }
+        return RAND_bytes(saltBuffer, sizeof(buffer));
+    }

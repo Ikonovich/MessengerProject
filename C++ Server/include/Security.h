@@ -1,22 +1,24 @@
-// #ifndef SECURITY_H
-// #define SECURITY_H
-
-// #include "MessengerSystem.h"
-// #include <string>
+#ifndef SECURITY_H
+#define SECURITY_H
 
 
-// class MessengerSystem::Security
-// {
+#include "includes.h"
+#include <string>
 
-// public:
+using namespace MessengerSystem;
 
-//     Security();
-//     void GenerateHash(std::string input, std::string& output);
+class MessengerSystem::Security
+{
 
-// private: 
+public:
 
-//     int GenerateSalt(std::string& saltString);
+    Security();
+    void GenerateHash(string input, string& output);
 
-// };
+private: 
 
-// #endif
+    int GenerateSalt(string& saltString);
+
+};
+
+#endif

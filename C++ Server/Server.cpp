@@ -8,9 +8,9 @@ using namespace sql;
 using namespace sql::mysql;
 using namespace MessengerSystem;
 
-MessengerSystem::Server::Server() {}
+Server::Server() {}
 
-void MessengerSystem::Server::StartServer() {
+void Server::StartServer() {
 
 
     ConnectDatabase();

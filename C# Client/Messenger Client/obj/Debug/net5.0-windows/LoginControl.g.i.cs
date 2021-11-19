@@ -53,7 +53,7 @@ namespace Messenger_Client {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Messenger Client;component/logincontrol.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Messenger Client;V1.0.0.0;component/logincontrol.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\LoginControl.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

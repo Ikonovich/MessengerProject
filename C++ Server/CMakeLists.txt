@@ -1,6 +1,0 @@
-cmake_minimum_required(VERSION 3.16.3)
-project(MessengerServer)
-add_executable(Server Server.cpp)
-include_directories(include)
-include_directories(nlohmann)
-target_link_libraries(/lib/x86_64-linux-gnu/libmysqlclient.a)

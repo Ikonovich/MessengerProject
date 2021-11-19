@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "ehV+z3Il1IJWntQh6mLLZGmAlgWF7Xhg0aHyCPN9mS7yCAa30mwLvD7ZiQbC2H+OC2xe128gzklLsx/yzdQxCQ==",
+  "dgSpecHash": "j6tsS3r/DyZwqIPanOgZJ5/XK0wSZglZKa2LpqAH+PyFRaVHqaybauvwIHKsWL37zgcb3AW2rhEIRLGfBucMBQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\UbuntuMysql\\C# Client\\Messenger Client\\Messenger Client.csproj",
+  "projectFilePath": "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\MessengerProject\\C# Client\\Messenger Client\\Messenger Client.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

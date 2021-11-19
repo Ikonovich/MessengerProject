@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\UbuntuMysql\\C# Client\\Messenger Client\\Messenger Client.csproj": {}
+    "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\MessengerProject\\C# Client\\Messenger Client\\Messenger Client.csproj": {}
   },
   "projects": {
-    "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\UbuntuMysql\\C# Client\\Messenger Client\\Messenger Client.csproj": {
+    "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\MessengerProject\\C# Client\\Messenger Client\\Messenger Client.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\UbuntuMysql\\C# Client\\Messenger Client\\Messenger Client.csproj",
+        "projectUniqueName": "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\MessengerProject\\C# Client\\Messenger Client\\Messenger Client.csproj",
         "projectName": "Messenger Client",
-        "projectPath": "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\UbuntuMysql\\C# Client\\Messenger Client\\Messenger Client.csproj",
+        "projectPath": "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\MessengerProject\\C# Client\\Messenger Client\\Messenger Client.csproj",
         "packagesPath": "C:\\Users\\evanh\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\UbuntuMysql\\C# Client\\Messenger Client\\obj\\",
+        "outputPath": "C:\\Users\\evanh\\Documents\\Auto Network Storage\\Docker Projects\\MessengerProject\\C# Client\\Messenger Client\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

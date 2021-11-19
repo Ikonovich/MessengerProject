@@ -1,0 +1,9 @@
+Connector/C++:
+libmysqlcppconn9
+libmysqlcppconn8
+libmysqlcppconn-dev_8
+
+MySQL:
+mysql-common_8
+mysql-community-client-plugins_8
+

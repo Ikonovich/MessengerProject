@@ -2,14 +2,13 @@
 #define MESSENGER_H
 
 
-//#include "Security.h"
-//#include "Server.h"
-
 namespace MessengerSystem
 {
 
     class Server;
-    class Security;
+    class SecurityController;
+    class DatabaseController;
+    class UserController;
 
 }
 

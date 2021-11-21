@@ -1,10 +1,8 @@
 #ifndef INCLUDES_H
 #define INCLUDES_H
 
-// Including the namespace
-#include "MessengerSystem.h" 
-
 #include <iostream>
+#include <string>
 
 // Headers for socket(), getaddrinfo(), etc
 
@@ -30,17 +28,6 @@
 #include <vector>   // Vector data type
 
 #include <unordered_map>    // Dictionary data type
-
-//OpenSSL 
-#include <openssl/bio.h> // Basic IO streams
-#include <openssl/err.h> // Errors
-#include <openssl/ssl.h> // Core library
-#include <openssl/sha.h> // SHA functions
-
-// LibCrypto
-#include <openssl/conf.h>
-#include <openssl/evp.h>
-#include <openssl/err.h> // Errors
 
 //MySQL
 #include <mysql_connection.h>

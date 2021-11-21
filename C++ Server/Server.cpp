@@ -1,24 +1,29 @@
-#include "include/Server.h"
-#include "include/MessengerSystem.h"
-
-//#include "include/Security.h"
-
+#include "include/libs.h"
+#include "include/namespace.h"
 
 using namespace sql;
 using namespace sql::mysql;
 using namespace MessengerSystem;
 
-Server::Server() {}
+// The server constructor initializes all the relevant objects for the system and passes them as necessary.
+// It initializes the usercontroller, databasecontroller, and securitycontroller.
+Server::Server() {
+
+    DatabaseCon = MessengerSystem::DatabaseController();
+    SecurityCon =  MessengerSystem::SecurityController();
+
+    string test = "Test";
+    UserCon = new MessengerSystem::UserController(test);
+
+}
 
 void Server::StartServer() {
 
-
-    ConnectDatabase();
     SocketHandler();
 
     // Security = Security();
 
-    // std::cout << Security.GenerateHash("testInput");
+    // cout << Security.GenerateHash("testInput");
 }
 
 
@@ -57,18 +62,18 @@ void Server::StartServer() {
 void Server::HeaderHandler(std::vector<char> inputBuffer, int clientSocket) {
 
 
-    std::string input(inputBuffer.begin(), inputBuffer.end()); // String constructor taking the beginning and end of a char vector.
+    string input(inputBuffer.begin(), inputBuffer.end()); // String constructor taking the beginning and end of a char vector.
 
     // Note: string.substr(index, length) gets the string starting at index, with length length.
     // If length is longer than the number of characters after index, gets as many characters as possible.
     // If index is bigger than the string size, throws out_of_bounds.
 
-    std::string requestType = input.substr(0, 2);  // Gets the first two characters of the string as the message type "MT"
+    string requestType = input.substr(0, 2);  // Gets the first two characters of the string as the message type "MT"
 
-    std::string output = input.substr(2, input.length()); // Gets the remainder of the string.
+    string output = input.substr(2, input.length()); // Gets the remainder of the string.
 
 
-    std::cout << "Request type is: " << requestType + ".\n";
+    cout << "Request type is: " << requestType + ".\n";
     
     int requestInt = -1;
 
@@ -76,68 +81,37 @@ void Server::HeaderHandler(std::vector<char> inputBuffer, int clientSocket) {
         requestInt = RequestTypeMap.at(requestType);
     }
     catch (const std::out_of_range err) {
-        std::cout << "Request type not found in mapping.\n";
-        std::cout << "Message is: " << input << "\n";
+        cout << "Request type not found in mapping.\n";
+        cout << "Message is: " << input << "\n";
     }
     
+    string response; // Stores the response message from the procedure call
+    vector<string> pullVec; // Stores items from a pull response
+
 
     switch (requestInt) {
         case 0:
-            InitialRegistration(output, clientSocket);
+            UserCon->InitialRegistration(output, response);
             break;
         case 1:
-            LoginRequest(output, clientSocket);
+            UserCon->LoginRequest(output, response);
             break;
         case 2:
-            MessageReceived(output, clientSocket);
+            UserCon->MessageReceived(output, response);
             break;
         case 3:
-            PullMessages(output);
+            UserCon->PullMessages(output, pullVec, response);
             break;
         default:
-            std::cout << "An error has occurred: A request type that does not exist "
+            cout << "An error has occurred: A request type that does not exist "
                 "has been provided.\n";
             TransmissionHandler(clientSocket, "AM An error has occurred: A request type that does not exist "
                 "has been provided.\n");
     }
 }
 
-// Login request receive packet format:
-// [LR][32 Char UserName][Up to 128 Char password]
-// Login Request Return packet format:
-// [Response type - 2 chars] [Optional Error Message - 64 chars]
-// LS - Login successful
-// LU - Login Unsuccessful
 
-
-void Server::LoginRequest(std::string input, int clientSocket) {
-
-    std::string senderID;
-    std::string password;
-
-    ParseUser(input, senderID, password);
-
-    std::cout << "User attempting to login: " << senderID << " on socket " << std::to_string(clientSocket) << ".\n";
-
-    std::string session = "";
-
-    if (IDtoSessionMap.contains(senderID) == false) {
-
-        session = GenerateSessionID();
-    }
-
-    SessionToIDMap[session] = senderID;
-    IDtoSessionMap[senderID] = session;
-    SessionToSocketMap[session] = clientSocket;
-
-    std::cout << "Session " << session << " assigned to user " << senderID << ".\n";
-
-    std::cout << "Confirming session assignment for user " << senderID << ": " << IDtoSessionMap[senderID] << ".\n";
-    std::cout << "Login approved.";
-}
-
-
-void Server::SendTestMessages(std::string senderID) {
+void Server::SendTestMessages(string senderID) {
 
     TransmissionHandler(senderID, "RM Test Message");
     sleep(1);
@@ -146,95 +120,11 @@ void Server::SendTestMessages(std::string senderID) {
     TransmissionHandler(senderID, "RM Third Test Message");
 }
 
-void Server::PullMessages(std::string input) {}
-
-// // This method parses out the sender from a data block.
-
-void Server::ParseUser(std::string input, std::string &sender, std::string &returnMessage) {
-
-    std::string senderID = input.substr(0, 32);  // Gets the sender's username of length 32.
-    std::string messageString = input.substr(32, input.length());
-
-    std::string delimiter = "*";
-
-    size_t senderIDlimit = senderID.find(delimiter);
-
-    if (senderIDlimit != std::string::npos) {
-        senderID.erase(senderIDlimit); // Erases filler characters from the User ID;
-    }
-
-    sender = senderID;
-}
-
-// // This method parses out the sender and receiver from a data block that contains both.
-
-void Server::ParseUsers(std::string input, std::string &sender, std::string &receiver, std::string &returnMessage) {
-
-    std::string senderID = input.substr(0, 32);  // Gets the sender's username of length 32.
-    std::string receiverID = input.substr(32, 32); // Gets the receiver's username of length 32.
-    std::string messageString = input.substr(64, input.length());
-
-
-    std::string delimiter = "*";
-
-    size_t senderIDlimit = senderID.find(delimiter);
-    if (senderIDlimit != std::string::npos) {
-        senderID.erase(senderIDlimit); // Erases filler characters from the User ID;
-    }
-
-    size_t receiverIDlimit = receiverID.find(delimiter);
-    if (receiverIDlimit != std::string::npos) {
-        receiverID.erase(receiverIDlimit); // Erases filler characters from the receiver ID;
-    }
-
-    sender = senderID;
-    receiver = receiverID;
-
-}
-
-void Server::MessageReceived(std::string input, int clientSocket) {
-
-    std::string data = input;
-
-    std::string senderID;
-    std::string receiverID;
-    std::string remainder;
-
-    ParseUsers(data, senderID, receiverID, remainder);
-
-    std::cout << "Message received from user: " + senderID + " for user " + receiverID + ": \n" + remainder + " on socket " + std::to_string(clientSocket) + "\n";
-
-    SendTestMessages(senderID);
-
-}
-
-void Server::InitialRegistration(std::string input, int clientSocket) 
-{
-
-    std::cout << "Registration request made.\n";
-
-    std::string userName;
-    std::string data;
-
-    ParseUser(input, userName, data);
-
-    
-    if (NameToIDMap.count(userName) > 0) {
-
-        TransmissionHandler(clientSocket, "RUThe provided username was already in use.\n");
-        return;
-    }
-
-
-    std::string response = "RS" + userName;
-    TransmissionHandler(clientSocket, response);
-
-}
 
 // // Returns an unused session ID string of length 16.
-std::string Server::GenerateSessionID() {
+string Server::GenerateSessionID() {
 
-    std::string sessionID = "";
+    string sessionID = "";
 
     for (int i = 0; i < 16; i++) {
 
@@ -247,13 +137,13 @@ std::string Server::GenerateSessionID() {
 }
 
 
-int Server::TransmissionHandler(std::string userID, std::string response) {
+int Server::TransmissionHandler(string userID, string response) {
 
     try {
 
-        std::vector<std::string> keys;
+        std::vector<string> keys;
         keys.reserve(IDtoSessionMap.size());
-        std::vector<std::string> vals;
+        std::vector<string> vals;
         vals.reserve(IDtoSessionMap.size());
 
         for(auto kv : IDtoSessionMap) {
@@ -262,24 +152,24 @@ int Server::TransmissionHandler(std::string userID, std::string response) {
         } 
         for (size_t size = 0; size < keys.size(); size++) {
 
-            std::cout << keys[size] << " ";
-            std::cout << vals[size] << "\n";
+            cout << keys[size] << " ";
+            cout << vals[size] << "\n";
         }
 
-        std::string session = IDtoSessionMap[userID];
+        string session = IDtoSessionMap[userID];
         int responseSocket = SessionToSocketMap[session];
 
-        std::cout << "Gathered session: " << IDtoSessionMap["TestUsername"] << " for tester TestUsername.\n";
+        cout << "Gathered session: " << IDtoSessionMap["TestUsername"] << " for tester TestUsername.\n";
 
-        std::cout << "Gathered session: " << session << " for user " << userID << ".\n";
-        std::cout << "Transmitting message: " << response << " on socket " << std::to_string(responseSocket) << "\n";
+        cout << "Gathered session: " << session << " for user " << userID << ".\n";
+        cout << "Transmitting message: " << response << " on socket " << std::to_string(responseSocket) << "\n";
 
 
         auto bytes_sent = send(responseSocket, response.data(), response.length(), 0);
     }
     catch (...) {
 
-        std::cout << "An error has occured during transmission.\n";
+        cout << "An error has occured during transmission.\n";
         return -1;
     }
     return 0;
@@ -288,17 +178,17 @@ int Server::TransmissionHandler(std::string userID, std::string response) {
 // // This transmission handler can be used when a User ID has not been assigned.
 // // It takes a socket identifier directly rather than a User ID. 
 
-int Server::TransmissionHandler(int responseSocket, std::string response) 
+int Server::TransmissionHandler(int responseSocket, string response) 
 {
 
-    std::cout << "Transmitting message: " << response << " on socket " << std::to_string(responseSocket) << "\n";
+    cout << "Transmitting message: " << response << " on socket " << std::to_string(responseSocket) << "\n";
 
     try {
         auto bytes_sent = send(responseSocket, response.data(), response.length(), 0);
     }
     catch (...) {
 
-        std::cout << "An error has occured during transmission.\n";
+        cout << "An error has occured during transmission.\n";
         return -1;
     }
      return 0;
@@ -337,7 +227,7 @@ int Server::SocketHandler()
 
     // std::endl inserts a newline character and flushes the stream.
 
-    std::cout << "Detecting addresses" << std::endl;
+    cout << "Detecting addresses" << std::endl;
     // Using IPV6 length ensures both IPv4 and v6 addresses can be stored
     // Defined in inet.h
 
@@ -351,7 +241,7 @@ int Server::SocketHandler()
     {
 
         void *addr;
-        std::string ipVersion;
+        string ipVersion;
 
         // Handles the address if it's IPv4
         if (p->ai_family == AF_INET) 
@@ -380,7 +270,7 @@ int Server::SocketHandler()
         inet_ntop(p->ai_family, addr, ipString, sizeof(ipString));
 
         // Prints information about this iteration
-        std::cout << "IP (" << addrCount << ")" << ipVersion << " : " << ipString << std::endl;
+        cout << "IP (" << addrCount << ")" << ipVersion << " : " << ipString << std::endl;
     }
     // Checks to ensure at least one address has been located
     if (addrCount == 0) 
@@ -442,7 +332,7 @@ int Server::SocketHandler()
     socklen_t client_addr_size = sizeof(client_addr);
 
     // This infinite loop handles incoming connections
-    std::cout << "Accepting connections.\n";
+    cout << "Accepting connections.\n";
 
 
     int newFD = accept(socketFD, (sockaddr*)&client_addr, &client_addr_size);
@@ -469,14 +359,14 @@ int Server::SocketHandler()
 
 
         // Prints all received chars.
-        // std::cout << "Bytes received: ";
+        // cout << "Bytes received: ";
 
 
         // for (char i : inputBuffer) {
 
-        //     std::cout << i;
+        //     cout << i;
         // }
-        // std::cout << "\n";
+        // cout << "\n";
         
         if (inputBuffer.size() > 0) {
 
@@ -489,26 +379,6 @@ int Server::SocketHandler()
     freeaddrinfo(res);
 
      return 0;
-}
-
-// // This method initializes the database variables and connects to the database.
-void Server::ConnectDatabase() {
-
-
-    ResultSet *resultSet; 
-    //Result *result; // Represents return result for a query that does not return data.
-
-
-    driver = get_mysql_driver_instance();
-    connection = driver->connect("tcp://127.0.0.1:3306", "root", "giga321");
-
-    connection->setSchema("messenger_database");
-
-    statement = connection->createStatement();
-    //statement->execute("INSERT INTO RegisteredUsers(UserName, UserStatus) VALUES (\"Ikonovich\", \"Active\");");
-
-    //resultSet = statement->executeQuery("SELECT * FROM RegisteredUsers WHERE UserName=\"Ikonovich\"");
-
 }
 
 

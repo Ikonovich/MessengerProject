@@ -14,14 +14,24 @@ class MessengerSystem::DatabaseController
 
 public:
 
-    DatabaseController();
+    DatabaseController(SecurityController *secCon);
+    
+    bool AddUser(string username, string password);
+
+    ResultSet * QueryField(string tableName, string fieldName, string searchString);
+
+    bool CheckField(string tableName, string fieldName, string searchString);
+
+    bool VerifyPassword(string username, string password);
+
+
 
 private:
 
-    // // Database variables.
-    // MySQL_Driver *driver;
-    // Connection *connection;
-    // Statement *statement;
+    MessengerSystem::SecurityController *SecurityCon;
+    // Database variables.
+    MySQL_Driver *driver;
+    Connection *connection;
 
     int ConnectDatabase();
 

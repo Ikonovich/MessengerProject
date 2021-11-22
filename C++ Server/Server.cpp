@@ -1,19 +1,21 @@
 #include "include/libs.h"
 #include "include/namespace.h"
+#include <bitset>
 
-using namespace sql;
-using namespace sql::mysql;
+
+
 using namespace MessengerSystem;
 
 // The server constructor initializes all the relevant objects for the system and passes them as necessary.
 // It initializes the usercontroller, databasecontroller, and securitycontroller.
 Server::Server() {
 
-    DatabaseCon = MessengerSystem::DatabaseController();
-    SecurityCon =  MessengerSystem::SecurityController();
+    
+    SecurityCon = new MessengerSystem::SecurityController();
+    DatabaseCon = new MessengerSystem::DatabaseController(SecurityCon);
 
     string test = "Test";
-    UserCon = new MessengerSystem::UserController(test);
+    UserCon = new MessengerSystem::UserController(DatabaseCon);
 
 }
 
@@ -59,18 +61,17 @@ void Server::StartServer() {
 // AM - Administrative message - A generic response message for connection requests and whatnot
 
 
-void Server::HeaderHandler(std::vector<char> inputBuffer, int clientSocket) {
-
-
-    string input(inputBuffer.begin(), inputBuffer.end()); // String constructor taking the beginning and end of a char vector.
+void Server::HeaderHandler(string input, int clientSocket) {
 
     // Note: string.substr(index, length) gets the string starting at index, with length length.
     // If length is longer than the number of characters after index, gets as many characters as possible.
-    // If index is bigger than the string size, throws out_of_bounds.
+    // If index is bigger than the string size, throws out_of_bounds
+    
+    cout << "Input to header handler: " << input << "\n";
 
     string requestType = input.substr(0, 2);  // Gets the first two characters of the string as the message type "MT"
-
-    string output = input.substr(2, input.length()); // Gets the remainder of the string.
+    string verifyCode = input.substr(2, 16); // Gets byte 2-18 as the verification response code from the client.
+    string output = input.substr(18, input.length()); // Gets the remainder of the string.
 
 
     cout << "Request type is: " << requestType + ".\n";
@@ -82,7 +83,7 @@ void Server::HeaderHandler(std::vector<char> inputBuffer, int clientSocket) {
     }
     catch (const std::out_of_range err) {
         cout << "Request type not found in mapping.\n";
-        cout << "Message is: " << input << "\n";
+        cout << "Message is: " << input << " with length: " << input.length() << "\n";
     }
     
     string response; // Stores the response message from the procedure call
@@ -91,16 +92,16 @@ void Server::HeaderHandler(std::vector<char> inputBuffer, int clientSocket) {
 
     switch (requestInt) {
         case 0:
-            UserCon->InitialRegistration(output, response);
+            UserCon->InitialRegistration(output, verifyCode, response);
             break;
         case 1:
-            UserCon->LoginRequest(output, response);
+            UserCon->LoginRequest(output, verifyCode, response);
             break;
         case 2:
-            UserCon->MessageReceived(output, response);
+            UserCon->MessageReceived(output, verifyCode, response);
             break;
         case 3:
-            UserCon->PullMessages(output, pullVec, response);
+            UserCon->PullMessages(output, verifyCode, pullVec, response);
             break;
         default:
             cout << "An error has occurred: A request type that does not exist "
@@ -120,52 +121,35 @@ void Server::SendTestMessages(string senderID) {
     TransmissionHandler(senderID, "RM Third Test Message");
 }
 
-
-// // Returns an unused session ID string of length 16.
-string Server::GenerateSessionID() {
-
-    string sessionID = "";
-
-    for (int i = 0; i < 16; i++) {
-
-        char newChar = 97 + rand() % 26;
-
-        sessionID += newChar;
-    }
-
-    return sessionID;
-}
-
-
 int Server::TransmissionHandler(string userID, string response) {
 
     try {
 
-        std::vector<string> keys;
-        keys.reserve(IDtoSessionMap.size());
-        std::vector<string> vals;
-        vals.reserve(IDtoSessionMap.size());
+        // std::vector<string> keys;
+        // keys.reserve(IDtoSessionMap.size());
+        // std::vector<string> vals;
+        // vals.reserve(IDtoSessionMap.size());
 
-        for(auto kv : IDtoSessionMap) {
-            keys.push_back(kv.first);
-            vals.push_back(kv.second);  
-        } 
-        for (size_t size = 0; size < keys.size(); size++) {
+        // for(auto kv : IDtoSessionMap) {
+        //     keys.push_back(kv.first);
+        //     vals.push_back(kv.second);  
+        // } 
+        // for (size_t size = 0; size < keys.size(); size++) {
 
-            cout << keys[size] << " ";
-            cout << vals[size] << "\n";
-        }
+        //     cout << keys[size] << " ";
+        //     cout << vals[size] << "\n";
+        // }
 
-        string session = IDtoSessionMap[userID];
-        int responseSocket = SessionToSocketMap[session];
+        // string session = IDtoSessionMap[userID];
+        // int responseSocket = SessionToSocketMap[session];
 
-        cout << "Gathered session: " << IDtoSessionMap["TestUsername"] << " for tester TestUsername.\n";
+        // cout << "Gathered session: " << IDtoSessionMap["TestUsername"] << " for tester TestUsername.\n";
 
-        cout << "Gathered session: " << session << " for user " << userID << ".\n";
-        cout << "Transmitting message: " << response << " on socket " << std::to_string(responseSocket) << "\n";
+        // cout << "Gathered session: " << session << " for user " << userID << ".\n";
+        // cout << "Transmitting message: " << response << " on socket " << std::to_string(responseSocket) << "\n";
 
 
-        auto bytes_sent = send(responseSocket, response.data(), response.length(), 0);
+        // auto bytes_sent = send(responseSocket, response.data(), response.length(), 0);
     }
     catch (...) {
 
@@ -358,19 +342,11 @@ int Server::SocketHandler()
         auto bytes_received = recv(newFD, inputBuffer.data(), inputBuffer.size(), 0);
 
 
-        // Prints all received chars.
-        // cout << "Bytes received: ";
-
-
-        // for (char i : inputBuffer) {
-
-        //     cout << i;
-        // }
-        // cout << "\n";
+        string input(inputBuffer.begin(), inputBuffer.end()); // String constructor taking the beginning and end of a char vector.
         
-        if (inputBuffer.size() > 0) {
-
-            HeaderHandler(inputBuffer, newFD);
+        if (input.at(0) != 0) {
+            printf("Value of char at 0 is %i", (int)input.at(0));
+            HeaderHandler(input, newFD);
         }
     }
 

@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\UbuntuMysql\C# Client\Messenger Client\obj\Debug\net5.0-windows\
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\
 Messenger_Client
 none
 false
 TRACE;DEBUG;NET;NET5_0;NETCOREAPP
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\UbuntuMysql\C# Client\Messenger Client\App.xaml
-4-1492192064
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\App.xaml
+5-649717704
 1-1504490742
-8-1119878130
+12-2108981950
 193-1891726104
-FriendsControl.xaml;LoginControl.xaml;MainWindow.xaml;MessageControl.xaml;
+FriendsControl.xaml;LoginControl.xaml;MainWindow.xaml;MessageControl.xaml;RegistrationControl.xaml;
 
 False
 

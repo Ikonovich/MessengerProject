@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.Collections.Generic;
 using System.Windows.Media.Animation;
 using System.Windows.Documents;
-
+using System.ComponentModel;
 
 namespace Messenger_Client
 {
@@ -20,19 +20,53 @@ namespace Messenger_Client
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
 
-        ConnectionHandler ConnectionHandler;
+        // Singletons
+        Controller Controller;
 
         LoginControl LoginControl = new LoginControl();
         FriendsControl FriendsControl = new FriendsControl();
-        MessageControl MessageControl;
+        MessageControl MessageControl = new MessageControl();
+        RegistrationControl RegistrationControl = new RegistrationControl();
+
+        private bool isPopupOpen = false;
+        public bool IsPopupOpen
+        {
+            get 
+            { 
+                return isPopupOpen; 
+            }
+            set
+            {
+                isPopupOpen = value;
+                OnPropertyChanged("IsPopupOpen");
+            }
+        }
+
+        private string username = "Not Logged In";
+        public string Username
+        {
+            get 
+            { 
+                return username; 
+            }
+            set
+            {
+                username = value;
+                OnPropertyChanged("Username");
+            }
+        }
 
         public MainWindow()
         {
 
             MessageControl = new MessageControl();
+            LoginControl = new LoginControl();
+            RegistrationControl = new RegistrationControl();
+
+            Controller = Controller.ControllerInstance;
 
 
             InitializeComponent();
@@ -40,31 +74,13 @@ namespace Messenger_Client
             MouseDown += OnMouseDown;
             KeyDown += OnKeyDown;
 
-            Bold username = new Bold(new Run("Logged out"));
-
-            UsernameHolder.Inlines.Add(username);
-
-            ContentLeft.Content = LoginControl;
-            ContentRight.Content = MessageControl;
-
-            // Getting the singleton that handles the server connection.
-
-            ConnectionHandler = ConnectionHandler.HandlerInstance;
-            if (ConnectionHandler.Login("TestUsername", "TestPassword"))
-            {
-
-                LoginSuccessful();
-            }
+            ContentRight.Content = LoginControl;
 
         }
 
-        public void LoginSuccessful()
+        public void LoginSuccessful(string username)
         {
-
-            Bold username = new Bold(new Run(ConnectionHandler.GetUsername()));
-            UsernameHolder.Inlines.Clear();
-            UsernameHolder.Inlines.Add(username);
-
+            Username = username;
             ContentLeft.Content = FriendsControl;
 
         }
@@ -89,6 +105,36 @@ namespace Messenger_Client
         private void OnExitButton(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
+        }
+
+        public void RegistrationView()
+        {
+            ContentRight.Content = RegistrationControl;
+        }
+
+        public void LoginView()
+        {
+            ContentRight.Content = LoginControl;
+        }
+
+
+        public void ShowPopup(string message)
+        {
+            Run run = new Run(message);
+            Bold text = new Bold(run);
+            PopupText.Inlines.Add(text);
+            IsPopupOpen = true;
+        }
+
+
+        //INotifyPropertyChanged members
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+                handler(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

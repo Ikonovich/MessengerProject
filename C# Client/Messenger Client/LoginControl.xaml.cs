@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,16 +27,40 @@ namespace Messenger_Client
         ConnectionHandler ConnectionHandler;
         public LoginControl()
         {
+            InitializeComponent();
 
             MainWindow = Application.Current.MainWindow as MainWindow;
-            ConnectionHandler = ConnectionHandler.HandlerInstance;
 
-            InitializeComponent();
         }
+
 
         public void LoginAttempt()
         {
 
+
+        }
+
+        public void GoToRegistration(object sender, RequestNavigateEventArgs e)
+        {
+            Debug.WriteLine("Registration event fired.");
+            MainWindow.RegistrationView();
+        }
+
+
+        public void LoginAttempt(object sender, RequestNavigateEventArgs e)
+        {
+            string username = LoginUsername.Text;
+            string password = LoginPassword.Text;
+
+            if (username.Length < 8 || username.Length > 32)
+            {
+
+
+            }
+            else if (password.Length < 8 || password.Length > 128)
+            {
+
+            }
 
         }
     }

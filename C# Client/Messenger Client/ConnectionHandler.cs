@@ -35,7 +35,7 @@ namespace Messenger_Client
     // RM - Receive message
     // AM - Administrative message - A generic server response message for connection requests and whatnot
 
-    class ConnectionHandler
+    public class ConnectionHandler
     {
 
         //
@@ -45,11 +45,10 @@ namespace Messenger_Client
         private static ConnectionHandler handlerInstance { get; set; }
 
         // Private singleton constructor
-        private ConnectionHandler() {
+        private ConnectionHandler() 
+        {
             Connect();
             Receive();
-            TransmissionHandler("LRTestUsername********************");
-
         }
 
         // Public singleton variable
@@ -86,11 +85,26 @@ namespace Messenger_Client
 
         private static string Username { get; set; } = "Not Logged In";
 
-        public bool Login(string username, string password)
-        {
-            Username = username;
-            return true;
+        private bool LoginPending = false;
+        private string PendingUsername = "None";
 
+
+        public void Register(string username, string password)
+        {
+            username = PackString(username, 32);
+
+            string verification = Security.GenerateCode(16);
+
+            Debug.WriteLine("Registering with username: " + username);
+            TransmissionHandler("IR" + verification + username + password);
+        }
+
+        public void Login(string username, string password)
+        {
+
+            LoginPending = true;
+            PendingUsername = username;
+            TransmissionHandler("LR" + PackString(username, 32) + password);
         }
 
         public string GetUsername()
@@ -98,7 +112,7 @@ namespace Messenger_Client
             return Username;
         }
 
-        public void Connect()
+        private void Connect()
         {
             IPHostEntry hostEntry = null; // Container for host address info.
             IPAddress hostAddress = IPAddress.Loopback;
@@ -174,18 +188,19 @@ namespace Messenger_Client
 
         private void RaiseMessageEvent(string message)
         {
-
-            //Thread thread = new Thread(() => 
-            //{    
-            //    Debug.WriteLine("Raise event called");
-            //    MessageEvent?.Invoke(this, new MessageEventArgs(message));
-            //});
-
-            //thread.SetApartmentState(ApartmentState.STA);
-            //thread.Start();
             Debug.WriteLine("Raise event called");
             MessageEvent?.Invoke(this, new MessageEventArgs(message));
+        }
 
+        // This method packs a string in a special null character (currently asterisks) to make it fit the size
+        // provided, allowing it to be parsed more easily.
+        private string PackString(string input, int size)
+        {
+            for (int i = input.Length; i < size; i++)
+            {
+                input += "*";
+            }
+            return input;
         }
     }
 }

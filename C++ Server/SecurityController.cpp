@@ -4,10 +4,12 @@
 #include <openssl/ssl.h> // Core library
 #include <openssl/sha.h> // SHA functions
 
+
 // LibCrypto
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h> // Errors
+ #include <openssl/rand.h> // Random generator
 
 #include "include/libs.h"
 #include "include/namespace.h"
@@ -17,32 +19,58 @@
 
 SecurityController::SecurityController() {}
 
-int SecurityController::GenerateHash(string input, string& output) 
+string SecurityController::GenerateHash(string saltedPass) 
 {
+    // --------------- Hash Method 1: ---------------
+    const unsigned char* hashInput = (const unsigned char *)saltedPass.c_str();
 
-    // string saltString;
+    unsigned char* hashPtr = (unsigned char *)malloc(sizeof(char) * 32);
+    SHA256(hashInput, 32, hashPtr);
 
-    // if (GenerateSalt(saltString) != 1) {
-    //     return -1;
-    // }
+    // -----------Hash method 2: ---------------
+    // unsigned char hash[SHA256_DIGEST_LENGTH];
+    // SHA256_CTX sha256;
+    // SHA256_Init(&sha256);
 
-    // unsigned char hashInput[] = strcpy(saltString + input);
+    // unsigned char* hashBuffer = (unsigned char *)malloc(256);
 
-    // unsigned char hashOutput[32];
-    // SHA256(hashInput, strlen(hashInput), hashOutput);
+    // SHA256_Update(&sha256, hashBuffer, saltedPass.length());
 
-    // output = hashOutput;
+    // SHA256_Final(hash, &sha256);
 
-    return 0;
+
+    // Converts the hash result to a hexadecimal string.
+    string output = "";
+    char* charPtr = (char *)malloc(256);
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+
+        sprintf(charPtr, "%02x", hashPtr[i]);
+        string charString(charPtr);
+        output += charString;
+    }
+
+    cout << "\nHash result: " << output << "\n";
+    return output;
 
 }
 
 
-int SecurityController::GenerateSalt(string& saltString) {
+string SecurityController::GenerateSalt() {
 
-//byte saltBuffer[256];
+    cout << "Generating salt.\n";
+    unsigned char saltBuffer[32];
 
-   //return RAND_bytes(saltBuffer, sizeof(saltBuffer));
+    RAND_bytes(saltBuffer, sizeof(saltBuffer));
+        
+    char* charPtr = (char *)malloc(32);
+    string output = "";
+    for (int i = 0; i < 32; i++) {
 
-   return 0;
+        sprintf(charPtr, "%02x", saltBuffer[i]);
+        string charString(charPtr);
+        output += charString;
+    }
+    cout << "Salt generated: " << output << "\n";
+
+    return output;
 }

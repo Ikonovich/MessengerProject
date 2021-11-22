@@ -34,26 +34,6 @@ const int maxConnections = 50;
 // Maps sessions to sockets:
 unordered_map<string, int> SessionToSocketMap;
 
-// Maps client usernames to UserIDs: 
-unordered_map<string, string> NameToIDMap;
-
-// Maps client User IDs to UserNames: 
-unordered_map<string, string> IDtoNameMap;
-
-// Maps logged in users to session IDs.
-unordered_map<string, string> IDtoSessionMap;
-
-
-// Maps session IDs to logged in users.
-unordered_map<string, string> SessionToIDMap;
-
-// Maps connected clients to each other. 
-unordered_map<string, string> ActiveConnectionMap;
-
-// Maps pending requested from clients to requested clients.
-unordered_map<string, string> PendingConnectionMap;
-
-
 // Mapping header information to integers
 const unordered_map<string, int> RequestTypeMap{
                                         {"IR", 0},
@@ -62,7 +42,7 @@ const unordered_map<string, int> RequestTypeMap{
                                         {"PM", 3}
                                         };
 
-    void HeaderHandler(vector<char> inputBuffer, int clientSocket);
+    void HeaderHandler(string input, int clientSocket);
 
     void SendTestMessages(string senderID);
 

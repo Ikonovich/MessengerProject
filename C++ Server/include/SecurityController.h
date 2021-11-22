@@ -13,11 +13,10 @@ class MessengerSystem::SecurityController
 public:
 
     SecurityController();
-    int GenerateHash(string input, string& output);
 
-private: 
+    string GenerateHash(string input);
 
-    int GenerateSalt(string& saltString);
+    string GenerateSalt();
 
 };
 

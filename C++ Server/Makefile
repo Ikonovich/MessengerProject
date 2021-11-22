@@ -10,4 +10,4 @@ DEPS=includes.h
 	${CC} -c -o $@ $< ${CFLAGS}
 
 servermake: Server.cpp
-	${CC} Server.cpp -o Server -lmysqlcppconn -lmysqlcppconn8 -lssl -I/usr/include/mysql-cppconn-8/ -I/usr/include/mysql-cppconn-8/jdbc -std=c++2a
+	${CC} Server.cpp -o Server -lmysqlcppconn -lssl -lcrypto -lmysqlcppconn8 -I/usr/include/mysql-cppconn-8/ -lssl -I/usr/include/mysql-cppconn-8/jdbc -std=c++2a

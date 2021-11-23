@@ -38,6 +38,8 @@ namespace Messenger_Client
     public class ConnectionHandler
     {
 
+        Controller Controller;
+
         //
         // Begin singleton data
         //
@@ -89,22 +91,21 @@ namespace Messenger_Client
         private string PendingUsername = "None";
 
 
-        public void Register(string username, string password)
+        public void Register(string username, string password, string verification)
         {
             username = PackString(username, 32);
 
-            string verification = Security.GenerateCode(16);
 
             Debug.WriteLine("Registering with username: " + username);
             TransmissionHandler("IR" + verification + username + password);
         }
 
-        public void Login(string username, string password)
+        public void Login(string username, string password, string verification)
         {
 
             LoginPending = true;
             PendingUsername = username;
-            TransmissionHandler("LR" + PackString(username, 32) + password);
+            TransmissionHandler("LR" + verification + PackString(username, 32) + password);
         }
 
         public string GetUsername()
@@ -177,6 +178,12 @@ namespace Messenger_Client
             Debug.WriteLine("Header parser activated");
             Debug.WriteLine(received);
             RaiseMessageEvent(received);
+
+            if (Controller == null)
+            {
+
+            //    Controller = Controller.ControllerInstance;
+            }
         }
 
         public void TransmissionHandler(string messageOut)

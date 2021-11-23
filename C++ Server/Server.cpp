@@ -132,7 +132,6 @@ void Server::SendTestMessages(string senderID) {
 
 int Server::TransmissionHandler(string session, string response) {
 
-    response.append("%END%");
     try {
 
         int responseSocket = SessionToSocketMap[session];
@@ -156,7 +155,6 @@ int Server::TransmissionHandler(string session, string response) {
 
 int Server::TransmissionHandler(int responseSocket, string response) 
 {
-    response.append("%END%");
     cout << "Transmitting message: " << response << " on socket " << std::to_string(responseSocket) << "\n";
 
     try {

@@ -38,9 +38,6 @@ namespace Messenger_Client
     public class ConnectionHandler
     {
 
-        // Controller
-        Controller Controller;
-
         //
         // Begin singleton data
         //
@@ -50,7 +47,6 @@ namespace Messenger_Client
         // Private singleton constructor
         private ConnectionHandler() 
         {
-
             Connect();
             Receive();
         }
@@ -72,10 +68,12 @@ namespace Messenger_Client
         // End Singleton data
         //
 
+
         // Connection-related variables
         Socket ServerSocket = null;
         Int32 Port = 3000;
 
+        Byte[] BytesReceived = new byte[256];
 
 
 
@@ -91,20 +89,22 @@ namespace Messenger_Client
         private string PendingUsername = "None";
 
 
-        public void Register(string username, string password, string verification)
+        public void Register(string username, string password)
         {
             username = PackString(username, 32);
+
+            string verification = Security.GenerateCode(16);
 
             Debug.WriteLine("Registering with username: " + username);
             TransmissionHandler("IR" + verification + username + password);
         }
 
-        public void Login(string username, string password, string verification)
+        public void Login(string username, string password)
         {
 
             LoginPending = true;
             PendingUsername = username;
-            TransmissionHandler("LR" + verification + PackString(username, 32) + password);
+            TransmissionHandler("LR" + PackString(username, 32) + password);
         }
 
         public string GetUsername()
@@ -142,27 +142,21 @@ namespace Messenger_Client
         private void Receive()
         {
 
-            Byte[] BytesReceived = new byte[256];
 
             int receivedSize = 0;
             do
             {
                 string message = "Message";
-                string stringReceived = "";
                 ServerSocket.BeginReceive(BytesReceived, 0, BytesReceived.Length, 0, new AsyncCallback(MessageReceived), message);
 
-                stringReceived += Encoding.ASCII.GetString(BytesReceived);
+                string stringReceived = Encoding.ASCII.GetString(BytesReceived);
 
-                Debug.WriteLine("Received string is: " + stringReceived);
-                if (stringReceived.Contains("%END%"))
+
+                if (stringReceived.Length > 0)
                 {
-                    Debug.WriteLine("Received string:" + stringReceived + "\n");
-                    string resultString = stringReceived.Remove(stringReceived.Length - 6);
-
-                    Debug.WriteLine("Result string:" + resultString + "\n");
-
-                    ReceiveHandler(resultString);
-                    stringReceived = "";
+                    Debug.WriteLine("Chars received count: " + stringReceived.Length + "\n");
+                    Debug.WriteLine("Received string: " + stringReceived + "\n");
+                    HeaderParser(stringReceived);
                 }
             } while (receivedSize > 0);
 
@@ -172,42 +166,21 @@ namespace Messenger_Client
         {
             int byteCount = ServerSocket.EndReceive(result);
 
-            Debug.WriteLine("Message received of size: " + byteCount);
+            //string stringReceived = Encoding.ASCII.GetString(BytesReceived, 0, byteCount);
+
+            Debug.WriteLine("Message received");
             Receive();
         }
 
-        // This method takes received transmissions, sends them to be parsed, 
-        // and then sends them to the controller to be handled. 
-        // It then 
-        // If the parse fails, it calls the error handler. 
-        private void ReceiveHandler(string received)
+        private void HeaderParser(string received)
         {
-
-            if (Controller == null)
-            {
-                Controller = Controller.ControllerInstance;
-            }
-
             Debug.WriteLine("Header parser activated");
             Debug.WriteLine(received);
             RaiseMessageEvent(received);
-
-            Dictionary<string, string> output = new();
-            if (Parser.Parse(received, out output) == false)
-            {
-                Controller.ErrorCall(new ArgumentException(), "An uninterpretable server transmission has been received.");
-            }
-            else
-            {
-                Controller.MessageHandler(output);
-            }
-
         }
 
         public void TransmissionHandler(string messageOut)
         {
-            Debug.WriteLine("Transmitting: " + messageOut);
-
             Byte[] sent = Encoding.ASCII.GetBytes(messageOut);
             ServerSocket.Send(sent);
         }

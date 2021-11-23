@@ -39,7 +39,7 @@ namespace Messenger_Client
         // private singleton constructor
         private Controller()
         {
-            ConnectionHandler = ConnectionHandler.HandlerInstance;
+            ConnectionHandler = new ConnectionHandler(this);
             MainWindow = Application.Current.MainWindow as MainWindow;
         }
 

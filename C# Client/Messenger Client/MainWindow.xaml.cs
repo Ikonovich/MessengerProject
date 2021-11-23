@@ -66,9 +66,6 @@ namespace Messenger_Client
             LoginControl = new LoginControl();
             RegistrationControl = new RegistrationControl();
 
-            Controller = Controller.ControllerInstance;
-
-
             InitializeComponent();
 
             MouseDown += OnMouseDown;

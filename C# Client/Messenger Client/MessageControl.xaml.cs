@@ -31,8 +31,6 @@ namespace Messenger_Client
 
         MainWindow MainWindow;
 
-        ConnectionHandler ConnectionHandler;
-
         // Stores the username of the user currently being spoken to.
         string ViewedFriend = "FriendlyUser";
 
@@ -40,9 +38,7 @@ namespace Messenger_Client
         {
 
             MainWindow = Application.Current.MainWindow as MainWindow;
-            ConnectionHandler = ConnectionHandler.HandlerInstance;
 
-            ConnectionHandler.MessageEvent += OnMessageEvent;
             Debug.WriteLine("Event subscribed to");
 
 
@@ -91,33 +87,7 @@ namespace Messenger_Client
 
             // Gets sender username with filler asterisks.
 
-            string username = ConnectionHandler.GetUsername();
 
-            int fillLength = 32 - username.Length;
-            string filler = "";
-
-            for (int i = 0; i < fillLength; i++)
-            {
-                filler += "*";
-            }
-            string userID = username + filler;
-
-
-            // Gets receiver username with filler asterisks.
-            fillLength = 32 - ViewedFriend.Length;
-            filler = "";
-
-            for (int i = 0; i < fillLength; i++)
-            {
-                filler += "*";
-            }
-            string friendID = ViewedFriend + filler;
-
-
-
-            string sendMessage = "SM" + userID + friendID + message.Item1 + " " + message.Item2 + ": " + message.Item3;
-
-            ConnectionHandler.TransmissionHandler(sendMessage);
             NewMessage(message);
 
 
@@ -199,11 +169,6 @@ namespace Messenger_Client
                 {
 
                     string dateTime = GetDateTimeString();
-                    string username = ConnectionHandler.GetUsername();
-                    Tuple<string, string, string> message = new Tuple<string, string, string>(dateTime, username, newMessage);
-
-                    MessageList.Add(message);
-                    SendMessage(message);
 
                     MessageEntry.Text = "";
                 }

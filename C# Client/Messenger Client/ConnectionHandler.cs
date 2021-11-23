@@ -40,35 +40,17 @@ namespace Messenger_Client
 
         Controller Controller;
 
-        //
-        // Begin singleton data
-        //
-        // Backing instance for singleton
-        private static ConnectionHandler handlerInstance { get; set; }
+        // The constructor initializes the connection handler listening to the server.
+        // It also takes and sets the Controller variable for this class. 
 
-        // Private singleton constructor
-        private ConnectionHandler() 
+
+        public ConnectionHandler(Controller controller) 
         {
+            Controller = controller;
             Connect();
             Receive();
         }
 
-        // Public singleton variable
-        public static ConnectionHandler HandlerInstance
-        {
-            get
-            {
-                if (handlerInstance == null)
-                {
-                    handlerInstance = new ConnectionHandler();
-                }
-                return handlerInstance;
-            }
-        }
-
-        //
-        // End Singleton data
-        //
 
 
         // Connection-related variables
@@ -89,6 +71,7 @@ namespace Messenger_Client
 
         private bool LoginPending = false;
         private string PendingUsername = "None";
+
 
 
         public void Register(string username, string password, string verification)
@@ -143,7 +126,6 @@ namespace Messenger_Client
         private void Receive()
         {
 
-
             int receivedSize = 0;
             do
             {
@@ -155,8 +137,6 @@ namespace Messenger_Client
 
                 if (stringReceived.Length > 0)
                 {
-                    Debug.WriteLine("Chars received count: " + stringReceived.Length + "\n");
-                    Debug.WriteLine("Received string: " + stringReceived + "\n");
                     HeaderParser(stringReceived);
                 }
             } while (receivedSize > 0);
@@ -175,14 +155,13 @@ namespace Messenger_Client
 
         private void HeaderParser(string received)
         {
-            Debug.WriteLine("Header parser activated");
+            Debug.WriteLine("Header parser activated\n");
             Debug.WriteLine(received);
             RaiseMessageEvent(received);
 
             if (Controller == null)
             {
-
-            //    Controller = Controller.ControllerInstance;
+                Controller = Controller.ControllerInstance;
             }
         }
 

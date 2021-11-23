@@ -30,7 +30,6 @@ namespace Messenger_Client
 
     static class Parser
     {
-
         public static bool Parse(string input, out Dictionary<string, string> outputDict)
         {
             outputDict = new Dictionary<string, string>();

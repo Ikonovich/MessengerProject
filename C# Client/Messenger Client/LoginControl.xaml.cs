@@ -23,8 +23,6 @@ namespace Messenger_Client
     {
 
         MainWindow MainWindow;
-
-        ConnectionHandler ConnectionHandler;
         Controller Controller;
 
         public LoginControl()
@@ -32,7 +30,6 @@ namespace Messenger_Client
             InitializeComponent();
 
             MainWindow = Application.Current.MainWindow as MainWindow;
-            ConnectionHandler = ConnectionHandler.HandlerInstance;
             Controller = Controller.ControllerInstance;
 
         }

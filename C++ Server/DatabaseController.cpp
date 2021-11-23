@@ -10,9 +10,6 @@ using namespace sql::mysql;
 DatabaseController::DatabaseController(SecurityController *secCon) : SecurityCon(secCon) {
 
     ConnectDatabase();
-    string username = "userpass";
-    string password = "userpass";
-    VerifyPassword(username, password);
 }
 
 // This method initializes the database variables and connects to the database.

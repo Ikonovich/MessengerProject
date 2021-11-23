@@ -63,7 +63,7 @@ namespace Messenger_Client
                     return ParseAM(remainder, out outputDict);
 
                 default:
-                    throw new ArgumentException("Receipt code is invalid.");
+                    return false;
             }
 
         }
@@ -79,10 +79,12 @@ namespace Messenger_Client
                 string receiptCode = "RS";
                 string verification = input.Substring(0, 16);
                 string username = input.Substring(16, 32);
+                string message = input.Substring(48);
 
                 outputDict["ReceiptCode"] = receiptCode;
                 outputDict["VerificationCode"] = verification;
                 outputDict["Username"] = username;
+                outputDict["Message"] = message;
             }
             catch (IndexOutOfRangeException e)
             {
@@ -126,10 +128,13 @@ namespace Messenger_Client
                 string verification = input.Substring(0, 16);
                 string sessionID = input.Substring(16, 32);
                 string username = input.Substring(48, 32);
+                string message = input.Substring(80);
 
                 outputDict["ReceiptCode"] = receiptCode;
                 outputDict["VerificationCode"] = verification;
                 outputDict["Username"] = username;
+                outputDict["Message"] = message;
+
             }
             catch (IndexOutOfRangeException e)
             {

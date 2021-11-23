@@ -15,7 +15,7 @@ public:
 
     int InitialRegistration(string input, string verifyCode, string& responseOut);
 
-    void LoginRequest(string input, string verifyCode, string& responseOut);
+    bool LoginRequest(string input, string verifyCode, string& sessionOut, string& responseOut);
 
     void MessageReceived(string input, string verifyCode, string& responseOut);
 
@@ -25,7 +25,7 @@ private:
 
     // Variables
     MessengerSystem::DatabaseController *DatabaseCon;
-    
+
     // Maps logged in users to session IDs.
     unordered_map<string, string> NameToSessionMap;
 

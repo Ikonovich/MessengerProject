@@ -87,15 +87,24 @@ void Server::HeaderHandler(string input, int clientSocket) {
     }
     
     string response; // Stores the response message from the procedure call
+    string session; // Stores the session ID created by a successful login request.
     vector<string> pullVec; // Stores items from a pull response
-
+    
 
     switch (requestInt) {
         case 0:
             UserCon->InitialRegistration(output, verifyCode, response);
+            TransmissionHandler(clientSocket, response);
             break;
         case 1:
-            UserCon->LoginRequest(output, verifyCode, response);
+
+            if (UserCon->LoginRequest(output, verifyCode, session, response) == true) {
+                SessionToSocketMap[session] = clientSocket;
+                TransmissionHandler(session, response);
+            }
+            else {
+                TransmissionHandler(clientSocket, response);
+            }
             break;
         case 2:
             UserCon->MessageReceived(output, verifyCode, response);
@@ -121,35 +130,18 @@ void Server::SendTestMessages(string senderID) {
     TransmissionHandler(senderID, "RM Third Test Message");
 }
 
-int Server::TransmissionHandler(string userID, string response) {
+int Server::TransmissionHandler(string session, string response) {
 
+    response.append("%END%");
     try {
 
-        // std::vector<string> keys;
-        // keys.reserve(IDtoSessionMap.size());
-        // std::vector<string> vals;
-        // vals.reserve(IDtoSessionMap.size());
+        int responseSocket = SessionToSocketMap[session];
 
-        // for(auto kv : IDtoSessionMap) {
-        //     keys.push_back(kv.first);
-        //     vals.push_back(kv.second);  
-        // } 
-        // for (size_t size = 0; size < keys.size(); size++) {
-
-        //     cout << keys[size] << " ";
-        //     cout << vals[size] << "\n";
-        // }
-
-        // string session = IDtoSessionMap[userID];
-        // int responseSocket = SessionToSocketMap[session];
-
-        // cout << "Gathered session: " << IDtoSessionMap["TestUsername"] << " for tester TestUsername.\n";
-
-        // cout << "Gathered session: " << session << " for user " << userID << ".\n";
-        // cout << "Transmitting message: " << response << " on socket " << std::to_string(responseSocket) << "\n";
+        cout << "Gathered session: " << session << ".\n";
+        cout << "Transmitting message: " << response << " on socket " << std::to_string(responseSocket) << "\n";
 
 
-        // auto bytes_sent = send(responseSocket, response.data(), response.length(), 0);
+        auto bytes_sent = send(responseSocket, response.data(), response.length(), 0);
     }
     catch (...) {
 
@@ -164,7 +156,7 @@ int Server::TransmissionHandler(string userID, string response) {
 
 int Server::TransmissionHandler(int responseSocket, string response) 
 {
-
+    response.append("%END%");
     cout << "Transmitting message: " << response << " on socket " << std::to_string(responseSocket) << "\n";
 
     try {

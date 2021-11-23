@@ -25,18 +25,15 @@ namespace Messenger_Client
         MainWindow MainWindow;
 
         ConnectionHandler ConnectionHandler;
+        Controller Controller;
+
         public LoginControl()
         {
             InitializeComponent();
 
             MainWindow = Application.Current.MainWindow as MainWindow;
-
-        }
-
-
-        public void LoginAttempt()
-        {
-
+            ConnectionHandler = ConnectionHandler.HandlerInstance;
+            Controller = Controller.ControllerInstance;
 
         }
 
@@ -49,18 +46,13 @@ namespace Messenger_Client
 
         public void LoginAttempt(object sender, RequestNavigateEventArgs e)
         {
+
             string username = LoginUsername.Text;
             string password = LoginPassword.Text;
 
-            if (username.Length < 8 || username.Length > 32)
-            {
+            Debug.WriteLine("Asking controller to login.");
 
-
-            }
-            else if (password.Length < 8 || password.Length > 128)
-            {
-
-            }
+            Controller.Login(username, password);
 
         }
     }

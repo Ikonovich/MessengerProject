@@ -83,30 +83,36 @@ int UserController::InitialRegistration(string input, string verifyCode, string&
 // LU - Login Unsuccessful
 
 
-void UserController::LoginRequest(string input, string verifyCode, string& responseOut) {
+bool UserController::LoginRequest(string input, string verifyCode, string& sessionOut, string& responseOut) {
 
-    // string senderID;
-    // string password;
+    string senderID;
+    string password;
 
-    // ParseUser(input, senderID, password);
+    ParseUser(input, senderID, password);
 
-    // cout << "User attempting to login: " << senderID << " on socket " << std::to_string(clientSocket) << ".\n";
+    cout << "User attempting to login: " << senderID << " with password " << password << ".\n";
 
-    // string session = "";
+    if (DatabaseCon->VerifyPassword(senderID, password) == false) {
 
-    // if (IDtoSessionMap.contains(senderID) == false) {
+        responseOut = "LU" + verifyCode + "Information for user " + senderID + " could not be verified.";
+        return false;
+    }
 
-    //     session = GenerateSessionID();
-    // }
+    string session = "";
 
-    // SessionToIDMap[session] = senderID;
-    // IDtoSessionMap[senderID] = session;
-    // SessionToSocketMap[session] = clientSocket;
+    session = GenerateSessionID();
 
-    // cout << "Session " << session << " assigned to user " << senderID << ".\n";
+    SessionToNameMap[session] = senderID;
+    NameToSessionMap[senderID] = session;
+    
+    cout << "Session " << session << " assigned to user " << senderID << ".\n";
+    cout << "Confirming session assignment for user " << senderID << ": " << NameToSessionMap[senderID] << ".\n";
+    cout << "Login approved.";
 
-    // cout << "Confirming session assignment for user " << senderID << ": " << IDtoSessionMap[senderID] << ".\n";
-    // cout << "Login approved.";
+    sessionOut = session;
+    responseOut = "LS" + verifyCode + senderID + "User " + senderID + " has logged in successfully.";
+
+    return true;
 }
 
 void UserController::MessageReceived(string input, string verifyCode, string& responseOut) {

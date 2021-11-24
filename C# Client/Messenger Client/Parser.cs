@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,26 +8,30 @@ using System.Threading.Tasks;
 namespace Messenger_Client
 {
 
-    // This class contains methods that can be used to parse data from incoming messages.
-    // The primary function returns true if the parse is successful, false otherwise, and
-    // sends output to a provided dictionary. 
 
-    // Items being parsed out are:
-    // Receiving username: 32 chars, filled with asterisks after the final alphanumeric character.
-    // Sending username: 32 chars, filled with asterisks after the final alphanumeric character.
-    // SessionID: 32 alphanumeric chars
-    // Verification code: 16 alphanumeric chars
+    /// <summary> 
+    /// 
+    /// This class contains methods that can be used to parse data from incoming messages.
+    /// The primary function returns true if the parse is successful, false otherwise, and
+    /// sends output to a provided dictionary. 
 
-    // Available receipt codes are:
+    /// Items being parsed out are:
+    /// Receiving username: 32 chars, filled with asterisks after the final alphanumeric character.
+    /// Sending username: 32 chars, filled with asterisks after the final alphanumeric character.
+    /// SessionID: 32 alphanumeric chars
+    /// Verification code: 16 alphanumeric chars
 
-    // RS - Registration Successful - Should be accompanied by verification code and username.
-    // LS - Login Successful - Should be accompanied by verification code, sessionID, and username.
-    // LU - Login Unsuccessful - Should be accompanied by verification code, username, and an error message
-    // PR - Pull Message Request - Sent to indicate that a new message has been sent and a pull request should be made
-    // for a specific user. Accompanied by receiving username, sending username, and session ID.
-    // AM - Administrative message - A generic response code that should be accompanied by a session ID, username, and message.
+    /// Available receipt codes are:
 
-  
+    /// RS - Registration Successful - Should be accompanied by verification code and username.
+    /// LS - Login Successful - Should be accompanied by verification code, sessionID, and username.
+    /// LU - Login Unsuccessful - Should be accompanied by verification code, username, and an error message
+    /// PR - Pull Message Request - Sent to indicate that a new message has been sent and a pull request should be made
+    /// for a specific user. Accompanied by receiving username, sending username, and session ID.
+    /// AM - Administrative message - A generic response code that should be accompanied by a session ID, username, and message.
+    ///
+    /// </summary>
+
 
     static class Parser
     {
@@ -82,7 +87,7 @@ namespace Messenger_Client
 
                 outputDict["ReceiptCode"] = receiptCode;
                 outputDict["VerificationCode"] = verification;
-                outputDict["Username"] = username;
+                outputDict["Username"] = Unpack(username);
                 outputDict["Message"] = message;
             }
             catch (IndexOutOfRangeException e)
@@ -106,7 +111,7 @@ namespace Messenger_Client
 
                 outputDict["ReceiptCode"] = receiptCode;
                 outputDict["VerificationCode"] = verification;
-                outputDict["Username"] = username;
+                outputDict["Username"] = Unpack(username);
                 outputDict["Message"] = errorMessage;
 
             }
@@ -118,8 +123,10 @@ namespace Messenger_Client
         }
 
         // LS - Login Successful - Should be accompanied by verification code, sessionID, and username.
-        private static  bool ParseLS(string input, out Dictionary<string, string> outputDict)
+        private static bool ParseLS(string input, out Dictionary<string, string> outputDict)
         {
+            string debug = "Parsing LS message: \n" + input + " \n: End message.\n\n\n";
+            Debug.WriteLine(debug);
             outputDict = new Dictionary<string, string>();
             try
             {
@@ -129,9 +136,13 @@ namespace Messenger_Client
                 string username = input.Substring(48, 32);
                 string message = input.Substring(80);
 
+                Debug.WriteLine("\nLS Parse: Verification: " + verification + " SessionID: " + sessionID + " Username: " + username + " Message: " + message + "\n");
+
+
                 outputDict["ReceiptCode"] = receiptCode;
+                outputDict["SessionID"] = sessionID;
                 outputDict["VerificationCode"] = verification;
-                outputDict["Username"] = username;
+                outputDict["Username"] = Unpack(username);
                 outputDict["Message"] = message;
 
             }
@@ -158,7 +169,7 @@ namespace Messenger_Client
 
                 outputDict["ReceiptCode"] = receiptCode;
                 outputDict["VerificationCode"] = verification;
-                outputDict["Username"] = username;
+                outputDict["Username"] = Unpack(username);
                 outputDict["Message"] = errorMessage;
 
             }
@@ -186,8 +197,8 @@ namespace Messenger_Client
                 string sessionID = input.Substring(16, 32);
 
                 outputDict["ReceiptCode"] = receiptCode;
-                outputDict["SendingUsername"] = sendingUsername;
-                outputDict["ReceivingUsername"] = receivingUsername;
+                outputDict["SendingUsername"] = Unpack(sendingUsername);
+                outputDict["ReceivingUsername"] = Unpack(receivingUsername);
                 outputDict["SessionID"] = sessionID;
 
             }
@@ -212,7 +223,7 @@ namespace Messenger_Client
                 string errorMessage = input.Substring(48);
 
                 outputDict["ReceiptCode"] = receiptCode;
-                outputDict["Username"] = username;
+                outputDict["Username"] = Unpack(username);
                 outputDict["SessionID"] = sessionID;
                 outputDict["Message"] = errorMessage;
 
@@ -223,6 +234,17 @@ namespace Messenger_Client
             }
 
             return true;
+        }
+
+        // Unpacks a string that has been packed with filler characters (currently asterisks) to fit the transmission space.
+        private static string Unpack(string packedString)
+        {
+            int packStart = packedString.IndexOf("*");
+
+            string unpackedString = packedString.Substring(0, packStart);
+
+            Debug.WriteLine("Unpacked " + packedString + " into " + unpackedString + "\n");
+            return unpackedString;
         }
     }
 }

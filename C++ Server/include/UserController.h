@@ -42,6 +42,9 @@ private:
 
     string GenerateSessionID();
 
+    string Pack(string username);
+
+
 };
 
 #endif

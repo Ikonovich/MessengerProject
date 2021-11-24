@@ -17,11 +17,10 @@
         <Border BorderBrush="LightCyan" BorderThickness="5" CornerRadius="10" Background="Transparent"/>
 
         <!--Notification Popup-->
-        <Popup IsOpen="{Binding IsPopupOpen,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" StaysOpen="False" Height="150" Width="200" Placement="Center">
+        <Popup Name ="MessagePopup" IsOpen="{Binding IsPopupOpen,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" StaysOpen="False" Height="150" Width="200" Placement="Center">
             <Border BorderBrush="AliceBlue" BorderThickness="3" Height="150" Width="200" Background="White">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Name ="PopupText"  Width="150" TextWrapping="Wrap">
-                    </TextBlock>
+                    <TextBlock Name="PopupText"  Width="150" TextWrapping="Wrap" Text="{Binding PopupMessage,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
                     <Button Name="ClosePopupButton" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 20, 0, 0">
                         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Bold>Close</Bold>
@@ -36,7 +35,7 @@
             <RichTextBox BorderBrush="Transparent" IsReadOnly="True" Background="Transparent">
                 <FlowDocument>
                     <Paragraph Name ="UsernameHolder">
-                        <TextBlock Text="{Binding Username,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
+                        <TextBlock Text="{Binding Username,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}"/>
                     </Paragraph>
                 </FlowDocument>
             </RichTextBox>
@@ -47,12 +46,11 @@
             <Button Click ="OnExitButton" Name ="ExitButton" Content="Exit" BorderBrush ="Red" Background ="Red" HorizontalAlignment="Right" Margin="0,0,0,0" VerticalAlignment="Top"/>
         </Border>
 
-        <ContentControl Name ="ContentLeft" Width="190" Height="450" VerticalAlignment="Bottom" HorizontalAlignment="Left">
-        </ContentControl>
+        <ContentControl Name ="SegmentLeft" Content="{Binding LeftSegment,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}" Width="190" Height="450" VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
 
-        <ContentControl Name ="ContentRight" Width="255" Height="450" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,5,0">
-        </ContentControl>
-       
+
+        <ContentControl Name ="SegmentRight" Content="{Binding RightSegment,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}" Width="255" Height="450" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+
 
     </Grid>
 </Window>

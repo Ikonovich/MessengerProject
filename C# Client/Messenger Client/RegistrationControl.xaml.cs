@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -35,6 +36,10 @@ namespace Messenger_Client
 
         public void RegistrationAttempt()
         {
+
+            Debug.WriteLine("Making registration attempt");
+
+
             string username = RegistrationUsername.Text;
             string passwordOne = RegistrationPasswordOne.Text;
             string passwordTwo = RegistrationPasswordTwo.Text;
@@ -44,7 +49,8 @@ namespace Messenger_Client
             {
                 return;
             }
-                // Performs a regex match to ensure only underscores and alphanumeric characters are in the username.
+
+            // Performs a regex match to ensure only underscores and alphanumeric characters are in the username.
             Regex reg = new Regex("^A - Za - z\\d_", RegexOptions.None);
 
             if (reg.Match(username).Success == true)

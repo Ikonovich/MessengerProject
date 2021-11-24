@@ -76,7 +76,7 @@ bool DatabaseController::CheckField(string tableName, string fieldName, string s
 
     string query = "SELECT * FROM " + tableName + " WHERE " + fieldName + "=\"" + searchString + "\";";
     
-    //statement->execute("DELETE FROM RegisteredUsers WHERE Username=\"Ikonovich\";");
+    statement->execute("DELETE FROM RegisteredUsers WHERE Username=\"testname\";");
     //statement->execute("INSERT INTO RegisteredUsers(UserName, UserStatus, PasswordHash, PasswordSalt) VALUES (\"Ikonovich\", \"Active\", \"TempHash\", \"TastySalt\");");
 
 

@@ -37,7 +37,7 @@ int UserController::InitialRegistration(string input, string verifyCode, string&
         // All checks passed, adding new user to database.
         cout << "Username validated successfully \n";
         DatabaseCon->AddUser(username, password);
-        responseOut = "RS" + verifyCode + username;
+        responseOut = "RS" + verifyCode + Pack(username) + "Registration successful for " + username;
         return 0;
     }
     else if (nameCheck == -1) {
@@ -110,7 +110,7 @@ bool UserController::LoginRequest(string input, string verifyCode, string& sessi
     cout << "Login approved.";
 
     sessionOut = session;
-    responseOut = "LS" + verifyCode + senderID + "User " + senderID + " has logged in successfully.";
+    responseOut = "LS" + verifyCode + session + Pack(senderID) + "User " + senderID + " has logged in successfully.";
 
     return true;
 }
@@ -245,7 +245,7 @@ int UserController::ValidateUsername(string username) {
     //     cout << "Iterating\n";
     // }
     
-    cout << "NOTValidating name characters\n";
+    cout << "NOT Validating name characters\n";
     cout << "Checking username against database\n";
 
     // Checking to see if the username already exists in the database.
@@ -276,4 +276,17 @@ string UserController::GenerateSessionID() {
     }
 
     return sessionID;
+}
+
+// Takes a username and returns it packed to 32 characters with filler characters(currently asterisks).
+string UserController::Pack(string username) {
+
+    int size = 32 - username.length();
+
+    for (int i = 0; i < size; i++) {
+
+        username += "*";
+    }
+    return username;
+
 }

@@ -94,7 +94,7 @@ bool UserController::LoginRequest(string input, string verifyCode, string& sessi
 
     if (DatabaseCon->VerifyPassword(senderID, password) == false) {
 
-        responseOut = "LU" + verifyCode + "Information for user " + senderID + " could not be verified.";
+        responseOut = "LU" + verifyCode + Pack(senderID) + "Information for user " + senderID + " could not be verified.";
         return false;
     }
 

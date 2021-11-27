@@ -110,6 +110,10 @@ bool DatabaseController::VerifyPassword(string username, string password) {
     
     resultSet = statement->executeQuery(query);
 
+    if (resultSet -> next() == 0) {
+        return false;
+    }
+
     resultSet->next();
     string name = resultSet->getString(1);
     string hash = resultSet->getString(2);
@@ -118,7 +122,7 @@ bool DatabaseController::VerifyPassword(string username, string password) {
     string newHash = SecurityCon->GenerateHash(salt + password);
 
     cout << "Username: " << name << " OldHash: " << hash << " NewHash: " << newHash << "\n";
-    return true;
+    return (newHash == hash);
 }
 
 

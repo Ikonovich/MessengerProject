@@ -129,11 +129,14 @@ namespace Messenger_Client
                 case "RS":
                     RegistrationSuccessful(input);
                     break;
+                case "RU":
+                    RegistrationUnsuccessful(input);
+                    break;
                 case "LS":
                     LoginSuccessful(input);
                     break;
                 case "LU":
-
+                    LoginUnsuccessful(input);
                     break;
                 case "PR":
 
@@ -163,6 +166,25 @@ namespace Messenger_Client
                 RaisePopupEvent(message);
                 RaiseChangeViewEvent(Segment.Right, ViewType.LoginView);
             }
+        }
+
+        public void RegistrationUnsuccessful(Dictionary<string, string> input)
+        {
+
+
+            string username = input["Username"];
+            string verification = input["VerificationCode"];
+            string message = input["Message"];
+
+
+            if ((username == PendingUsername) && (CodeToRequestMap.ContainsKey(verification) == true) && (CodeToRequestMap[verification] == "IR")) {
+
+                PendingUsername = "";
+                RegistrationPending = false;
+                RaisePopupEvent(message);
+
+            }
+
         }
 
 
@@ -195,7 +217,21 @@ namespace Messenger_Client
         }
 
 
+        public void LoginUnsuccessful(Dictionary<string, string> input)
+        {
+            string username = input["Username"];
+            string verification = input["VerificationCode"];
+            string message = input["Message"];
 
+            if ((username == PendingUsername) && (CodeToRequestMap.ContainsKey(verification) == true) && (CodeToRequestMap[verification] == "LR"))
+            {
+
+                PendingUsername = "";
+                RegistrationPending = false;
+                RaisePopupEvent(message);
+
+            }
+        }
 
 
 

@@ -164,7 +164,7 @@ namespace Messenger_Client
                 string receiptCode = "LU";
                 string verification = input.Substring(0, 16);
                 string username = input.Substring(16, 32);
-                string errorMessage = input.Substring(32);
+                string errorMessage = input.Substring(48);
 
 
                 outputDict["ReceiptCode"] = receiptCode;

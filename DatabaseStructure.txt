@@ -1,0 +1,28 @@
+Database Name: messenger_database
+Tables:
+
+RegisteredUsers:
+Field             | Type        | Null | Key | Default           | Extra
+UserID 		    INT 	  NO	 PRI 	NULL		  AUTO_INCREMENT
+UserName	   VARCHAR(32)    NO		NULL
+UserStatus          TEXT	  NO            NULL		 
+CreateTimestamp	    DATETIME      YES         CURRENT_TIMESTAMP  DEFAULT_GENERATED
+ModifiedTimestamp   DATETIME      YES           NULL 		 on update CURRENT_TIMESTAMP
+PasswordHash	    TEXT	  NO		NULL
+PasswordSalt        TEXT	  NO            NULL
+
+
+Messages:
+Field             | Type        | Null | Key | Default           | Extra
+MessageID	    INT		  NO     PRI   NULL 		   AUTO_INCREMENT
+Message		    TEXT          NO           NULL
+Sender		    VARCHAR(32)   NO           NULL      
+ConvoID      INT           NO           NULL                 
+CreateTimestamp	    DATETIME      YES         CURRENT_TIMESTAMP  DEFAULT_GENERATED
+ModifiedTimestamp   DATETIME      YES           NULL 		 on update CURRENT_TIMESTAMP
+
+
+
+
+
+

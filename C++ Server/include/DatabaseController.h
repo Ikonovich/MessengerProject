@@ -24,6 +24,7 @@ public:
 
     bool VerifyPassword(string username, string password);
 
+    string GetFriends(string username);
 
 
 private:

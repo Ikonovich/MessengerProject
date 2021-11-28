@@ -33,7 +33,8 @@ void Server::StartServer() {
 
 // Input packet format: 
 // [Requested connection type - 2 chars]
-// [User ID - 16 chars - All zeroes for Initial Registration or Reconnect connection type]
+// [VerificationCode - 32 chars]
+// [User ID - 32 chars]
 // [Additional information based on request type, as defined above each function handling
 // that request type]
 
@@ -50,6 +51,8 @@ void Server::StartServer() {
 
 // IR - Initial registration
 // lR - Login request for an already registered user
+// PF - Pull friends list
+// AF - Add to friends list
 // SM - Sending a message to another user
 // PM - Pull message records between requesting user and another user.
 
@@ -58,6 +61,7 @@ void Server::StartServer() {
 // RU - Registration Unsuccessful - Should be accompanied by an error message
 // LS - Login Successful
 // LU - Login Unsuccessful - Should be accompanied by an error message
+// FP - Friend Push - Friends list follows in the form of a JSON string. 
 // AM - Administrative message - A generic response message for connection requests and whatnot
 
 
@@ -88,7 +92,7 @@ void Server::HeaderHandler(string input, int clientSocket) {
     
     string response; // Stores the response message from the procedure call
     string session; // Stores the session ID created by a successful login request.
-    vector<string> pullVec; // Stores items from a pull response
+    string pullString; // Stores json string from a pull response
     
 
     switch (requestInt) {
@@ -100,6 +104,8 @@ void Server::HeaderHandler(string input, int clientSocket) {
 
             if (UserCon->LoginRequest(output, verifyCode, session, response) == true) {
                 SessionToSocketMap[session] = clientSocket;
+
+                cout << "Assigned session " << session << " to socket " << clientSocket;
                 TransmissionHandler(session, response);
             }
             else {
@@ -107,10 +113,19 @@ void Server::HeaderHandler(string input, int clientSocket) {
             }
             break;
         case 2:
-            UserCon->MessageReceived(output, verifyCode, response);
+            UserCon->MessageReceived(output, verifyCode, session, response);
             break;
         case 3:
-            UserCon->PullMessages(output, verifyCode, pullVec, response);
+            UserCon->PullMessages(output, verifyCode, session, response);
+
+            TransmissionHandler(session, response);
+            break;
+        case 4:
+            UserCon->PullFriends(output, verifyCode, session, response);
+
+            
+            cout << "Validated session: " << session << "\n";
+            TransmissionHandler(session, response);
             break;
         default:
             cout << "An error has occurred: A request type that does not exist "
@@ -167,7 +182,6 @@ int Server::TransmissionHandler(int responseSocket, string response)
     }
      return 0;
 }
-
 
 int Server::SocketHandler() 
 {

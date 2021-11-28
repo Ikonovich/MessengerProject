@@ -17,9 +17,13 @@ public:
 
     bool LoginRequest(string input, string verifyCode, string& sessionOut, string& responseOut);
 
-    void MessageReceived(string input, string verifyCode, string& responseOut);
+    void PullFriends(string input, string verifyCode, string& session, string& response);
 
-    void PullMessages(string input, string verifyCode, vector<string>& messages, string& response);
+    void MessageReceived(string input, string verifyCode, string& session, string& responseOut);
+
+    void PullMessages(string input, string verifyCode, string& session, string& response);
+
+    int ValidateSession(string input, string username, string& session, string &remainder);
 
 private:
 
@@ -35,8 +39,6 @@ private:
     void ParseUser(string input, string &sender, string& remainder);
     
     void ParseUsers(string input, string &sender, string& receiver, string& remainder);
-
-    int ValidateSession(string input, string username, string &session, string &remainder);
 
     int ValidateUsername(string username);
 

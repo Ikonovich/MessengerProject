@@ -39,7 +39,8 @@ const unordered_map<string, int> RequestTypeMap{
                                         {"IR", 0},
                                         {"LR", 1},
                                         {"SM", 2},
-                                        {"PM", 3}
+                                        {"PM", 3},
+                                        {"PF", 4}
                                         };
 
     void HeaderHandler(string input, int clientSocket);

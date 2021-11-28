@@ -4,12 +4,23 @@ Tables:
 RegisteredUsers:
 Field             | Type        | Null | Key | Default           | Extra
 UserID 		    INT 	  NO	 PRI 	NULL		  AUTO_INCREMENT
-UserName	   VARCHAR(32)    NO		NULL
+Username	   VARCHAR(32)    NO		NULL
 UserStatus          TEXT	  NO            NULL		 
 CreateTimestamp	    DATETIME      YES         CURRENT_TIMESTAMP  DEFAULT_GENERATED
 ModifiedTimestamp   DATETIME      YES           NULL 		 on update CURRENT_TIMESTAMP
 PasswordHash	    TEXT	  NO		NULL
 PasswordSalt        TEXT	  NO            NULL
+
+
+Friends:
+Field                	| Type        | Null 	| Key    	| Default           | Extra
+Username 		    	   INT 	  	 NO	  PRI 		NULL		 
+FriendUsername           	   INT 	 	 NO	  PRI 		NULL		 
+FriendAddedTimestamp	  DATETIME      YES         		CURRENT_TIMESTAMP     DEFAULT_GENERATED
+
+
+	FOREIGN KEY(UserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE,
+	FOREIGN KEY(FriendUserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE
 
 
 Messages:

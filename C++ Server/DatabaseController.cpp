@@ -113,8 +113,7 @@ bool DatabaseController::VerifyPassword(string username, string password) {
     if (resultSet -> next() == 0) {
         return false;
     }
-
-    resultSet->next();
+    
     string name = resultSet->getString(1);
     string hash = resultSet->getString(2);
     string salt = resultSet->getString(3);
@@ -124,5 +123,38 @@ bool DatabaseController::VerifyPassword(string username, string password) {
     cout << "Username: " << name << " OldHash: " << hash << " NewHash: " << newHash << "\n";
     return (newHash == hash);
 }
+
+string DatabaseController::GetFriends(string username) { 
+
+    // Statement *statement = connection->createStatement();
+    // ResultSet *resultSet; 
+
+
+    // string query = "SELECT * FROM Friends WHERE Username =\"" + username + "\";";
+    
+    // resultSet = statement->executeQuery(query);
+
+     vector<string> friends;
+
+    // while (resultSet -> next() != 0) {
+        
+    //     string name = resultSet->getString(2);
+    //     friends.push_back(name);
+    // }
+
+    friends.push_back("Friends1");
+    friends.push_back("Friends2");
+    friends.push_back("Friends3");
+    friends.push_back("Friends4");
+
+
+    json jFriends(friends);
+    string jFriendsStr = jFriends.dump();
+    cout << "Friends list: " << jFriendsStr;
+
+    return jFriendsStr;
+
+}
+
 
 

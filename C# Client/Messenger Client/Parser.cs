@@ -35,6 +35,9 @@ namespace Messenger_Client
 
     static class Parser
     {
+
+        /// <param name="input">The input string to the parse function</param>
+        /// <param name="outputDict">The dictionary holding the output of the parse function</param>
         public static bool Parse(string input, out Dictionary<string, string> outputDict)
         {
             outputDict = new Dictionary<string, string>();
@@ -61,8 +64,10 @@ namespace Messenger_Client
                     return ParseLS(remainder, out outputDict);
                 case "LU":
                     return ParseLU(remainder, out outputDict);
-                case "PR":
-                    return ParseAM(remainder, out outputDict);
+                case "FP":
+                    return ParseFP(remainder, out outputDict);
+                case "FM":
+                    return ParseFM(remainder, out outputDict);
                 case "AM":
                     return ParseAM(remainder, out outputDict);
 
@@ -73,6 +78,9 @@ namespace Messenger_Client
         }
 
         // RS - Registration Successful - Should be accompanied by verification code and username.
+        /// <param name="input">The input string to the parse function</param>
+        /// <param name="outputDict">The dictionary holding the output of the parse function</param>
+        /// 
 
         private static bool ParseRS(string input, out Dictionary<string, string> outputDict)
         {
@@ -98,7 +106,10 @@ namespace Messenger_Client
         }
 
         // RU - Registration Unsuccessful - Should be accompanied by verification code, username, and an error message
-        private static bool ParseRU(string input, out Dictionary<string, string> outputDict)
+        /// <param name="input">The input string to the parse function</param>
+        /// <param name="outputDict">The dictionary holding the output of the parse function</param>
+
+            private static bool ParseRU(string input, out Dictionary<string, string> outputDict)
         {
             outputDict = new Dictionary<string, string>();
 
@@ -123,6 +134,9 @@ namespace Messenger_Client
         }
 
         // LS - Login Successful - Should be accompanied by verification code, sessionID, and username.
+        /// <param name="input">The input string to the parse function</param>
+        /// <param name="outputDict">The dictionary holding the output of the parse function</param>
+
         private static bool ParseLS(string input, out Dictionary<string, string> outputDict)
         {
             string debug = "Parsing LS message: \n" + input + " \n: End message.\n\n\n";
@@ -155,6 +169,8 @@ namespace Messenger_Client
 
 
         // LU - Login Unsuccessful - Should be accompanied by verification code, username, and an error message.
+        /// <param name="input">The input string to the parse function</param>
+        /// <param name="outputDict">The dictionary holding the output of the parse function</param>
         private static bool ParseLU(string input, out Dictionary<string, string> outputDict)
         {
             outputDict = new Dictionary<string, string>();
@@ -181,25 +197,65 @@ namespace Messenger_Client
             return true;
         }
 
-        // PR - Pull Message Request - Sent to indicate that a new message has been sent and a pull request should be made
-        // for a specific user. Accompanied by receiving username, sending username, and session ID.
+        // FP - A server message indicating that an updated friends list is being sent.
+        /// <param name="input">The input string to the parse function</param>
+        /// <param name="outputDict">The dictionary holding the output of the parse function</param>
 
-        private static bool ParsePR(string input, out Dictionary<string, string> outputDict)
+        private static bool ParseFP(string input, out Dictionary<string, string> outputDict)
         {
             outputDict = new Dictionary<string, string>();
 
+            Debug.WriteLine("Parse FP Called on string: " + input + "\n");
+
             try
             {
-                string receiptCode = "AM";
+                string receiptCode = "FP";
 
-                string receivingUsername = input.Substring(0, 32);
-                string sendingUsername = input.Substring(0, 32);
-                string sessionID = input.Substring(16, 32);
+                string verification = input.Substring(0, 16);
+                string username = input.Substring(16, 32);
+                string sessionID = input.Substring(48, 32);
+                string friends = input.Substring(80);
+
 
                 outputDict["ReceiptCode"] = receiptCode;
-                outputDict["SendingUsername"] = Unpack(sendingUsername);
-                outputDict["ReceivingUsername"] = Unpack(receivingUsername);
+                outputDict["VerificationCode"] = verification;
+                outputDict["Username"] = Unpack(username);
                 outputDict["SessionID"] = sessionID;
+                outputDict["Friends"] = friends;
+
+
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        // FM - A server message, responding to a Pull Message[PM] request, indicating that
+        // messages are being sent.
+        /// <param name="input">The input string to the parse function</param>
+        /// <param name="outputDict">The dictionary holding the output of the parse function</param>
+        private static bool ParseFM(string input, out Dictionary<string, string> outputDict)
+        {
+            outputDict = new Dictionary<string, string>();
+
+            Debug.WriteLine("Parse FM Called.");
+
+            try
+            {
+                string receiptCode = "FM";
+
+                string verification = input.Substring(0, 16);
+                string username = input.Substring(16, 32);
+                string sessionID = input.Substring(48, 32);
+                string friends = input.Substring(80);
+
+                outputDict["ReceiptCode"] = receiptCode;
+                outputDict["Username"] = Unpack(username);
+                outputDict["SessionID"] = sessionID;
+                outputDict["Friends"] = friends;
 
             }
             catch (IndexOutOfRangeException e)
@@ -211,6 +267,8 @@ namespace Messenger_Client
         }
 
         // AM - Administrative message - A generic response code that should be accompanied by a session ID, username, and message.
+        /// <param name="input">The input string to the parse function</param>
+        /// <param name="outputDict">The dictionary holding the output of the parse function</param>
         private static bool ParseAM(string input, out Dictionary<string, string> outputDict)
         {
             outputDict = new Dictionary<string, string>();
@@ -236,7 +294,22 @@ namespace Messenger_Client
             return true;
         }
 
+
+        // This method packs a string in a special null character (currently asterisks) to make it fit the size
+        // provided, allowing it to be parsed more easily.
+        /// <param name="input">The string to be packed.</param>
+        /// <param name="size">The desired size of the string after packing</param>
+        public static string Pack(string input, int size)
+        {
+            for (int i = input.Length; i < size; i++)
+            {
+                input += "*";
+            }
+            return input;
+        }
+
         // Unpacks a string that has been packed with filler characters (currently asterisks) to fit the transmission space.
+        /// <param name="input">The string to be unpacked.</param>
         private static string Unpack(string packedString)
         {
             int packStart = packedString.IndexOf("*");

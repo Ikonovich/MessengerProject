@@ -106,12 +106,12 @@ namespace Messenger_Client
 
 
         // Singletons
-        Controller Controller;
+        private Controller Controller;
 
-        LoginControl LoginControl = new LoginControl();
-        FriendsControl FriendsControl = new FriendsControl();
-        MessageControl MessageControl = new MessageControl();
-        RegistrationControl RegistrationControl = new RegistrationControl();
+        private LoginControl LoginControl = new LoginControl();
+        private FriendsControl FriendsControl = new FriendsControl();
+        private MessageControl MessageControl = new MessageControl();
+        private RegistrationControl RegistrationControl = new RegistrationControl();
 
         public MainWindow()
         {
@@ -120,16 +120,25 @@ namespace Messenger_Client
             LoginControl = new LoginControl();
             RegistrationControl = new RegistrationControl();
 
+            Controller = Controller.ControllerInstance;
+
+
             InitializeComponent();
+
+
+
+            // Subscribing to events
 
             MouseDown += OnMouseDown;
             KeyDown += OnKeyDown;
 
-            Controller = Controller.ControllerInstance;
+
             Controller.PopupEvent += OnPopupEvent;
             Controller.ChangeViewEvent += OnChangeView;
             Controller.ChangeUsernameEvent += OnChangeUsername;
 
+
+            // Setting the default view mode.
             LoginView();
         }
 
@@ -145,7 +154,6 @@ namespace Messenger_Client
         {
             RightSegment = MessageControl;
             LeftSegment = FriendsControl;
-
         }
 
         // Called by other windows to switch to the login view.

@@ -115,7 +115,7 @@ bool UserController::LoginRequest(string input, string verifyCode, string& sessi
     return true;
 }
 
-void UserController::MessageReceived(string input, string verifyCode, string& responseOut) {
+void UserController::MessageReceived(string input, string verifyCode, string& session, string& responseOut) {
 
     string senderID;
     string receiverID;
@@ -128,7 +128,28 @@ void UserController::MessageReceived(string input, string verifyCode, string& re
 }
 
 
-void UserController::PullMessages(string input, string verifyCode, vector<string>& messages, string& response) {}
+void UserController::PullMessages(string input, string verifyCode, string& session, string& response) {
+
+}
+
+void UserController::PullFriends(string input, string verifyCode, string& session, string& response) {
+
+    string sender;
+    string result;
+
+
+    ParseUser(input, sender, result);
+
+    if (ValidateSession(result, sender, session, result) != 0) {
+
+        response = "AM" + verifyCode + sender +"Your session was unable to be validated and your request has been denied.";
+    }
+    else {
+        cout << "Returning session from User Controller: " << session;
+        response = "FP" + verifyCode + Pack(sender) + session + DatabaseCon->GetFriends(sender);
+    }
+
+}
 
 // // This method parses out the sender from a data block.
 
@@ -148,6 +169,7 @@ void UserController::ParseUser(string input, string &sender, string &returnMessa
         }
 
         sender = senderID;
+        returnMessage = messageString;
     }
     catch(const std::out_of_range err) {
 
@@ -190,7 +212,10 @@ void UserController::ParseUsers(string input, string &sender, string &receiver, 
 // This method parses the session ID from a string, outputting the session and the remaining string.
 // It also compares the session against the user provided, validating that they are connected. 
 // If the validation check passes, it returns 0. Else, it returns -1.
-int UserController::ValidateSession(string input, string username, string &session, string &remainder) {
+int UserController::ValidateSession(string input, string username, string& session, string &remainder) {
+
+    cout << "Validating session from string " << input << "\n";
+
 
     try {
         session = input.substr(0, 32);  // Gets the length 32 session ID.
@@ -201,9 +226,12 @@ int UserController::ValidateSession(string input, string username, string &sessi
         return -2;
     }
 
-    if (SessionToNameMap.contains(session)) {
+    if (SessionToNameMap.contains(session) && (SessionToNameMap[session] == username)) {
+        
+        cout << "Session validated: " << session << "\n";
         return 0;
     }
+
     return -1;
 
 }

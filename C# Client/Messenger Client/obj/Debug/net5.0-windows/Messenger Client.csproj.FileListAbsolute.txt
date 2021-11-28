@@ -88,3 +88,5 @@ C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.genruntimeconfig.cache
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RegistrationControl.g.cs
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RegistrationControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\bin\Debug\net5.0-windows\Newtonsoft.Json.dll
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\GeneratedInternalTypeHelper.g.cs

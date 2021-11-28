@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -25,8 +26,7 @@ namespace Messenger_Client
         private bool RegistrationPending = false;
         private string PendingUsername = "";
 
-        private string Username = "Not Logged In";
-        private string SessionID = "";
+        private string Session = "";
 
         // Username control bindings
 
@@ -116,7 +116,7 @@ namespace Messenger_Client
         {
 
             string code = "";
-            try { 
+            try {
                 code = input["ReceiptCode"];
             }
             catch (ArgumentException e)
@@ -138,7 +138,10 @@ namespace Messenger_Client
                 case "LU":
                     LoginUnsuccessful(input);
                     break;
-                case "PR":
+                case "FP":
+                    FriendsPush(input);
+                    break;
+                case "FM":
 
                     break;
                 case "AM":
@@ -206,6 +209,21 @@ namespace Messenger_Client
                 RegistrationPending = false;
 
                 DisplayUsername = username;
+                Session = session;
+
+                // Request the user's friends list
+                string friendsVerification = GenerateVerification();
+                CodeToRequestMap[friendsVerification] = "FP";
+
+                Debug.WriteLine("Controller sending friends pull request with verification " + verification);
+
+
+                ConnectionHandler.TransmissionHandler("PF" + friendsVerification + Parser.Pack(username, 32) + session);
+
+
+
+
+
                 CodeToRequestMap.Remove(verification);
                 RaisePopupEvent(message);
                 RaiseChangeViewEvent(Segment.Right, ViewType.MessageView);
@@ -233,6 +251,38 @@ namespace Messenger_Client
             }
         }
 
+        public void FriendsPush(Dictionary<string, string> input)
+        {
+
+            Debug.WriteLine("FriendsPush called with input: " + string.Join(Environment.NewLine, input) + "\n");
+            Debug.WriteLine("Current session: " + Session);
+            Debug.WriteLine("Current username: " + DisplayUsername);
+
+
+            if (VerifyMessage(input, "FP") == true) {
+
+                string friends = input["Friends"];
+
+                List<string> friendsList = JsonConvert.DeserializeObject<List<string>>(friends);
+
+                Debug.WriteLine("Friends returned by request: " + friends);
+                RaiseUpdateFriendsEvent(friendsList);
+            }
+        }
+
+        private bool VerifyMessage(Dictionary<string, string> input, string messageType)
+        {
+            string username = input["Username"];
+            string verification = input["VerificationCode"];
+            string session = input["SessionID"];
+
+            if ((username == DisplayUsername) && (session == Session) && (CodeToRequestMap.ContainsKey(verification)) && (CodeToRequestMap[verification] == "FP"))
+            {
+                return true;
+            }
+
+            return false;
+        }
 
 
         // --------------- END MESSAGE HANDLING CODE --------------- //
@@ -247,7 +297,7 @@ namespace Messenger_Client
 
         public string GetUsername()
         {
-            return Username;
+            return DisplayUsername;
         }
 
         // ---------- BEGIN EVENT DELEGATES --------- //
@@ -296,6 +346,20 @@ namespace Messenger_Client
         public void RaiseChangeUsernameEvent(string username)
         {
             ChangeUsernameEvent?.Invoke(this, new MessageEventArgs(username));
+        }
+
+        // Called to update the list of friends in the Message control.
+
+        public delegate void UpdateFriendsEventHandler(object sender, UpdateFriendsEventArgs e);
+
+        public event UpdateFriendsEventHandler UpdateFriendsEvent;
+
+        public void RaiseUpdateFriendsEvent(List<string> friends)
+        {
+
+            Debug.WriteLine("Raise update friends called.\n");
+
+            UpdateFriendsEvent?.Invoke(this, new UpdateFriendsEventArgs(friends));
         }
    
 

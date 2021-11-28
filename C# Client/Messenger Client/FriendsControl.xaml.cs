@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -17,20 +20,59 @@ using System.Windows.Shapes;
 
 namespace Messenger_Client
 {
+    // Implements an ObservableCollection of Buttons
+    public class FriendsButtons : ObservableCollection<Button>
+    {
+        public FriendsButtons() : base()
+        {
+            // Do nothing
+        }
+    }
+
+
     /// <summary>
     /// Interaction logic for FriendsControl.xaml
     /// </summary>
-    public partial class FriendsControl : UserControl
+    public partial class FriendsControl : UserControl, INotifyPropertyChanged
     {
 
-        List<Tuple<string, Messenger_Client.Activity, float, float>> Friends = new();
+        private Controller Controller;
+
+
+        // List of buttons
+
+        private FriendsButtons buttonList;
+
+        public FriendsButtons ButtonList
+        {
+            get
+            {
+                return buttonList;
+            }
+            set
+            {
+                buttonList = value;
+                OnPropertyChanged("ButtonList");
+            }
+        }
+
+        // List of friends
+        private List<Tuple<string, Messenger_Client.Activity, float, float>> Friends = new();
+
+
 
         public FriendsControl()
         {
 
-
             InitializeComponent();
 
+            Controller = Controller.ControllerInstance;
+            ButtonList = new();
+
+            // Subscribing to events
+
+
+            Controller.UpdateFriendsEvent += OnUpdateFriends;
 
             ActiveSort.Selected += OnSortSelect;
             AlphabeticalSort.Selected += OnSortSelect;
@@ -39,33 +81,41 @@ namespace Messenger_Client
 
             SearchBox.TextChanged += OnSearch;
 
-            Friends.Add(new Tuple<string, Messenger_Client.Activity, float, float>("FriendOne", Activity.Active, 12, 0));
-            Friends.Add(new Tuple<string, Messenger_Client.Activity, float, float>("FriendTwo", Activity.Offline, 5, 6));
-            Friends.Add(new Tuple<string, Messenger_Client.Activity, float, float>("FriendThree", Activity.Offline, 200, 3));
-            Friends.Add(new Tuple<string, Messenger_Client.Activity, float, float>("FriendFour", Activity.Active, 36, 4));
-            Friends.Add(new Tuple<string, Messenger_Client.Activity, float, float>("FriendFive", Activity.Busy, 12, 1));
-
-
-            FriendSort("ActiveSort");
         }
 
         private void PopulateFriendsList(List<Tuple<string, Messenger_Client.Activity, float, float>> friends)
         {
 
-            FriendsPanel.Children.Clear();
+            Debug.WriteLine("Population friends list.");
+
+            FriendsButtons tempList = new();
 
             for (int i = 0; i < friends.Count; i++)
             {
-                string friendName = friends[i].Item1;
-                TextBlock newBlock = new TextBlock();
-                newBlock.Text = friendName;
-                newBlock.Name = friendName;
-                newBlock.Margin = new Thickness(1, 1, 1, 1);
-                newBlock.Background = new LinearGradientBrush(Colors.LightBlue, Colors.SlateBlue, 90);
-                newBlock.MouseLeftButtonDown += new MouseButtonEventHandler(FriendSelected);
-                FriendsPanel.Children.Add(newBlock);
+
+                Application.Current.Dispatcher.Invoke((Action)delegate {
+
+                    Debug.WriteLine("Updating friend #" + i + "\n");
+                    string friendName = friends[i].Item1;
+
+                    Button tempButton = new();
+
+                    Bold buttonText = new Bold(new Run(friendName));
+                    tempButton.Content = buttonText;
+                    tempList.Add(tempButton);
+
+                    //TextBlock newBlock = new TextBlock();
+                    //newBlock.Text = friendName;
+                    //newBlock.Name = friendName;
+                    //newBlock.Margin = new Thickness(1, 1, 1, 1);
+                    //newBlock.Background = new LinearGradientBrush(Colors.LightBlue, Colors.SlateBlue, 90);
+                    //newBlock.MouseLeftButtonDown += new MouseButtonEventHandler(FriendSelected);
+                    //FriendsPanel.Children.Add(newBlock);
+
+                });
             }
 
+            ButtonList = tempList;
         }
 
         private void FriendSelected(object sender, MouseButtonEventArgs e)
@@ -90,7 +140,6 @@ namespace Messenger_Client
             string parameter = element.Name;
 
             FriendSort(parameter);
-
         }
 
         private void FriendSort(string parameter)
@@ -185,6 +234,8 @@ namespace Messenger_Client
 
         // End sort handling functionality.
 
+
+        // Begin event handlers
         private void OnSearch(object sender, TextChangedEventArgs e)
         {
             TextBox searchBox = sender as TextBox;
@@ -203,6 +254,39 @@ namespace Messenger_Client
                 }
             }
             PopulateFriendsList(foundItems);
+        }
+
+
+        private void OnUpdateFriends(object sender, UpdateFriendsEventArgs e)
+        {
+
+            Debug.WriteLine("OnUpdateFriends activated in friends control");
+            List<string> friends = e.Friends;
+
+            List<Tuple<string, Messenger_Client.Activity, float, float>> friendsList = new();
+
+            for (int i = 0; i < friends.Count; i++)
+            {
+                Tuple<string, Messenger_Client.Activity, float, float> tempTuple = new(friends[i], Activity.Active, 0, 0);
+
+                friendsList.Add(tempTuple);
+            }
+
+            PopulateFriendsList(friendsList);
+        }
+
+
+
+        //INotifyPropertyChanged members
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+
+            Debug.WriteLine("Property change called for property " + propertyName);
+            var handler = PropertyChanged;
+            if (handler != null)
+                handler(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

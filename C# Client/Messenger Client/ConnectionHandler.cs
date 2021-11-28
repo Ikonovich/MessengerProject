@@ -76,7 +76,7 @@ namespace Messenger_Client
 
         public void Register(string username, string password, string verification)
         {
-            username = PackString(username, 32);
+            username = Parser.Pack(username, 32);
 
             Debug.WriteLine("Registering with username: " + username + "\n");
             TransmissionHandler("IR" + verification + username + password);
@@ -94,7 +94,7 @@ namespace Messenger_Client
 
             LoginPending = true;
             PendingUsername = username;
-            TransmissionHandler("LR" + verification + PackString(username, 32) + password);
+            TransmissionHandler("LR" + verification + Parser.Pack(username, 32) + password);
         }
 
         public string GetUsername()
@@ -200,20 +200,6 @@ namespace Messenger_Client
         {
             Debug.WriteLine("Raise event called\n");
             MessageEvent?.Invoke(this, new MessageEventArgs(message));
-        }
-
-        // This method packs a string in a special null character (currently asterisks) to make it fit the size
-        // provided, allowing it to be parsed more easily.
-
-        /// <param name="input">The string to be packed.</param>
-        /// <param name="size">The desired size of the string after packing</param>
-        private string PackString(string input, int size)
-        {
-            for (int i = input.Length; i < size; i++)
-            {
-                input += "*";
-            }
-            return input;
         }
 
     }

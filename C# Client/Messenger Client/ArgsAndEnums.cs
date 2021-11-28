@@ -41,9 +41,8 @@ namespace Messenger_Client
 
     // Defining the arguments for a ChangeView event
 
-    /// <param name="param">description</param>
-    /// <param name="param">description</param>
-
+    /// <param name="segment">The segment of the main window that will be updated. Options are left or right.</param>
+    /// <param name="viewType">The view type to be utilized. Options are login, register, friends, and messages.</param>
     public class ChangeViewEventArgs
     {
         public ChangeViewEventArgs(Segment segment, ViewType viewType)
@@ -64,6 +63,14 @@ namespace Messenger_Client
         public string Message { get; }
     }
 
+    // Defining the arguments for an FriendsUpdate event.
+    public class UpdateFriendsEventArgs
+    {
+        public UpdateFriendsEventArgs(List<string> friends) { Friends = friends; }
+
+        public List<string> Friends { get; }
+    }
+
     // Defining the arguments for a MessageEvent.
 
     public class MessageEventArgs
@@ -71,8 +78,6 @@ namespace Messenger_Client
         public MessageEventArgs(string message) { Message = message; }
         public string Message { get; }
     }
-
-
 
 
 }

@@ -1,6 +1,7 @@
 #include "include/libs.h"
 #include "include/namespace.h"
 #include <bitset>
+#include <pthread.h>
 
 
 
@@ -64,6 +65,33 @@ void Server::StartServer() {
 // FP - Friend Push - Friends list follows in the form of a JSON string. 
 // AM - Administrative message - A generic response message for connection requests and whatnot
 
+void Server::ServerThread(void *socket) {
+
+    cout << "Starting server thread";
+
+    int sockID = *(int*)socket;
+
+    while (1) {
+            
+            // Recv accepts data from the client.
+            std::vector<char> inputBuffer(5000); 
+            auto bytes_received = recv(sockID, inputBuffer.data(), inputBuffer.size(), 0);
+
+
+            string input(inputBuffer.begin(), inputBuffer.end()); // String constructor taking the beginning and end of a char vector.
+
+
+            if (input.at(0) != 0) {
+                printf("Value of char at 0 is %i", (int)input.at(0));
+                HeaderHandler(input, sockID);
+            }
+        }
+
+    close(sockID);
+    //freeaddrinfo(res);
+
+    exit(0);
+}
 
 void Server::HeaderHandler(string input, int clientSocket) {
 
@@ -273,92 +301,85 @@ int Server::SocketHandler()
 
     // Creating a new socket. SocketFD is returned as socket descriptor.
     // Returns -1 if there is an error, probably.
+    while (true) {
+        // Parameters:
+        // ai_family - Int, 2 for IPv4, 23 for IPv6
+        //ai_socktype - Int, 1 for SOCK_STREAM(TCP), 2 for SOCK_DGRAM(UDP)
+        //ai_protocol - Int, 6 for TCP, 17 for UDP
+        int socketFD = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 
-    // Parameters:
-    // ai_family - Int, 2 for IPv4, 23 for IPv6
-    //ai_socktype - Int, 1 for SOCK_STREAM(TCP), 2 for SOCK_DGRAM(UDP)
-    //ai_protocol - Int, 6 for TCP, 17 for UDP
-    int socketFD = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (socketFD == -1) {
 
-    if (socketFD == -1) {
-
-        std::cerr << "An error has occurred during socket creation. \n";
-        freeaddrinfo(res); //Deallocates the addrinfo structs.
-        return -1;
-    }
-
-    // Binding the socket.
-
-    int bindSock = bind(socketFD, p->ai_addr, p->ai_addrlen);  
-
-    if (bindSock == -1) {
-
-        std::cerr << "An error has occurred while binding the socket.\n";
-        printf("Value of errno: %d\n", errno);
-        // Closing the socket if there is an error.
-        close(socketFD);
-        freeaddrinfo(res);
-        return -1;
-    }
-
-    // Start listening for connections on the socket.
-
-    int listenSock = listen(socketFD, maxConnections);
-
-    if (listenSock == -1) {
-
-        std::cerr << "Error while listening on socket. \n";
-
-        // Close the socket if there is an error.
-        close(socketFD);
-        freeaddrinfo(res);
-        return -1;
-    }
-
-    // Structure to hold the client's address
-    sockaddr_storage client_addr;
-    socklen_t client_addr_size = sizeof(client_addr);
-
-    // This infinite loop handles incoming connections
-    cout << "Accepting connections.\n";
-
-
-    int newFD = accept(socketFD, (sockaddr*)&client_addr, &client_addr_size);
-    if (newFD == -1) {
-
-        std::cerr << "Error while accepting on socket.\n";
-        return -1;
-    }
-
-
-    while (1) {
-
-    // int newFD = accept(socketFD, (sockaddr *) &client_addr, &client_addr_size);
-        //if (newFD == -1) {
-
-        //  std::cerr << "Error while accepting on socket.\n";
-        //   continue;
-        //}
-
-
-        // Recv accepts data from the client.
-        std::vector<char> inputBuffer(5000); 
-        auto bytes_received = recv(newFD, inputBuffer.data(), inputBuffer.size(), 0);
-
-
-        string input(inputBuffer.begin(), inputBuffer.end()); // String constructor taking the beginning and end of a char vector.
-        
-        if (input.at(0) != 0) {
-            printf("Value of char at 0 is %i", (int)input.at(0));
-            HeaderHandler(input, newFD);
+            std::cerr << "An error has occurred during socket creation. \n";
+            freeaddrinfo(res); //Deallocates the addrinfo structs.
+            return -1;
         }
+
+        // Binding the socket.
+
+        int bindSock = bind(socketFD, p->ai_addr, p->ai_addrlen);  
+
+        if (bindSock == -1) {
+
+            std::cerr << "An error has occurred while binding the socket.\n";
+            printf("Value of errno: %d\n", errno);
+            // Closing the socket if there is an error.
+            close(socketFD);
+            freeaddrinfo(res);
+            return -1;
+        }
+
+        // Start listening for connections on the socket.
+
+        int listenSock = listen(socketFD, maxConnections);
+
+        if (listenSock == -1) {
+
+            std::cerr << "Error while listening on socket. \n";
+
+            // Close the socket if there is an error.
+            close(socketFD);
+            freeaddrinfo(res);
+            return -1;
+        }
+
+        // Structure to hold the client's address
+        sockaddr_storage client_addr;
+        socklen_t client_addr_size = sizeof(client_addr);
+
+        // This infinite loop handles incoming connections
+        cout << "Accepting connections.\n";
+
+
+        int newFD = accept(socketFD, (sockaddr*)&client_addr, &client_addr_size);
+        if (newFD == -1) {
+
+            std::cerr << "Error while accepting on socket.\n";
+            return -1;
+        }
+
+
+        // while (1) {
+            
+        //     // Recv accepts data from the client.
+        //     std::vector<char> inputBuffer(5000); 
+        //     auto bytes_received = recv(newFD, inputBuffer.data(), inputBuffer.size(), 0);
+
+
+        //     string input(inputBuffer.begin(), inputBuffer.end()); // String constructor taking the beginning and end of a char vector.
+
+
+        //     if (input.at(0) != 0) {
+        //         printf("Value of char at 0 is %i", (int)input.at(0));
+        //         HeaderHandler(input, newFD);
+        //     }
+        // }
     }
+
 
     // Close the socket on exit.
-    close(socketFD);
-    freeaddrinfo(res);
-
-     return 0;
+ 
+    return 0;
 }
 
 

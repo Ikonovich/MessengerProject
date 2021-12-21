@@ -94,6 +94,9 @@ namespace Messenger_Client
 
             LoginPending = true;
             PendingUsername = username;
+
+
+           Debug.WriteLine("Transmitting from Login in connection handler");
             TransmissionHandler("LR" + verification + Parser.Pack(username, 32) + password);
         }
 
@@ -105,9 +108,8 @@ namespace Messenger_Client
         private void Connect()
         {
             IPHostEntry hostEntry = null; // Container for host address info.
-            IPAddress hostAddress = IPAddress.Parse("192.168.50.81");
-
-           // IPAddress.TryParse("24.179.8.54", out hostAddress);
+            IPAddress hostAddress = IPAddress.Loopback;
+            //IPAddress hostAddress = IPAddress.Parse("131.204.254.86");
 
             hostEntry = Dns.GetHostEntry(hostAddress); // Resolves the hostAddress to a HostEntry;
 
@@ -157,7 +159,7 @@ namespace Messenger_Client
 
             //string stringReceived = Encoding.ASCII.GetString(BytesReceived, 0, byteCount);
 
-            Debug.WriteLine("Message received\n");
+            Debug.WriteLine("Message received");
             Receive();
         }
 
@@ -192,9 +194,22 @@ namespace Messenger_Client
 
         public void TransmissionHandler(string messageOut)
         {
-            Byte[] sent = Encoding.ASCII.GetBytes(messageOut);
+            string message = "message";
+
+            Debug.WriteLine("Transmitting: " + messageOut);
+            Byte[] sent = Encoding.ASCII.GetBytes(messageOut + "\n");
             ServerSocket.Send(sent);
-        } 
+        }
+
+        private void MessageSent(IAsyncResult result)
+        {
+            int byteCount = ServerSocket.EndSend(result);
+
+            //string stringReceived = Encoding.ASCII.GetString(BytesReceived, 0, byteCount);
+
+            Debug.WriteLine("Message received\n");
+            Receive();
+        }
 
         private void RaiseMessageEvent(string message)
         {

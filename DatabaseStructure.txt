@@ -4,23 +4,40 @@ Tables:
 RegisteredUsers:
 Field             | Type        | Null | Key | Default           | Extra
 UserID 		    INT 	  NO	 PRI 	NULL		  AUTO_INCREMENT
-Username	   VARCHAR(32)    NO		NULL
-UserStatus          TEXT	  NO            NULL		 
+Username	   VARCHAR(32)    NO		NULL	 
 CreateTimestamp	    DATETIME      YES         CURRENT_TIMESTAMP  DEFAULT_GENERATED
 ModifiedTimestamp   DATETIME      YES           NULL 		 on update CURRENT_TIMESTAMP
 PasswordHash	    TEXT	  NO		NULL
 PasswordSalt        TEXT	  NO            NULL
 
 
-Friends:
+MySQL Syntax:
+CREATE TABLE RegisteredUsers (
+	UserID INT NOT NULL AUTO_INCREMENT,
+	UserName VARCHAR(32) NOT NULL,
+	CreateTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP, 
+	ModifiedTimestamp DATETIME ON UPDATE CURRENT_TIMESTAMP,
+	PasswordHash TEXT NOT NULL,
+	PasswordSalt TEXT NOT NULL,
+	PRIMARY KEY(UserID)
+);
+
+FriendPairs:
 Field                	| Type        | Null 	| Key    	| Default           | Extra
-Username 		    	   INT 	  	 NO	  PRI 		NULL		 
-FriendUsername           	   INT 	 	 NO	  PRI 		NULL		 
-FriendAddedTimestamp	  DATETIME      YES         		CURRENT_TIMESTAMP     DEFAULT_GENERATED
+UserID 		    	   INT 	  	 NO	  PRI 		  NULL		 
+FriendUserID           	   INT 	 	 NO	  PRI 		  NULL		 
+FriendAddedTimestamp	  DATETIME      YES         		  CURRENT_TIMESTAMP     DEFAULT_GENERATED
 
 
+CREATE TABLE FriendPairs (
+	UserID INT NOT NULL,
+	FriendUserID INT NOT NULL,
+	FriendAddedTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY(UserID, FriendUserID),
 	FOREIGN KEY(UserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE,
 	FOREIGN KEY(FriendUserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE
+);
+
 
 
 Messages:
@@ -34,6 +51,8 @@ ModifiedTimestamp   DATETIME      YES           NULL 		 on update CURRENT_TIMEST
 
 
 
-
+CREATE TABLE Messages(
+	MessageID INT NOT NULL AUTO_INCREMENT,
+	Message TEXT NO 
 
 

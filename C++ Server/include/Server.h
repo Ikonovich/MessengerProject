@@ -57,6 +57,8 @@ const unordered_map<string, int> RequestTypeMap{
 
     string GenerateSessionID();
 
+    void ServerThread(void *socket);
+
 };
 
 #endif

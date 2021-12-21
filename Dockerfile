@@ -1,5 +1,6 @@
 # A MySQL server equipped Ubuntu distro
-# This container will be used to host a C++ server for communicating with a Unity video game.
+# This container will be used to host a server for communicating with a Unity video game from a C++ or Java server
+
 
 FROM ubuntu:latest
 
@@ -10,6 +11,7 @@ RUN echo "Hopefully this build goes well."
 RUN apt-get update && apt-get install -y mysql-server 
 RUN apt-get update && apt-get install -y build-essential
 RUN apt-get update && apt-get install -y manpages-dev
+RUN apt-get update && apt-get install -y default-jre
 
 #RUN mysql_secure_installation
 

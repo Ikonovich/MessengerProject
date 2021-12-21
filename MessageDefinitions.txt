@@ -1,11 +1,39 @@
+All messages must contain as their first two letters an Operation Code or Opcode. This Opcode tells the server
+how to parse and handle the incoming message. Specifically, each Opcode is mapped to a bit mask, and a fall-through
+parser is used to parse each message based on this mask. 
+
+Padding of input strings is done using asterisks (*) at this time.
+
+As such, all information in a server message __must__ be in the bitmask appropriate order with the
+appropriate sizes, and a field __must__ not be present if not required by the given Opcode.
+
+The bitmask order is as follows:
+
+0: Opcode - always 1. 
+1: UserID - 32 characters - Present for all messages except login and registration.
+2: UserName - 32 characters - Present for login, registration, and when adding a friend.
+3: Password - 128 characters - Present only for login and registration.
+4: Session ID - 32 characters - Required for all non-login and non-registration interactions. Very weakly verifies connection
+integrity.
+5: Chat ID - 8 characters - Identifies a single chat between one or multiple people.
+
+The final component of a received transmission, the Message, is whatever remains after the item determined by the bit mask are parsed out.
+
+The available op codes with their bit masks are:
+
+IR (Initial Registration):  001101  /  13
+LR (Login Request):  001101   /   13
+PF (Pull Friends):  011011  /   27
+AF (Add Friend):  010111   / 23
+PC (Pull Chat):  110011    / 51
+SM (Send Message):  110011   /   51
+
 ---- Packet format ----
 All messages sent from both client and server contain the following information: 
 
 Description:					Index in Packet String: 	Purpose:
 
-[Requested connection type - 2 chars]  		[0-1]				Identifies the message type.
-[VerificationCode - 16 chars] 			[2-17]				Used to verify chain of custody of the packet.
-[User ID - 32 chars]       			[18-48]				Identifies the source(sent from client) or destination(sent from server) of the packet.
+[Requested connection type - 2 chars]  		[0-1]				Used to verify chain of custody of the packet.
 
 
 From there, message types differ on their contents and must be parsed appropriately.
@@ -18,33 +46,38 @@ Description:					Index in Packet String:		Purpose:
 ------
 Initial Registration[IR] and Login Request[LR]:
 
-
-[Password - Up to 128 chars]			[49-End]			Weakly ensures that the message is coming from the correct client or the genuine server
+[User Name - 32 chars]       			[2-34]				Identifies the source(sent from client) or destination(sent from server) of the packet.
+[Password - Up to 128 chars]			[35-End]			Weakly ensures that the message is coming from the correct client or the genuine server
 
 ------
 Pull Friends[PM]:
 
-[Session ID - 32 chars]				[49-80]				Weakly ensures that the message is coming from the correct client or the genuine server
+[User ID - 32 chars]       			[2-34]				Identifies the source(sent from client) or destination(sent from server) of the packet.
+[Session ID - 32 chars]				[35-66]				Weakly ensures that the message is coming from the correct client or the genuine server
 
 
 ------
 Add Friend[AF]:
 
-[Session ID - 32 chars]				[49-80]				Weakly ensures that the message is coming from the correct client or the genuine server
-[Friend Username - 32 chars]			[98-129]			Contains the username of the friend being added
+[User ID - 32 chars]       			[2-34]				Identifies the source(sent from client) or destination(sent from server) of the packet.
+[Session ID - 32 chars]				[35-66]				Weakly ensures that the message is coming from the correct client or the genuine server
+[Friend Username - 32 chars]			[67-98]			Contains the username of the friend being added
+
+
 
 ------
 Send Message[SM]:
 
-[Session ID - 32 chars]				[49-80]				Weakly ensures that the message is coming from the correct client or the genuine server
-[Chat ID - 32 chars]				[98-129]			Contains the Chat ID the message is being sent in
-[Message - No strict limit] 			[130-End]			Contains the message being sent
+[Session ID - 32 chars]				[35-66]				Weakly ensures that the message is coming from the correct client or the genuine server
+[Chat ID - 32 chars]				[67-98]			Contains the Chat ID the message is being sent in
+[Message - No strict limit] 			[99-End]			Contains the message being sent
 
 ------
-Pull Messages[PM]:
+Pull Chat[PC]:
 
-[Session ID - 32 chars]				[49-80]				Weakly ensures that the message is coming from the correct client or the genuine server
-[Chat ID - 32 chars]				[81-112]			Contains the Chat ID that messages are being requested for
+[User ID - 32 chars]       			[2-34]				Identifies the source(sent from client) or destination(sent from server) of the packet.
+[Session ID - 32 chars]				[35-66]				Weakly ensures that the message is coming from the correct client or the genuine server
+[Chat ID - 32 chars]				[67-98]			Contains the Chat ID that messages are being requested for
 
 ---------------------------------------------------------------------------------------
 Server Messages:
@@ -53,51 +86,58 @@ Description:					Index in Packet String:		Purpose:
 
 -------
 Registration Successful[RS]: 
-[Message - 256 char max]			[49-End]			A message indicating that registration has been successful.
+[Message - 256 char max]			[35-End]			A message indicating that registration has been successful.
 
 
 -------
 Login Successful[LS]: 
 
-[Session ID - 32 chars]				[49-80]				Provides the client with a unique session ID allowing verification of further communications
-[Message - 256 char max]			[81-End]			A message indicating that login has been successful.
+[Session ID - 32 chars]				[35-66]				Provides the client with a unique session ID allowing verification of further communications
+[Message - 256 char max]			[67-End]			A message indicating that login has been successful.
 
 -------
-Registration Unuccessful[RU]: 
+Registration Unsuccessful[RU]: 
 
-[Message - 256 char max]			[49-End]			A message indicating that registration has been unsuccessful and a brief explanation.
+[Message - 256 char max]			[35-End]			A message indicating that registration has been unsuccessful and a brief explanation.
 
 
 -------
 Login Unsuccessful[RU]: 
 
-[Message - 256 char max]			[49-End]			A message indicating that login has been unsuccessful and a brief explanation.
+[Message - 256 char max]			[35-End]			A message indicating that login has been unsuccessful and a brief explanation.
 
 
 -------
 Friend Push[FP]:
 
-[Session ID - 32 chars]				[49-80]				Weakly ensures that the message is coming from the correct client or the genuine server
-[JSON string - no strict limit]			[81-End]			A json string containing a list of the user's friend names
+[Session ID - 32 chars]				[35-66]				Weakly ensures that the message is coming from the correct client or the genuine server
+[JSON string - no strict limit]			[67-End]			A json string containing a list of the user's friend names
+
 
 
 -------
 Message Push[MP]:
 
-[Session ID - 32 chars]				[49-80]				Weakly ensures that the message is coming from the correct client or the genuine server
-[Chat ID - 32 chars]				[81-112]			Contains the Chat ID that messages are being sent for
-[JSON string - no strict limit]			[113-End]			A json string containing a list of the user's friend names
+[Session ID - 32 chars]				[35-66]				Weakly ensures that the message is coming from the correct client or the genuine server
+[Chat ID - 32 chars]				[67-98]			Contains the Chat ID that messages are being sent for
+[JSON string - no strict limit]			[99-End]			A json string containing a list of the user's friend names
+
+------
+Verify Add[VA]:
+
+[Session ID - 32 chars]				[35-66]				Weakly ensures that the message is coming from the correct client or the genuine server
+[Friend Username - 32 chars]			[67-98]				Contains the username of the friend that was added
 
 
 ------
 Verify Send[VS]:
 
-- Contains no extra information. Receipt of this message type with the same verify code as a client's Send Message[SM] request
-confirms message delivery to the server.
+[Session ID - 32 chars]				[35-66]				Weakly ensures that the message is coming from the correct client or the genuine server
+
 
 
 ----------
 Administrative Message[AM]:
 
-[Message - 256 char max]			[49-End]			An administrative message, usually indicating that a non-login/registration error has occurred.
+[Message - 256 char max]			[35-End]			An administrative message, usually indicating that a non-login/registration error has occurred.
 

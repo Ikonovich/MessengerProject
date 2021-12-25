@@ -3,8 +3,8 @@ Tables:
 
 RegisteredUsers:
 Field             | Type        | Null | Key | Default           | Extra
-UserID 		    INT 	  NO	 PRI 	NULL		  AUTO_INCREMENT
-Username	   VARCHAR(32)    NO		NULL	 
+UserID 		    INT 	  NO	 PRI 	NULL		  AUTO_INCREMENT, UNIQUE, PRIMARY KEY
+Username	   VARCHAR(32)    NO		NULL	  	  UNIQUE
 CreateTimestamp	    DATETIME      YES         CURRENT_TIMESTAMP  DEFAULT_GENERATED
 ModifiedTimestamp   DATETIME      YES           NULL 		 on update CURRENT_TIMESTAMP
 PasswordHash	    TEXT	  NO		NULL
@@ -19,13 +19,14 @@ CREATE TABLE RegisteredUsers (
 	ModifiedTimestamp DATETIME ON UPDATE CURRENT_TIMESTAMP,
 	PasswordHash TEXT NOT NULL,
 	PasswordSalt TEXT NOT NULL,
-	PRIMARY KEY(UserID)
+	PRIMARY KEY(UserID),
+	CONSTRAINT identifiers UNIQUE (UserID, UserName)
 );
 
 FriendPairs:
 Field                	| Type        | Null 	| Key    	| Default           | Extra
-UserID 		    	   INT 	  	 NO	  PRI 		  NULL		 
-FriendUserID           	   INT 	 	 NO	  PRI 		  NULL		 
+UserID 		    	   INT 	  	 NO	  PRI 		  NULL		 	PRIMARY KEY
+FriendUserID           	   INT 	 	 NO	  PRI 		  NULL		 	PRIMARY KEY
 FriendAddedTimestamp	  DATETIME      YES         		  CURRENT_TIMESTAMP     DEFAULT_GENERATED
 
 

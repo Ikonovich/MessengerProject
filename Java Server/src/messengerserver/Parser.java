@@ -37,11 +37,14 @@ import java.util.HashMap;
 
 public class Parser {
 	
+	private static int debugMask = 8; // Indicates the bit mask for Debugger usage. +1 the debugMask to indicate an error message.
+
+	
 	// Used to determine the parser behavior.
 	
-	private static final int userNameLength = 32;
+	private static final int userNameLength = Server.MAX_USERNAME_LENGTH;
 	private static final int userIDLength = 32;
-	private static final int passwordLength = 128;
+	private static final int passwordLength = Server.MAX_PASSWORD_LENGTH;
 	private static final int sessionIDLength = 32;
 	private static final int chatIDLength = 8;
 	
@@ -72,12 +75,13 @@ public class Parser {
 		
 		try {
 			opcode = input.substring(0, 2);
-			input = input.substring(2);
+			message = input.substring(2);
+			returnMap.put("Opcode", opcode);
 		}
 		catch(Exception e) {
 			
 			returnMap.put("Opcode", "ER");
-			Debugger.record("Parser failed getting opcode", 9);
+			Debugger.record("Parser failed getting opcode", debugMask + 1);
 			return returnMap;
 		}
 		
@@ -86,11 +90,12 @@ public class Parser {
 		int mask = 0;
 		if (opcodeMap.containsKey(opcode)) {
 			mask = opcodeMap.get(opcode);
+
 		}
 		else {
 			
 			returnMap.put("Opcode", opcode);
-			Debugger.record("Parser failed at bit 0 for opcode: " + opcode, 9);
+			Debugger.record("Parser failed at bit 0 for opcode: " + opcode + " with input: " + message, debugMask + 1);
 			return returnMap;
 		}
 
@@ -102,10 +107,13 @@ public class Parser {
 			try {
 				returnMap.put("UserID", message.substring(0, userIDLength));
 				message = message.substring(userIDLength);
+				
+				Debugger.record("Parser processed at bit 1 for opcode: " + opcode + " with input: " + message, debugMask);
+
 			}
 			catch (Exception e) 
 			{
-				Debugger.record("Parser failed at bit 1 for opcode: " + opcode, 9);
+				Debugger.record("Parser failed at bit 1 for opcode: " + opcode + " with input: " + message, debugMask + 1);
 				returnMap.put("Opcode", "ER");
 				return returnMap;
 			}
@@ -115,12 +123,15 @@ public class Parser {
 		{
 
 			try {
-				returnMap.put("UserName", message.substring(0, userNameLength));
+				Debugger.record("Parser processed at bit 2 for opcode: " + opcode + " with input: " + message, debugMask);
+
+				returnMap.put("UserName", Parser.unpack(message.substring(0, userNameLength)));
 				message = message.substring(userNameLength);
+				
 			}
 			catch (Exception e) 
 			{
-				Debugger.record("Parser failed at bit 2 for opcode: " + opcode, 9);
+				Debugger.record("Parser failed at bit 2 for opcode: " + opcode + " with input: " + message, debugMask + 1);
 				returnMap.put("Opcode", "ER");
 				return returnMap;
 			}
@@ -131,12 +142,15 @@ public class Parser {
 		{
 
 			try {
-				returnMap.put("Password", message.substring(0, passwordLength));
+				Debugger.record("Parser processed at bit 3 for opcode: " + opcode + " with input: " + message, debugMask);
+
+				returnMap.put("Password", Parser.unpack(message.substring(0, 128)));
 				message = message.substring(passwordLength);
+
 			}
 			catch (Exception e) 
 			{
-				Debugger.record("Parser failed at bit 3 for opcode: " + opcode, 9);
+				Debugger.record("Parser failed at bit 3 for opcode: " + opcode + " with input: " + message, debugMask + 1);
 				returnMap.put("Opcode", "ER");
 				return returnMap;
 			}
@@ -146,12 +160,14 @@ public class Parser {
 		{
 
 			try {
+				Debugger.record("Parser processed at bit 4 for opcode: " + opcode + " with input: " + message, debugMask);
+
 				returnMap.put("SessionID", message.substring(0, sessionIDLength));
 				message = message.substring(sessionIDLength);
 			}
 			catch (Exception e) 
 			{
-				Debugger.record("Parser failed at bit 4 for opcode: " + opcode, 9);
+				Debugger.record("Parser failed at bit 4 for opcode: " + opcode + " with input: " + message, debugMask + 1);
 				returnMap.put("Opcode", "ER");
 				return returnMap;
 			}
@@ -163,10 +179,13 @@ public class Parser {
 			try {
 				returnMap.put("ChatID", message.substring(0, chatIDLength));
 				message = message.substring(chatIDLength);
+				
+				Debugger.record("Parser processed at bit 5 for opcode: " + opcode + " with input: " + message, debugMask);
+
 			}
 			catch (Exception e) 
 			{
-				Debugger.record("Parser failed at bit 5 for opcode: " + opcode, 9);
+				Debugger.record("Parser failed at bit 5 for opcode: " + opcode + " with input: " + message, debugMask + 1);
 				returnMap.put("Opcode", "ER");
 				return returnMap;
 			}
@@ -180,5 +199,38 @@ public class Parser {
 		}
 		
 		return returnMap;
+	}
+	
+	// Used to pack and unpack variable-length components of transmissions such as username or password.
+	
+	public static String pack(String input, int size) {
+		
+		String newString = input;
+		
+        if (newString.length() > size)
+        {
+        	newString = newString.substring(0, size);
+        }
+
+        for (int i = newString.length(); i < size; i++)
+        {
+        	newString += "*";
+        }
+        
+        Debugger.record("Packed " + input + " into " + newString + "\n", debugMask);
+
+        return newString;
+	}
+	
+	public static String unpack(String input) {
+		
+        int packStart = input.indexOf("*");
+
+        String unpackedString = input.substring(0, packStart);
+
+        Debugger.record("Unpacked " + input + " into " + unpackedString + "\n", debugMask);
+        
+        return unpackedString;
+		
 	}
 }

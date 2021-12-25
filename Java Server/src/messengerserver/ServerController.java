@@ -3,11 +3,21 @@ package messengerserver;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashSet;
 
 public class ServerController 
 {
 	
-	private static int port = 3000;
+	private static HashSet<String> sessionMap;
+
+
+	// The length of session ID strings. 32 UTF-8 chars is equivalent to 256 bits.
+	private static final int SESSION_LENGTH = 32;
+
+	static
+	{
+		sessionMap = new HashSet<String>();
+	}
 	
 	public void start() {
 		
@@ -23,7 +33,7 @@ public class ServerController
 		{
 			
 			boolean run = true;
-			serverSocket = new ServerSocket(port);
+			serverSocket = new ServerSocket(Server.PORT);
 			
 			while(run == true) 
 			{
@@ -44,6 +54,31 @@ public class ServerController
 			Debugger.print(e.getMessage());
 			return;
 		}
+	}
+	
+	public static synchronized boolean addSession(String sessionID)
+	{
+		if (sessionID.length() == SESSION_LENGTH) {
+			return sessionMap.add(sessionID);
+		}
+		return false;
+
+	}
+	
+	public static synchronized boolean removeSession(String sessionID)
+	{
+		
+		return sessionMap.remove(sessionID);
+	}
+
+	/**
+	 *
+	 * @param sessionID The session ID to check the existence of.
+	 * @return A boolean, true if the session ID is found, false otherwise.
+	 */
+	public static synchronized boolean checkSession(String sessionID)
+	{
+		return sessionMap.contains(sessionID);
 	}
 
 }

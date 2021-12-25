@@ -32,4 +32,28 @@ public class Cryptographer {
 		return randString;
 	}
 
+	/**
+	 * Contains the latest hashing algorithm used by the server.
+	 * @param input The string to be hashed.
+	 * @return The result of the hashing algorithm.
+	 */
+	public static String hash(String input) {
+
+		return input;
+	}
+
+
+	/**
+	 *
+	 * Takes a provided password and the user's password hash and salt from the database, and ensures
+	 * that, when hashed, the provided password matches the known database hash.
+	 * @param passwordGiven The password provided by the user.
+	 * @param passwordHash The known hash of the correct password from the database.
+	 * @param passwordSalt The previously generated salt for the hashing algorithm, from the database.
+ 	 */
+	public static boolean verifyPassword(String passwordGiven, String passwordHash, String passwordSalt) {
+
+		return true;
+	}
+
 }

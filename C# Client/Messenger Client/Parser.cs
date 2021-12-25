@@ -19,13 +19,12 @@ namespace Messenger_Client
     /// Receiving username: 32 chars, filled with asterisks after the final alphanumeric character.
     /// Sending username: 32 chars, filled with asterisks after the final alphanumeric character.
     /// SessionID: 32 alphanumeric chars
-    /// Verification code: 16 alphanumeric chars
 
     /// Available receipt codes are:
 
-    /// RS - Registration Successful - Should be accompanied by verification code and username.
-    /// LS - Login Successful - Should be accompanied by verification code, sessionID, and username.
-    /// LU - Login Unsuccessful - Should be accompanied by verification code, username, and an error message
+    /// RS - Registration Successful - Should be accompanied by username.
+    /// LS - Login Successful - Should be accompanied by sessionID, and username.
+    /// LU - Login Unsuccessful - Should be accompanied by username, and an error message
     /// PR - Pull Message Request - Sent to indicate that a new message has been sent and a pull request should be made
     /// for a specific user. Accompanied by receiving username, sending username, and session ID.
     /// AM - Administrative message - A generic response code that should be accompanied by a session ID, username, and message.
@@ -77,7 +76,7 @@ namespace Messenger_Client
 
         }
 
-        // RS - Registration Successful - Should be accompanied by verification code and username.
+        // RS - Registration Successful - Should be accompanied by username.
         /// <param name="input">The input string to the parse function</param>
         /// <param name="outputDict">The dictionary holding the output of the parse function</param>
         /// 
@@ -89,12 +88,10 @@ namespace Messenger_Client
             try
             {
                 string receiptCode = "RS";
-                string verification = input.Substring(0, 16);
-                string username = input.Substring(16, 32);
-                string message = input.Substring(48);
+                string username = input.Substring(0, 32);
+                string message = input.Substring(32);
 
                 outputDict["ReceiptCode"] = receiptCode;
-                outputDict["VerificationCode"] = verification;
                 outputDict["Username"] = Unpack(username);
                 outputDict["Message"] = message;
             }
@@ -105,7 +102,7 @@ namespace Messenger_Client
             return true;
         }
 
-        // RU - Registration Unsuccessful - Should be accompanied by verification code, username, and an error message
+        // RU - Registration Unsuccessful - Should be accompanied by username and an error message
         /// <param name="input">The input string to the parse function</param>
         /// <param name="outputDict">The dictionary holding the output of the parse function</param>
 
@@ -116,12 +113,10 @@ namespace Messenger_Client
             try
             {
                 string receiptCode = "RU";
-                string verification = input.Substring(0, 16);
-                string username = input.Substring(16, 32);
+                string username = input.Substring(0, 32);
                 string errorMessage = input.Substring(32);
 
                 outputDict["ReceiptCode"] = receiptCode;
-                outputDict["VerificationCode"] = verification;
                 outputDict["Username"] = Unpack(username);
                 outputDict["Message"] = errorMessage;
 
@@ -133,7 +128,7 @@ namespace Messenger_Client
             return true;
         }
 
-        // LS - Login Successful - Should be accompanied by verification code, sessionID, and username.
+        // LS - Login Successful - Should be accompanied by sessionID and username.
         /// <param name="input">The input string to the parse function</param>
         /// <param name="outputDict">The dictionary holding the output of the parse function</param>
 
@@ -145,17 +140,15 @@ namespace Messenger_Client
             try
             {
                 string receiptCode = "LS";
-                string verification = input.Substring(0, 16);
-                string sessionID = input.Substring(16, 32);
-                string username = input.Substring(48, 32);
-                string message = input.Substring(80);
+                string sessionID = input.Substring(0, 32);
+                string username = input.Substring(32, 32);
+                string message = input.Substring(64);
 
-                Debug.WriteLine("\nLS Parse: Verification: " + verification + " SessionID: " + sessionID + " Username: " + username + " Message: " + message + "\n");
+                Debug.WriteLine("\nLS Parse: SessionID: " + sessionID + " Username: " + username + " Message: " + message + "\n");
 
 
                 outputDict["ReceiptCode"] = receiptCode;
                 outputDict["SessionID"] = sessionID;
-                outputDict["VerificationCode"] = verification;
                 outputDict["Username"] = Unpack(username);
                 outputDict["Message"] = message;
 
@@ -168,7 +161,7 @@ namespace Messenger_Client
         }
 
 
-        // LU - Login Unsuccessful - Should be accompanied by verification code, username, and an error message.
+        // LU - Login Unsuccessful - Should be accompanied by username and an error message.
         /// <param name="input">The input string to the parse function</param>
         /// <param name="outputDict">The dictionary holding the output of the parse function</param>
         private static bool ParseLU(string input, out Dictionary<string, string> outputDict)
@@ -178,13 +171,11 @@ namespace Messenger_Client
             try
             {
                 string receiptCode = "LU";
-                string verification = input.Substring(0, 16);
-                string username = input.Substring(16, 32);
-                string errorMessage = input.Substring(48);
+                string username = input.Substring(0, 32);
+                string errorMessage = input.Substring(32);
 
 
                 outputDict["ReceiptCode"] = receiptCode;
-                outputDict["VerificationCode"] = verification;
                 outputDict["Username"] = Unpack(username);
                 outputDict["Message"] = errorMessage;
 
@@ -211,14 +202,12 @@ namespace Messenger_Client
             {
                 string receiptCode = "FP";
 
-                string verification = input.Substring(0, 16);
-                string username = input.Substring(16, 32);
-                string sessionID = input.Substring(48, 32);
-                string friends = input.Substring(80);
+                string username = input.Substring(0, 32);
+                string sessionID = input.Substring(32, 32);
+                string friends = input.Substring(64);
 
 
                 outputDict["ReceiptCode"] = receiptCode;
-                outputDict["VerificationCode"] = verification;
                 outputDict["Username"] = Unpack(username);
                 outputDict["SessionID"] = sessionID;
                 outputDict["Friends"] = friends;
@@ -246,11 +235,9 @@ namespace Messenger_Client
             try
             {
                 string receiptCode = "FM";
-
-                string verification = input.Substring(0, 16);
-                string username = input.Substring(16, 32);
-                string sessionID = input.Substring(48, 32);
-                string friends = input.Substring(80);
+                string username = input.Substring(0, 32);
+                string sessionID = input.Substring(32, 32);
+                string friends = input.Substring(64);
 
                 outputDict["ReceiptCode"] = receiptCode;
                 outputDict["Username"] = Unpack(username);
@@ -276,9 +263,9 @@ namespace Messenger_Client
             try
             {
                 string receiptCode = "AM";
-                string username = input.Substring(0, 16);
-                string sessionID = input.Substring(16, 32);
-                string errorMessage = input.Substring(48);
+                string username = input.Substring(0, 32);
+                string sessionID = input.Substring(32, 32);
+                string errorMessage = input.Substring(64);
 
                 outputDict["ReceiptCode"] = receiptCode;
                 outputDict["Username"] = Unpack(username);
@@ -297,10 +284,16 @@ namespace Messenger_Client
 
         // This method packs a string in a special null character (currently asterisks) to make it fit the size
         // provided, allowing it to be parsed more easily.
+        // Any strings longer than the size given will be truncated.
         /// <param name="input">The string to be packed.</param>
         /// <param name="size">The desired size of the string after packing</param>
         public static string Pack(string input, int size)
         {
+            if (input.Length > size)
+            {
+                input = input.Substring(0, size);
+            }
+
             for (int i = input.Length; i < size; i++)
             {
                 input += "*";

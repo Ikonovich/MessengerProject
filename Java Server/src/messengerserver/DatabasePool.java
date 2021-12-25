@@ -17,31 +17,32 @@ public class DatabasePool {
 	public static synchronized DatabaseConnection getConnection() 
 	{
 		
-		DatabaseConnection tempConnection = null;
+		DatabaseConnection newConnection = null;
 
-		while (tempConnection == null) 
+		while (newConnection == null) 
 		{
 			for (int i = 0; i < connectionList.size(); i++)
 			{
-	
+				DatabaseConnection tempConnection = connectionList.get(i);
+				
 				if (tempConnection.getStatus() == false) 
 				{
 	
-					tempConnection = connectionList.get(i);
+					newConnection = tempConnection;
 					
 				}
 			}
 			
-			if ((tempConnection == null) && (connectionList.size() < MAX_CONNECTIONS)) 
+			if ((newConnection == null) && (connectionList.size() < MAX_CONNECTIONS)) 
 			{
 				
-				tempConnection = newConnection();
+				newConnection = newConnection();
 			}
 		}
 		
 		Debugger.record("Database pool returning connection.", 2);
-		tempConnection.open();
-		return tempConnection;
+		newConnection.open();
+		return newConnection;
 	}
 	
 	private static DatabaseConnection newConnection() 

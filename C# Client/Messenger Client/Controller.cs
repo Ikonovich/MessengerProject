@@ -28,6 +28,9 @@ namespace Messenger_Client
 
         private string Session = "";
 
+        private int usernameLength = 32;
+        private int passwordLength = 128;
+
         // Username control bindings
 
         private string displayUsername = "Not Logged In";
@@ -74,24 +77,21 @@ namespace Messenger_Client
         {
             RaiseChangeViewEvent(Segment.Right, ViewType.RegisterView);
             RaiseChangeUsernameEvent("testyname");
-            string verification = GenerateVerification();
-            CodeToRequestMap[verification] = "IR"; // Add an initial registration code to the request map and link it to this code.
             RegistrationPending = true;
             PendingUsername = username;
-            ConnectionHandler.Register(username, password, verification);
+            ConnectionHandler.Register(username, password);
         }
 
         /// <param name="username">The supplied username</param>
         /// <param name="password">The supplied password</param>
         public void Login(string username, string password)
         {
-            string verification = GenerateVerification();
+
             PendingUsername = username;
-            CodeToRequestMap[verification] = "LR"; // Add a login request code to the request map and link it to this code.
 
-            Debug.WriteLine("Controller sending login request to connection handler with username " + username + " and verification " + verification);
 
-            ConnectionHandler.Login(username, password, verification);
+            Debug.WriteLine("Controller sending login request to connection handler with username " + username);
+            ConnectionHandler.Login(username, password);
 
         }
 
@@ -103,9 +103,9 @@ namespace Messenger_Client
         /// this method takes the result of the parse and uses the ReceiptCode to decide how to handle the message.
         /// Available receipt codes are:
         ///
-        /// RS - Registration Successful - Should be accompanied by verification code and username.
-        /// LS - Login Successful - Should be accompanied by verification code, sessionID, and username.
-        /// LU - Login Unsuccessful - Should be accompanied by verification code, username, and an error message
+        /// RS - Registration Successful - Should be accompanied by username.
+        /// LS - Login Successful - Should be accompanied by sessionID, and username.
+        /// LU - Login Unsuccessful - Should be accompanied by username, and an error message.
         /// PR - Pull Message Request - Sent to indicate that a new message has been sent and a pull request should be made
         /// for a specific user. Accompanied by receiving username, sending username, and session ID.
         /// AM - Administrative message - A generic response code that should be accompanied by a session ID, username, and message.
@@ -159,14 +159,12 @@ namespace Messenger_Client
         public void RegistrationSuccessful(Dictionary<string, string> input)
         {
             string username = input["Username"];
-            string verification = input["VerificationCode"];
             string message = input["Message"];
 
-            if ((username == PendingUsername) && (CodeToRequestMap.ContainsKey(verification) == true) && (CodeToRequestMap[verification] == "IR"))
+            if (username == PendingUsername)
             {
                 PendingUsername = "";
                 RegistrationPending = false;
-                CodeToRequestMap.Remove(verification);
                 RaisePopupEvent(message);
                 RaiseChangeViewEvent(Segment.Right, ViewType.LoginView);
             }
@@ -177,11 +175,10 @@ namespace Messenger_Client
 
 
             string username = input["Username"];
-            string verification = input["VerificationCode"];
             string message = input["Message"];
 
 
-            if ((username == PendingUsername) && (CodeToRequestMap.ContainsKey(verification) == true) && (CodeToRequestMap[verification] == "IR")) {
+            if (username == PendingUsername) {
 
                 PendingUsername = "";
                 RegistrationPending = false;
@@ -197,13 +194,12 @@ namespace Messenger_Client
         public void LoginSuccessful(Dictionary<string, string> input)
         {
             string username = input["Username"];
-            string verification = input["VerificationCode"];
             string session = input["SessionID"];
             string message = input["Message"];
 
-            Debug.WriteLine("Making login checks with username " + username + " and session " + session + " and verification " + verification + "\n");
+            Debug.WriteLine("Making login checks with username " + username + " and session " + session + "\n");
 
-            if ((username == PendingUsername) && (CodeToRequestMap.ContainsKey(verification) == true) && (CodeToRequestMap[verification] == "LR"))
+            if (username == PendingUsername)
             {
                 Debug.WriteLine("Login checks passed.\n");
                 PendingUsername = "";
@@ -213,19 +209,13 @@ namespace Messenger_Client
                 Session = session;
 
                 // Request the user's friends list
-                string friendsVerification = GenerateVerification();
-                CodeToRequestMap[friendsVerification] = "FP";
 
-                Debug.WriteLine("Controller sending friends pull request with verification " + verification);
+                Debug.WriteLine("Controller sending friends pull request.");
 
 
-                ConnectionHandler.TransmissionHandler("PF" + friendsVerification + Parser.Pack(username, 32) + session);
+                ConnectionHandler.TransmissionHandler("PF" + Parser.Pack(username, 32) + session);
 
-
-
-
-
-                CodeToRequestMap.Remove(verification);
+             
                 RaisePopupEvent(message);
                 RaiseChangeViewEvent(Segment.Right, ViewType.MessageView);
                 RaiseChangeUsernameEvent(DisplayUsername);
@@ -239,10 +229,9 @@ namespace Messenger_Client
         public void LoginUnsuccessful(Dictionary<string, string> input)
         {
             string username = input["Username"];
-            string verification = input["VerificationCode"];
             string message = input["Message"];
 
-            if ((username == PendingUsername) && (CodeToRequestMap.ContainsKey(verification) == true) && (CodeToRequestMap[verification] == "LR"))
+            if (username == PendingUsername)
             {
 
                 PendingUsername = "";
@@ -274,10 +263,9 @@ namespace Messenger_Client
         private bool VerifyMessage(Dictionary<string, string> input, string messageType)
         {
             string username = input["Username"];
-            string verification = input["VerificationCode"];
             string session = input["SessionID"];
 
-            if ((username == DisplayUsername) && (session == Session) && (CodeToRequestMap.ContainsKey(verification)) && (CodeToRequestMap[verification] == "FP"))
+            if ((username == DisplayUsername) && (session == Session))
             {
                 return true;
             }
@@ -285,16 +273,6 @@ namespace Messenger_Client
             return false;
         }
 
-
-        // --------------- END MESSAGE HANDLING CODE --------------- //
-
-        // Used to generate a unique 16 character verification code that maps to a request,
-        // allowing the server to verify when a specific request has been responded to.
-
-        private string GenerateVerification()
-        {
-            return Security.GenerateCode(16);
-        }
 
         public string GetUsername()
         {

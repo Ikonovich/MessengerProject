@@ -10,6 +10,7 @@ public class DatabaseConnection
 
 	
 	private boolean isOccupied = false;
+	private int debugMask = 2;
 
 	// These are all of the statements that the connection can execute.
 	
@@ -17,11 +18,17 @@ public class DatabaseConnection
 	private PreparedStatement getUserByName;
 	private PreparedStatement getUserByID;
 	private PreparedStatement createUser;
+	private PreparedStatement deleteUser;
+	private PreparedStatement pullFriends;
+	private PreparedStatement addFriends;
+
 	
 	private static final String getUserByNameQuery = "SELECT * FROM RegisteredUsers WHERE UserName = ?";
 	private static final String getUserByIDQuery = "SELECT * FROM RegisteredUsers WHERE UserID = ?";
 	private static final String createUserQuery ="INSERT INTO RegisteredUsers (Username, PasswordHash, PasswordSalt) VALUES (?, ?, ?)";
-	private static final String pullFriendsQuery = "SELECT FriendUserID FROM FriendPairs WHERE UserID = ?";
+	private static final String deleteUserQuery = "DELETE FROM RegisteredUsers WHERE UserID = ?";
+	private static final String pullFriendsQuery = "SELECT * FROM FriendPairs WHERE UserID = ?";
+	private static final String addFriendQuery = "INSERT INTO FriendPairs (UserID, FriendUserID) VALUES (?, ?)";
 
 	
 	
@@ -45,7 +52,7 @@ public class DatabaseConnection
 		}
 		
 		
-		// Here we create all of the statements that the connection can execute throughout its life.
+		// Here we create all the statements that the connection can execute throughout its life.
 		try 
 		{	
 			getUserByName = connection.prepareStatement(getUserByNameQuery);
@@ -83,78 +90,168 @@ public class DatabaseConnection
 	
 	
 	public boolean createUser(String username, String passwordHash, String passwordSalt) {
-		
+
+		if (getUser(username).size() > 0) {
+			Debugger.record("Duplicate user creation attempt rejected.", debugMask);
+			return false;
+		}
 		try {
 			createUser.setString(1, username);
 			createUser.setString(2, passwordHash);
 			createUser.setString(3, passwordSalt);
 		}
 		catch(SQLException e) {
-			Debugger.record("Error preparing create user statement.", 3);
+			Debugger.record("Error preparing create user statement.", debugMask + 1);
 			return false;
 		}
 		
 		try {
-			
-			createUser.execute();
-			return true;
+			return createUser.execute();
 		}
 		catch(SQLException e) {
-			Debugger.record("Error executing create user statement.", 3);
+			Debugger.record("Error executing create user statement.", debugMask + 1);
 			return false;
 		}
 	}
-	
-	public ArrayList<HashMap<String, String>> getUser(String username) 
+
+	public boolean deleteUser(int userID) {
+
+		try {
+			createUser.setInt(1, userID);
+		}
+		catch(SQLException e) {
+			Debugger.record("Error preparing delete user by ID statement.", debugMask + 1);
+			return false;
+		}
+
+		try {
+			return createUser.execute();
+		}
+		catch(SQLException e) {
+			Debugger.record("Error executing delete user by ID statement.", debugMask + 1);
+			return false;
+		}
+	}
+
+	/**
+	 *  This method returns a single user by their UserName.
+	 *  @param username the name of the user.
+	 *	@return a HashMap containing the user's database entry.
+ 	 */
+
+
+	public HashMap<String, String> getUser(String username)
 	{
 		
-		ArrayList<HashMap<String, String>> userMap = new ArrayList<HashMap<String, String>>();
+		HashMap<String, String> userMap = new HashMap<String, String>();
 
 		try {
 			getUserByName.setString(1, username);
 		}
 		catch(SQLException e) {
-			Debugger.record("Error preparing get user by name statement.", 3);
+			Debugger.record("Error preparing get user by name statement.", debugMask + 1);
 			return userMap;
 		}
 		
 		try {
 			ResultSet results = getUserByName.executeQuery();
-			
-			userMap = parseResultSet(results);
+			ArrayList<HashMap<String, String>> resultsList = parseResultSet(results);
+
+			// Only one or zero users should ever be returned by a getUser query.
+			if (resultsList.size() > 1)
+			{
+				userMap.put("ER", "An error has occurred. Please contact the administrator.");
+				Debugger.record("Error: A duplicate user has been retrieved when conducting a search by UserName.", 3);
+			}
+			else if (resultsList.size() == 1)
+			{
+				userMap = resultsList.get(0);
+			}
+			else
+			{
+				userMap = new HashMap<String, String>();
+			}
 			
 		}
 		catch(SQLException e) {
-			Debugger.record("Error executing get user by nane statement.", 3);
+			Debugger.record("Error executing get user by name statement.", debugMask + 1);
 		}
 		
 		return userMap;
 		
 	}
+
+	/**
+	 *  This method returns a single user by their UserID.
+	 *  @param userID the ID of the user.
+	 *	@return a HashMap containing the user's database entry.
+	 */
 	
-	public ArrayList<HashMap<String, String>> getUser(int userID) 
+	public HashMap<String, String> getUser(int userID)
 	{
-		
-		ArrayList<HashMap<String, String>> userMap = new ArrayList<HashMap<String, String>>();
-		try {
+		HashMap<String, String> userMap = new HashMap<String, String>();
+		try
+		{
 			getUserByID.setInt(1, userID);
 		}
 		
-		catch(SQLException e) {
-			Debugger.record("Error preparing get user by ID statement.", 3);
+		catch(SQLException e)
+		{
+			Debugger.record("Error preparing get user by ID statement.", debugMask + 1);
 		}
 		
-		try {
+		try
+		{
 			ResultSet results = getUserByID.executeQuery();
-			userMap = parseResultSet(results);
-			
+			ArrayList<HashMap<String, String>> resultsList = parseResultSet(results);
+
+			// Only one or zero users should ever be returned by a getUser query.
+			if (resultsList.size() > 1)
+			{
+				Debugger.record("Error: A duplicate user has been retrieved when conducting a search by ID.", 3);
+			}
+			else if (resultsList.size() == 1)
+			{
+				userMap = resultsList.get(0);
+			}
+			else
+			{
+				userMap = new HashMap<String, String>();
+			}
 		}
-		catch(SQLException e) {
-			Debugger.record("Error executing get user by ID statement.", 3);
+		catch(SQLException e)
+		{
+			Debugger.record("Error executing get user by ID statement.", debugMask + 1);
 		}
-			
 		
 		return userMap;
+	}
+
+	/**
+	 * This method gets the list of a user's friends, stored as HashMaps.
+	 * @param userID The ID of the user whose friends are being gotten.
+	 * @return An ArrayList of HashMaps representing an individual user.
+	 */
+	public ArrayList<HashMap<String, String>> pullFriends(int userID)
+	{
+		ArrayList<HashMap<String, String>> friendsMap = new ArrayList<HashMap<String, String>>();
+
+		try {
+			pullFriends.setInt(1, userID);
+		}
+		catch(SQLException e) {
+			Debugger.record("Error preparing get user by name statement.", debugMask + 1);
+			return friendsMap;
+		}
+
+		try {
+			ResultSet results = pullFriends.executeQuery();
+			friendsMap = parseResultSet(results);
+		}
+		catch(SQLException e) {
+			Debugger.record("Error executing get user by nane statement.", debugMask + 1);
+		}
+		return friendsMap;
 	}
 	
 	
@@ -171,12 +268,21 @@ public class DatabaseConnection
 		ArrayList<HashMap<String, String>> resultsList = new ArrayList<HashMap<String, String>>();
 		ArrayList<String> columns = new ArrayList<String>();
 
-		// Getting the column names.
+		
 		try 
 		{
+			// Ensure there is at least one entry in the set.
+
+			if (results.next() == false) {
+				Debugger.record("Empty result set provided to parser.", debugMask);
+				return resultsList;
+			}
+
+			// Getting the column names.
+			
 			ResultSetMetaData metaData = results.getMetaData();
 		
-			for (int i = 0; i < metaData.getColumnCount(); i++) 
+			for (int i = 1; i < metaData.getColumnCount() + 1; i++)
 			{
 				columns.add(metaData.getColumnName(i));
 			}
@@ -184,7 +290,7 @@ public class DatabaseConnection
 		catch (Exception e) 
 		{
 			
-			Debugger.record("Error while getting result set column names.", 5);
+			Debugger.record("Error while getting result set column names.", debugMask + 1);
 			return resultsList;
 
 		}
@@ -192,24 +298,26 @@ public class DatabaseConnection
 		// Building a List of hashmaps out of the entries.
 		try 
 		{ 
-			while (results.next() == true) 
+			do
 			{
-				
 				HashMap<String, String> resultsMap = new HashMap<String, String>();
 				
-				for (int i = 0; i < columns.size(); i++) {
-					
-					resultsMap.put(columns.get(i), results.getString(columns.get(i)));
+				for (int i = 0; i < columns.size(); i++)
+				{
+
+					String data = results.getString(columns.get(i));
+
+					resultsMap.put(columns.get(i), data);
 				}
 				resultsList.add(resultsMap);
-			}
+			} while (results.next() == true);
+			
 		}
 		catch (Exception e) {
-			
-			Debugger.record("Error while turning rows into hash maps.", 5);
+
+			Debugger.record("Error while turning rows into hash maps.", debugMask + 1);
 		}
 
-		
 		return resultsList;
 		
 	}

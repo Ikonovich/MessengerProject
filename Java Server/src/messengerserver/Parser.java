@@ -24,7 +24,7 @@ import java.util.HashMap;
 //
 //The final component of a received transmission, the Message, is whatever remains after the item determined by the bit mask are parsed out.
 //
-//The core opcodes with their bitmasks are:
+//The core server opcodes with their bitmasks are:
 //
 //IR (Initial Registration):  001101  /  13
 //LR (Login Request):  001101   /   13
@@ -32,6 +32,14 @@ import java.util.HashMap;
 //AF (Add Friend):  010111   / 23
 //PC (Pull Chat):  110011    / 51
 //SM (Send Message):  110011   /   51
+
+// The core client opcodes with their bitmasks are:
+//
+// RU (Registration unsuccessful):  000101
+// RS (Registration successful):  000101
+// LU (Login unsuccessful):	 000101
+// LS (Login successful):  010111
+
 
 
 

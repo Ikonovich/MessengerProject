@@ -40,20 +40,58 @@ CREATE TABLE FriendPairs (
 );
 
 
+Chats:
+Field             | Type        | Null | Key | Default           | Extra
+ChatID		    INT           NO     PRI   NULL                AUTO_INCREMENT
+OwnerID		    INT           NO           NULL           
+CreateTimestamp	    DATETIME      YES         CURRENT_TIMESTAMP  DEFAULT_GENERATED
+
+CREATE TABLE Chats(
+	ChatID INT NOT NULL AUTO_INCREMENT,
+	OwnerID INT NOT NULL,
+	CreateTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY(ChatID)
+);
+
+
+UserChatPairs:
+Field             | Type        | Null | Key | Default           | Extra
+UserID		    INT 	  NO     PRI                     
+ChatID              INT           NO     PRI
+
+
+
+CREATE TABLE UserChatPairs (
+	UserID INT NOT NULL,
+	ChatID INT NOT NULL,
+	PRIMARY KEY(UserID, ChatID),
+	FOREIGN KEY(UserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE,
+	FOREIGN KEY(ChatID) REFERENCES Chats(ChatID) ON DELETE CASCADE
+);
+
+
 
 Messages:
 Field             | Type        | Null | Key | Default           | Extra
 MessageID	    INT		  NO     PRI   NULL 		   AUTO_INCREMENT
+ChatID              INT           NO           NULL
+SenderID	    INT   NO           NULL      
 Message		    TEXT          NO           NULL
-Sender		    VARCHAR(32)   NO           NULL      
-ConvoID      INT           NO           NULL                 
 CreateTimestamp	    DATETIME      YES         CURRENT_TIMESTAMP  DEFAULT_GENERATED
 ModifiedTimestamp   DATETIME      YES           NULL 		 on update CURRENT_TIMESTAMP
 
-
-
-CREATE TABLE Messages(
+CREATE TABLE Messages (
 	MessageID INT NOT NULL AUTO_INCREMENT,
-	Message TEXT NO 
+	ChatID INT NOT NULL,
+	SenderID INT NOT NULL,
+	Message TEXT NOT NULL,
+	CreateTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+	ModifiedTimestamp DATETIME ON UPDATE CURRENT_TIMESTAMP,
+	PRIMARY KEY(MessageID),
+	FOREIGN KEY(ChatID) REFERENCES Chats(ChatID) ON DELETE CASCADE
+);
+
+
+
 
 

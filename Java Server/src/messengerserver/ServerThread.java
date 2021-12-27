@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import com.google.gson.Gson;
 
 public class ServerThread implements Runnable 
 {
@@ -64,20 +65,14 @@ public class ServerThread implements Runnable
 				char[] chars = new char[10];
 				//while((input = reader.readLine()) != null) 
 
-
 				while (reader.ready())
 				{
-					writer.write("writer is printing lollllll");
 
-					//reader.read(chars);
-					
 					input = Arrays.toString(chars);
 					input = reader.readLine();
 					Debugger.record("Thread " + getID() + " received: " + input, 4);
 
 					handleMessage(input);
-
-					transmit("SCREAMING INTO THE VOID");
 				}
 			}
 		}
@@ -95,9 +90,7 @@ public class ServerThread implements Runnable
 		
 		Debugger.record("Transmitting with message: " + message, debugMask);
 		writer.print(message);
-		writer.print("SCREAMING INTO THE VOID");
-		writer.print("SCREAMING INTO THE VOID");
-		writer.print("SCREAMING INTO THE VOID");
+		writer.flush();
 	}
 	
 	public long getID()
@@ -226,6 +219,7 @@ public class ServerThread implements Runnable
 			return transmitMessage;
 		}
 
+		String userID = queryResults.get("UserID");
 		String passwordGiven = input.get("Password");
 		String passwordHash = queryResults.get("PasswordHash");
 		String passwordSalt = queryResults.get("PasswordSalt");
@@ -241,8 +235,9 @@ public class ServerThread implements Runnable
 
 		if (createSession()) {
 			Debugger.record("User " + username + " has logged in successfully.", debugMask);
-			transmitMessage = "LS" + sessionID + "You have logged in with the username " + username;
+			transmitMessage = "LS" + Parser.pack(userID, 32) + Parser.pack(username, 32) + sessionID + "You have logged in with the username " + username;
 			return transmitMessage;
+
 		}
 
 		Debugger.record("Login attempt made it to end of method without returning.", debugMask + 1);
@@ -271,13 +266,30 @@ public class ServerThread implements Runnable
 		
 		DatabaseConnection connection = DatabasePool.getConnection();
 
-		
+		int userID = 0;
+		try
+		{
+			userID = Integer.parseInt(input.get("UserID"));
+		}
+		catch (Exception e) {
+			Debugger.record("User ID could not be parsed, or was not in the input to pulLFriends", debugMask + 1);
+			return false;
+		}
+
+		ArrayList<HashMap<String, String>> friends = connection.pullFriends(userID);
+
+		Gson json = new Gson();
+		String friendsJson = json.toJson(friends);
+
+		transmit("FP" + Parser.pack(input.get("UserID"), 32) + sessionID + friendsJson);
+
 		return false;
 	}
 	
 	public boolean addFriend(HashMap<String, String> input) {
 		
 		DatabaseConnection connection = DatabasePool.getConnection();
+
 
 		
 		return false;

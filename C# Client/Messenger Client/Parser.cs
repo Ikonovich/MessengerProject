@@ -140,9 +140,10 @@ namespace Messenger_Client
             try
             {
                 string receiptCode = "LS";
-                string sessionID = input.Substring(0, 32);
+                string userID = input.Substring(0, 32);
                 string username = input.Substring(32, 32);
-                string message = input.Substring(64);
+                string sessionID = input.Substring(64, 32);
+                string message = input.Substring(96);
 
                 Debug.WriteLine("\nLS Parse: SessionID: " + sessionID + " Username: " + username + " Message: " + message + "\n");
 
@@ -307,9 +308,15 @@ namespace Messenger_Client
         {
             int packStart = packedString.IndexOf("*");
 
+            Debug.WriteLine("Unpacking " + packedString);
+
+
+            if (packStart < 0)
+            {
+                return packedString;
+            }
             string unpackedString = packedString.Substring(0, packStart);
 
-            Debug.WriteLine("Unpacked " + packedString + " into " + unpackedString + "\n");
             return unpackedString;
         }
     }

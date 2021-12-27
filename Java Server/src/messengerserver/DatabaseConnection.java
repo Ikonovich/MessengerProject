@@ -1,5 +1,6 @@
 package messengerserver;
 
+import javax.naming.SizeLimitExceededException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +11,7 @@ public class DatabaseConnection
 
 	
 	private boolean isOccupied = false;
-	private int debugMask = 2;
+	private final int debugMask = 2;
 
 	// These are all of the statements that the connection can execute.
 	
@@ -20,7 +21,9 @@ public class DatabaseConnection
 	private PreparedStatement createUser;
 	private PreparedStatement deleteUser;
 	private PreparedStatement pullFriends;
-	private PreparedStatement addFriends;
+	private PreparedStatement addFriend;
+	private PreparedStatement removeFriend;
+	private PreparedStatement checkFriend;
 
 	
 	private static final String getUserByNameQuery = "SELECT * FROM RegisteredUsers WHERE UserName = ?";
@@ -29,7 +32,8 @@ public class DatabaseConnection
 	private static final String deleteUserQuery = "DELETE FROM RegisteredUsers WHERE UserID = ?";
 	private static final String pullFriendsQuery = "SELECT * FROM FriendPairs WHERE UserID = ?";
 	private static final String addFriendQuery = "INSERT INTO FriendPairs (UserID, FriendUserID) VALUES (?, ?)";
-
+	private static final String removeFriendQuery = "DELETE FROM FriendPairs WHERE UserID = ? AND FriendUserID = ?";
+	private static final String checkFriendQuery = "SELECT * FROM FriendPairs WHERE UserID = ? AND FriendUserID = ?";
 	
 	
 	public DatabaseConnection(String database, String user, String pass) 
@@ -58,6 +62,13 @@ public class DatabaseConnection
 			getUserByName = connection.prepareStatement(getUserByNameQuery);
 			getUserByID = connection.prepareStatement(getUserByIDQuery);
 			createUser = connection.prepareStatement(createUserQuery);
+			deleteUser = connection.prepareStatement(deleteUserQuery);
+			pullFriends = connection.prepareStatement(pullFriendsQuery);
+			addFriend = connection.prepareStatement(addFriendQuery);
+			removeFriend = connection.prepareStatement(removeFriendQuery);
+			checkFriend = connection.prepareStatement(checkFriendQuery);
+
+
 		}
 		catch (SQLException e)
 		{
@@ -117,7 +128,7 @@ public class DatabaseConnection
 	public boolean deleteUser(int userID) {
 
 		try {
-			createUser.setInt(1, userID);
+			deleteUser.setInt(1, userID);
 		}
 		catch(SQLException e) {
 			Debugger.record("Error preparing delete user by ID statement.", debugMask + 1);
@@ -125,7 +136,12 @@ public class DatabaseConnection
 		}
 
 		try {
-			return createUser.execute();
+			deleteUser.execute();
+
+			if (deleteUser.getUpdateCount() > 0) {
+				return true;
+			}
+			return false;
 		}
 		catch(SQLException e) {
 			Debugger.record("Error executing delete user by ID statement.", debugMask + 1);
@@ -236,22 +252,148 @@ public class DatabaseConnection
 	{
 		ArrayList<HashMap<String, String>> friendsMap = new ArrayList<HashMap<String, String>>();
 
-		try {
+		try
+		{
 			pullFriends.setInt(1, userID);
 		}
-		catch(SQLException e) {
+		catch(SQLException e)
+		{
 			Debugger.record("Error preparing get user by name statement.", debugMask + 1);
 			return friendsMap;
 		}
 
-		try {
+		try
+		{
 			ResultSet results = pullFriends.executeQuery();
 			friendsMap = parseResultSet(results);
 		}
-		catch(SQLException e) {
+		catch(SQLException e)
+		{
 			Debugger.record("Error executing get user by nane statement.", debugMask + 1);
 		}
 		return friendsMap;
+	}
+
+
+	public boolean checkFriend(int userID, int friendUserID)
+	{
+		try
+		{
+			checkFriend.setInt(1, userID);
+			checkFriend.setInt(2, friendUserID);
+		}
+		catch (Exception e)
+		{
+			Debugger.record("Could not set parameters for checkFriend query", debugMask + 1);
+			return false;
+		}
+		try
+		{
+			ResultSet results = checkFriend.executeQuery();
+			ArrayList<HashMap<String, String>> resultsList = parseResultSet(results);
+
+			if (resultsList.size() == 0)
+			{
+				return false;
+			}
+			else if (resultsList.size() == 1)
+			{
+				return true;
+			}
+			else if (resultsList.size() > 0)
+			{
+				throw new SizeLimitExceededException();
+			}
+		}
+		catch (SQLException e)
+		{
+			Debugger.record("Error executing checkFriend query." + e.getMessage(), debugMask + 1);
+		}
+		catch (SizeLimitExceededException e)
+		{
+			Debugger.record("CheckFriend query result was unexpectedly large.", debugMask + 1);
+		}
+
+		return false;
+	}
+
+
+
+	public boolean addFriend(int userID, int friendUserID)
+	{
+		if (checkFriend(userID, friendUserID) == false)
+		{
+
+			try
+			{
+				addFriend.setInt(1, userID);
+				addFriend.setInt(2, friendUserID);
+			}
+			catch (Exception e)
+			{
+				Debugger.record("Add friend query failed due to exception.", debugMask + 1);
+				return false;
+			}
+
+			try
+			{
+				addFriend.execute();
+
+				if (addFriend.getUpdateCount() > 0)
+				{
+					return true;
+				}
+				else {
+					Debugger.record("Executed addFriend query, but no friend pair was created.", debugMask + 1);
+				}
+
+			}
+			catch (SQLException e)
+			{
+				Debugger.record("Error when executing addFriend query." + e.getMessage(), debugMask + 1);
+			}
+		}
+
+		return false;
+	}
+
+
+
+	public boolean removeFriend(int userID, int friendUserID)
+	{
+		if (checkFriend(userID, friendUserID) == true)
+		{
+			try
+			{
+				removeFriend.setInt(1, userID);
+				removeFriend.setInt(2, friendUserID);
+			}
+			catch (Exception e)
+			{
+				Debugger.record("Remove friend query failed due to exception.", debugMask + 1);
+				return false;
+			}
+
+			try
+			{
+				removeFriend.execute();
+
+				if (removeFriend.getUpdateCount() > 0)
+				{
+					return true;
+				}
+				else {
+					Debugger.record("Executed removeFriend query, but no friend pair was deleted.", debugMask + 1);
+				}
+
+			}
+			catch (SQLException e)
+			{
+				Debugger.record("Error when executing removeFriend query." + e.getMessage(), debugMask + 1);
+			}
+		}
+
+		return false;
 	}
 	
 	

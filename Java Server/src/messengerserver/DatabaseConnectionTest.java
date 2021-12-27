@@ -58,6 +58,7 @@ class DatabaseConnectionTest {
         connection.close();
     }
 
+
     @Test
     void getUserByNameShouldReturnPremadeUser()
     {
@@ -89,6 +90,7 @@ class DatabaseConnectionTest {
         connection.close();
     }
 
+
     // The next two tests create and then delete a user.
 
     @Test
@@ -97,7 +99,7 @@ class DatabaseConnectionTest {
 
         connection = DatabasePool.getConnection();
 
-        String username = "testname";
+        String username = "tempuser";
         String passwordHash = "testpass";
         String passwordSalt = "1bYJiCe,kD:D&RI4p/n,e fE^\\G|HZb>70dx8y/@^Sr ]$%$M_cG}9jQAiFl\"Qv&VA7g$iyr9^&viRs%\\BH-+Z<!N:ujYuS@qp*F`!sD!A>TVOemySL7^.U<bqRL62M";
 
@@ -120,9 +122,10 @@ class DatabaseConnectionTest {
     }
 
 
+    @Test
     void deleteUserThenGetUserByNameShouldReturnNoUser()
     {
-        String username = "testname";
+        String username = "tempuser";
         connection = DatabasePool.getConnection();
         HashMap<String, String> user = connection.getUser(username);
 
@@ -133,6 +136,65 @@ class DatabaseConnectionTest {
 
         user = connection.getUser(username);
         assertFalse(user.containsKey("UserID"));
+
+        connection.close();
+    }
+
+
+    @Test
+    void checkFriendOnNonexistentPairShouldReturnFalse()
+    {
+        connection = DatabasePool.getConnection();
+
+        int userID = 3; // ID of user "testdude"
+        int friendUserID = 29; // ID of user "testperson"
+
+        assertFalse(connection.checkFriend(userID, friendUserID));
+
+        connection.close();
+    }
+
+
+    @Test
+    void checkFriendOnPremadePairShouldReturnTrue()
+    {
+
+        connection = DatabasePool.getConnection();
+
+        int userID = 3; // ID of user "testdude"
+        int friendUserID = 28; // ID of user "testname"
+
+        assertTrue(connection.checkFriend(userID, friendUserID));
+
+        connection.close();
+    }
+
+
+    @Test
+    void checkFriendOnNewPairShouldReturnTrue() {
+
+        connection = DatabasePool.getConnection();
+
+        int userID = 29; // ID of user "testperson"
+        int friendUserID = 28; // ID of user "testname"
+
+        assertTrue(connection.addFriend(userID, friendUserID));
+        assertTrue(connection.checkFriend(userID, friendUserID));
+
+        connection.close();
+    }
+
+
+    @Test
+    void checkFriendOnDeletedPairShouldReturnFalse() {
+
+        connection = DatabasePool.getConnection();
+
+        int userID = 29; // ID of user "testperson"
+        int friendUserID = 28; // ID of user "testname"
+
+        assertTrue(connection.removeFriend(userID, friendUserID));
+        assertFalse(connection.checkFriend(userID, friendUserID));
 
         connection.close();
     }

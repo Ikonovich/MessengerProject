@@ -187,7 +187,7 @@ namespace Messenger_Client
             }
             else
             {
-                Controller.RaisePopupEvent("An impossible-to-parse message has been received from the server.");
+                Controller.RaisePopupEvent("An impossible-to-parse message has been received from the server: \n" + received);
             }
         }
 

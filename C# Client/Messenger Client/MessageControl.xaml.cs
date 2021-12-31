@@ -14,10 +14,12 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Diagnostics;
-
+using Messenger_Client.SupportClasses;
 
 namespace Messenger_Client
 {
+
+
 
     /// <summary>
     /// Interaction logic for MessageControl.xaml
@@ -27,12 +29,16 @@ namespace Messenger_Client
     public partial class MessageControl : UserControl
     {
 
-        List<Tuple<string, string, string>> MessageList = new();
+        private int DebugMask = 32;
 
-        MainWindow MainWindow;
+        private Controller Controller;
 
-        // Stores the username of the user currently being spoken to.
-        string ViewedFriend = "FriendlyUser";
+        private int ChatID; // Stores the currently active chat ID.
+
+
+
+        private MainWindow MainWindow;
+
 
         public MessageControl()
         {
@@ -44,16 +50,24 @@ namespace Messenger_Client
 
             InitializeComponent();
 
+            Controller = Controller.ControllerInstance;
+
             MessageEntry.KeyDown += OnMessageKey;
+            Controller.UpdateChatEvent += OnUpdateChatEvent;
 
         }
 
+        
+        public void OnUpdateChatEvent(object sender, UpdateChatEventArgs e)
+        {
 
+            PopulateMessages();
+        }
 
         public void OnMessageEvent(object sender, MessageEventArgs e)
         {
             Debug.WriteLine("Message Event: " + e.Message + "\n");
-            MessageList.Add(new Tuple<string, string, string>(GetDateTimeString(), "TestName", e.Message));
+
             PopulateMessages();
         }
 
@@ -61,14 +75,22 @@ namespace Messenger_Client
 
         private void PopulateMessages()
         {
+            Chat chat = Controller.ActiveChat;
+            List <Dictionary<String, String>> messageList = chat.RetrieveMessages();
+
+            Debugger.Record("Populating messages.", DebugMask);
 
             Dispatcher.BeginInvoke(new ThreadStart(() => {
 
-                MessagePanel.Children.Clear();
-
-                for (int i = 0; i < MessageList.Count; i++)
+                if (chat.ChatID != ChatID)
                 {
-                    NewMessage(MessageList[i]);
+                    MessagePanel.Children.Clear();
+                    ChatID = chat.ChatID;
+                }
+
+                for (int i = 0; i < messageList.Count; i++)
+                {
+                    NewMessage(messageList[i]);
                 }
             }));
         }
@@ -82,7 +104,7 @@ namespace Messenger_Client
         // then adds the SM header code and receiving user to the beginning and sends it to the
         // connection handler.
 
-        private void SendMessage(Tuple<string, string, string> message)
+        private void SendMessage(Dictionary<string, string> message)
         {
 
             // Gets sender username with filler asterisks.
@@ -94,14 +116,25 @@ namespace Messenger_Client
         }
 
 
+        /// <summary> 
+        /// Adds a new message to the interface. Not optimized for XAML binding, since it relies on code behind to set th emessage.
+        /// </summary>  
+        /// <param name="message">A dictionary containg message components: CreateTimestamp, SenderID, Message (Indicating message body)</param>
 
-        public void NewMessage(string message)
+        public void NewMessage(Dictionary<string, string> message)
         {
 
-            Debug.WriteLine("Calling single-parameter NewMessage function");
 
 
-            string newMessage = message;
+
+            string timestamp = message["CreateTimestamp"];
+            string senderID = message["SenderID"];
+            string body = message["Message"];
+
+
+            Debugger.Record("Inside dictionary NewMessage function. Message: " + body, DebugMask);
+
+            string newMessage = timestamp + ": " + senderID + ": " + body;
 
             RichTextBox newBox = new RichTextBox();
             FlowDocument document = new FlowDocument();
@@ -112,14 +145,11 @@ namespace Messenger_Client
             document.Blocks.Add(paragraph);
             newBox.Document = document;
 
-            MessagePanel.Children.Add(newBox); 
-            
+            MessagePanel.Children.Add(newBox);
+
         }
 
-        // Takes a tuple containing a new message.
-        // Item 1: User who sent message.
-        // Item 2: Time and date of message.
-        // Item 3: The message itself.
+     
 
         public void NewMessage(Tuple<string, string, string> message)
         {

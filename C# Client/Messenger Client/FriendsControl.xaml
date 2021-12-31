@@ -7,9 +7,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <Control.Resources>
-        <c:FriendsButtons x:Key="ButtonList"/>
-    </Control.Resources>
     <Grid>
         <Border CornerRadius ="10" BorderBrush ="Transparent" BorderThickness="2" HorizontalAlignment="Center" VerticalAlignment="Top" Width="190" Height ="415" Margin="5, 30, 0, 0">
             <Grid>
@@ -19,9 +16,6 @@
                         <FlowDocument>
                             <Paragraph>
                                 <Run Text="Friends List:"/>
-                                <ListBox Width="190"
-                                         ItemsSource="{Binding ButtonList,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Control}}"
-                                         IsSynchronizedWithCurrentItem="True"/>
                             </Paragraph>
                         </FlowDocument>
                     </RichTextBox>
@@ -42,7 +36,13 @@
                 </Border>
                 <ScrollViewer Height="350" VerticalScrollBarVisibility="Auto" Margin="00, 50, 0, 0">
                     <StackPanel Name="FriendsPanel">
-
+                        <ItemsControl x:Name="FriendsDisplay">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding UserName}" Tag="{Binding ChatID}"   Click="OnFriendSelected"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </ScrollViewer>
             </Grid>

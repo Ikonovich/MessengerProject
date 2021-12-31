@@ -21,7 +21,7 @@
             <Border BorderBrush="AliceBlue" BorderThickness="3" Height="150" Width="200" Background="White">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Name="PopupText"  Width="150" TextWrapping="Wrap" Text="{Binding PopupMessage,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
-                    <Button Name="ClosePopupButton" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 20, 0, 0">
+                    <Button Name="ClosePopupButton" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 20, 0, 0" Click="OnClosePopup">
                         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Bold>Close</Bold>
                         </TextBlock>

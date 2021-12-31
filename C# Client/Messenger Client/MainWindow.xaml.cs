@@ -108,10 +108,10 @@ namespace Messenger_Client
         // Singletons
         private Controller Controller;
 
-        private LoginControl LoginControl = new LoginControl();
-        private FriendsControl FriendsControl = new FriendsControl();
-        private MessageControl MessageControl = new MessageControl();
-        private RegistrationControl RegistrationControl = new RegistrationControl();
+        public LoginControl LoginControl = new LoginControl();
+        public FriendsControl FriendsControl = new FriendsControl();
+        public MessageControl MessageControl = new MessageControl();
+        public RegistrationControl RegistrationControl = new RegistrationControl();
 
         public MainWindow()
         {
@@ -119,6 +119,7 @@ namespace Messenger_Client
             MessageControl = new MessageControl();
             LoginControl = new LoginControl();
             RegistrationControl = new RegistrationControl();
+            FriendsControl = new FriendsControl();
 
             Controller = Controller.ControllerInstance;
 
@@ -136,6 +137,7 @@ namespace Messenger_Client
             Controller.PopupEvent += OnPopupEvent;
             Controller.ChangeViewEvent += OnChangeView;
             Controller.ChangeUsernameEvent += OnChangeUsername;
+
 
 
             // Setting the default view mode.
@@ -218,6 +220,14 @@ namespace Messenger_Client
 
             PopupMessage = e.Message;
             IsPopupOpen = true;
+        }
+
+        // Used to close a popup
+        
+        private void OnClosePopup(object sender, RoutedEventArgs e)
+        {
+
+            IsPopupOpen = false;
         }
 
         // Used to change the username display

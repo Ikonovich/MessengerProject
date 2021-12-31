@@ -33,6 +33,33 @@ public class Cryptographer {
 	}
 
 	/**
+	 * Returns a random integer within the length provided.
+	 * If the provided parameters are outside the acceptable range, defaults to the closest acceptable
+	 * integer rather than returning an error.
+	 *
+	 * @param length An int between 1 and 9.
+	 * @return A random integer of the length provided.
+	 */
+	public static int generateRandomInteger(int length) {
+
+		if (length > 9) {
+			length = 9;
+		}
+		else if (length < 1) {
+			length = 1;
+		}
+
+		String randString = "";
+
+		while (randString.length() < length) {
+			int randInt = rand.nextInt(10);
+			randString += String.valueOf(randInt);
+		}
+
+		return Integer.parseInt(randString);
+	}
+
+	/**
 	 * Contains the latest hashing algorithm used by the server.
 	 * @param input The string to be hashed.
 	 * @return The result of the hashing algorithm.
@@ -55,5 +82,4 @@ public class Cryptographer {
 
 		return true;
 	}
-
 }

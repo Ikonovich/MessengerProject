@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Messenger_Client.SupportClasses;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,37 +13,47 @@ using System.Windows.Threading;
 namespace Messenger_Client
 {
 
-
-
-
     public class Controller : INotifyPropertyChanged
     {
+
+        int DebugMask = 2;
+
+        public static Chat ActiveChat { get; private set; } // Stores the currently active chat.
 
         private ConnectionHandler ConnectionHandler;
         private MainWindow MainWindow;
 
         private Dictionary<string, string> CodeToRequestMap = new();
 
+
+        private int UserID = 0;
+        private string SessionID = "";
+
+        private List<FriendUser> Friends;
+
+        private List<Chat> Chats;
+
+
         private bool RegistrationPending = false;
         private string PendingUsername = "";
 
-        private string Session = "";
 
-        private int usernameLength = 32;
-        private int passwordLength = 128;
+
+        private readonly int usernameLength = 32;
+        private readonly int passwordLength = 128;
 
         // Username control bindings
 
-        private string displayUsername = "Not Logged In";
+        private string username = "Not Logged In";
         public string DisplayUsername
         {
             get
             {
-                return displayUsername;
+                return username;
             }
             set
             {
-                displayUsername = value;
+                username = value;
                 OnPropertyChanged("Username");
             }
         }
@@ -68,6 +79,7 @@ namespace Messenger_Client
 
             MainWindow = Application.Current.MainWindow as MainWindow;
             ConnectionHandler = new ConnectionHandler(this);
+
         }
 
 
@@ -90,7 +102,7 @@ namespace Messenger_Client
             PendingUsername = username;
 
 
-            Debug.WriteLine("Controller sending login request to connection handler with username " + username);
+            Debugger.Record("Controller sending login request to connection handler with username " + username, DebugMask);
             ConnectionHandler.Login(username, password);
 
         }
@@ -115,17 +127,20 @@ namespace Messenger_Client
         /// <param name="input">The dictionary produced by the parser from a string received by the socket.</param>
         public void MessageHandler(Dictionary<string, string> input)
         {
+            Debugger.Record("MessageHandler called with input: " + string.Join(Environment.NewLine, input) + "\n", DebugMask);
 
-            string code = "";
+
+            string opcode = "";
             try {
-                code = input["ReceiptCode"];
+                opcode = input["Opcode"];
             }
-            catch (ArgumentException e)
+            catch (Exception e)
             {
-                RaisePopupEvent("Receipt code not found in message dictionary.\n");
+                RaisePopupEvent("Opcode not found in message dictionary.\n");
+                return;
             }
 
-            switch (code)
+            switch (opcode)
             {
                 case "RS":
                     RegistrationSuccessful(input);
@@ -142,15 +157,15 @@ namespace Messenger_Client
                 case "FP":
                     FriendsPush(input);
                     break;
-                case "FM":
-
+                case "MP":
+                    MessagePush(input);
                     break;
                 case "AM":
 
                     break;
                 default:
-
-                    break;
+                    Debugger.Record("An invalid opcode of " + opcode + " has been received by the Controller.", DebugMask);
+                    break; 
             }
 
         }
@@ -173,7 +188,6 @@ namespace Messenger_Client
         public void RegistrationUnsuccessful(Dictionary<string, string> input)
         {
 
-
             string username = input["Username"];
             string message = input["Message"];
 
@@ -193,8 +207,10 @@ namespace Messenger_Client
 
         public void LoginSuccessful(Dictionary<string, string> input)
         {
-            string username = input["Username"];
+
+            string userID = input["UserID"];
             string session = input["SessionID"];
+            string username = input["UserName"];
             string message = input["Message"];
 
             Debug.WriteLine("Making login checks with username " + username + " and session " + session + "\n");
@@ -203,17 +219,19 @@ namespace Messenger_Client
             {
                 Debug.WriteLine("Login checks passed.\n");
                 PendingUsername = "";
-                RegistrationPending = false;
 
+
+
+                UserID = int.Parse(userID);
                 DisplayUsername = username;
-                Session = session;
+                SessionID = session;
 
                 // Request the user's friends list
 
                 Debug.WriteLine("Controller sending friends pull request.");
 
 
-                ConnectionHandler.TransmissionHandler("PF" + Parser.Pack(username, 32) + session);
+                ConnectionHandler.PullFriends(UserID, SessionID);
 
              
                 RaisePopupEvent(message);
@@ -228,44 +246,97 @@ namespace Messenger_Client
 
         public void LoginUnsuccessful(Dictionary<string, string> input)
         {
-            string username = input["Username"];
+
+            Debugger.Record("Login unsuccessful called.", DebugMask);
             string message = input["Message"];
+            
+            PendingUsername = "";
+            RaisePopupEvent(message);
 
-            if (username == PendingUsername)
-            {
-
-                PendingUsername = "";
-                RegistrationPending = false;
-                RaisePopupEvent(message);
-
-            }
         }
 
         public void FriendsPush(Dictionary<string, string> input)
         {
-
-            Debug.WriteLine("FriendsPush called with input: " + string.Join(Environment.NewLine, input) + "\n");
-            Debug.WriteLine("Current session: " + Session);
-            Debug.WriteLine("Current username: " + DisplayUsername);
+            Debugger.Record("FriendsPush called with input: " + string.Join(Environment.NewLine, input) + "\n", DebugMask);
 
 
-            if (VerifyMessage(input, "FP") == true) {
+            if (VerifyMessage(input) == true) {
 
-                string friends = input["Friends"];
+                string friendsString = input["Message"];
+                List<Dictionary<string, string>> friendsList = new();
+                try
+                {
+                    friendsList = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(friendsString);
+                }
+                catch (Exception e)
+                {
+                    Debugger.Record("JSON Parsing exception in Controller: " + e.Message, DebugMask + 1);
+                    return;
+                }
 
-                List<string> friendsList = JsonConvert.DeserializeObject<List<string>>(friends);
+                List<FriendUser> friends = new();
 
-                Debug.WriteLine("Friends returned by request: " + friends);
-                RaiseUpdateFriendsEvent(friendsList);
+                foreach (Dictionary<string, string> dict in friendsList)
+                {
+                    FriendUser newFriend = new FriendUser(dict["FriendUserName"], dict["FriendUserID"], dict["PrivateChatID"]);
+                    friends.Add(newFriend);
+                    Debug.WriteLine("Added friend with ID: " + dict["FriendUserID"]);
+                }
+
+                Friends = friends;
+                RaiseUpdateFriendsEvent(friends);
             }
         }
 
-        private bool VerifyMessage(Dictionary<string, string> input, string messageType)
+        public void ChatPush(Dictionary<string, string> input)
         {
-            string username = input["Username"];
+
+            if (VerifyMessage(input) == true)
+            {
+                List<Dictionary<string, string>> chatsList;
+
+                try
+                {
+
+                    string chatsString = input["Message"];
+                    int chatID = int.Parse(input["Message"]);
+
+                    chatsList = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(chatsString);
+
+
+                }
+                catch (Exception e)
+                {
+                    Debugger.Record("JSON Parsing exception in Controller: " + e.Message, DebugMask + 1);
+                }
+            }
+        }
+
+
+
+        public void MessagePush(Dictionary<string, string> input)
+        {
+            Debugger.Record("MessagePush called with input: " + string.Join(Environment.NewLine, input) + "\n", DebugMask);
+
+
+            if (VerifyMessage(input) == true)
+            {
+                string messageString = input["Message"];
+                int chatID = int.Parse(input["ChatID"]);
+                List<Dictionary<string, string>> messageList = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(messageString);
+
+                ActiveChat = new Chat(chatID, messageList);
+
+                RaiseUpdateChatEvent();
+            }
+        }
+
+        private bool VerifyMessage(Dictionary<string, string> input)
+        {
+            string userID = input["UserID"];
             string session = input["SessionID"];
 
-            if ((username == DisplayUsername) && (session == Session))
+            if ((userID == UserID.ToString()) && (session == SessionID))
             {
                 return true;
             }
@@ -277,6 +348,16 @@ namespace Messenger_Client
         public string GetUsername()
         {
             return DisplayUsername;
+        }
+
+        public void ChatSelected(int chatID)
+        {
+
+            Debug.WriteLine("ChatSelected called in controller.");
+
+            ConnectionHandler.PullMessagesForChat(UserID, SessionID, chatID);
+            RaiseChangeViewEvent(Segment.Right, ViewType.MessageView);
+
         }
 
         // ---------- BEGIN EVENT DELEGATES --------- //
@@ -327,20 +408,30 @@ namespace Messenger_Client
             ChangeUsernameEvent?.Invoke(this, new MessageEventArgs(username));
         }
 
-        // Called to update the list of friends in the Message control.
+        // Called to update the list of friends in the Friends control.
 
         public delegate void UpdateFriendsEventHandler(object sender, UpdateFriendsEventArgs e);
 
         public event UpdateFriendsEventHandler UpdateFriendsEvent;
 
-        public void RaiseUpdateFriendsEvent(List<string> friends)
+        public void RaiseUpdateFriendsEvent(List<FriendUser> friends)
         {
-
             Debug.WriteLine("Raise update friends called.\n");
-
             UpdateFriendsEvent?.Invoke(this, new UpdateFriendsEventArgs(friends));
         }
-   
+
+
+        // Called to update the message display in the Message control.
+
+        public delegate void UpdateChatEventHandler(object sender, UpdateChatEventArgs e);
+
+        public event UpdateChatEventHandler UpdateChatEvent;
+
+        public void RaiseUpdateChatEvent()
+        {
+            UpdateChatEvent?.Invoke(this, new UpdateChatEventArgs());
+        }
+
 
         //INotifyPropertyChanged members
         public event PropertyChangedEventHandler PropertyChanged;

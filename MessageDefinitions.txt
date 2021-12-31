@@ -11,7 +11,7 @@ The bitmask order is as follows:
 
 0: Opcode - always 1. 
 1: UserID - 32 characters - Present for all messages except login and registration.
-2: UserName - 32 characters - Present for login, registration, and when adding a friend.
+2: UserName/FriendID - 32 characters - Present for login, registration, and when adding a friend.
 3: Password - 128 characters - Present only for login and registration.
 4: Session ID - 32 characters - Required for all non-login and non-registration interactions. Very weakly verifies connection
 integrity.
@@ -19,14 +19,17 @@ integrity.
 
 The final component of a received transmission, the Message, is whatever remains after the item determined by the bit mask are parsed out.
 
-The available op codes with their bit masks are:
+The available server op codes with their bit masks are:
 
 IR (Initial Registration):  001101  /  13
 LR (Login Request):  001101   /   13
-PF (Pull Friends):  011011  /   27
+PF (Pull Friends):  010011  /   19
 AF (Add Friend):  010111   / 23
-PC (Pull Chat):  110011    / 51
+FR (Friend Request):  010111   / 23
+PC (Pull User Chats): 010011 / 19
+PM (Pull Messages):  110011    / 51
 SM (Send Message):  110011   /   51
+
 
 ---- Packet format ----
 All messages sent from both client and server contain the following information: 

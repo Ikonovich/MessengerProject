@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Messenger_Client.SupportClasses;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -63,13 +64,22 @@ namespace Messenger_Client
         public string Message { get; }
     }
 
-    // Defining the arguments for an FriendsUpdate event.
+    // Defining the arguments for a FriendsUpdate event.
     public class UpdateFriendsEventArgs
     {
-        public UpdateFriendsEventArgs(List<string> friends) { Friends = friends; }
-
-        public List<string> Friends { get; }
+        public UpdateFriendsEventArgs(List<FriendUser> friends) { Friends = friends; }
+        public List<FriendUser> Friends { get; }
     }
+
+    /// <summary> 
+    /// Defining the arguments for an UpdateChat event, which signals the 
+    /// MessageControl to update its display.
+    /// </summary>
+    public class UpdateChatEventArgs
+    {
+        public UpdateChatEventArgs() { }
+    }
+
 
     // Defining the arguments for a MessageEvent.
 

@@ -11,19 +11,18 @@ public class Debugger {
 	// Bit 4 = Security-related message flag.
 	 
 	
-	static final int printMask = 31;
+	private static final int printMask = 4;
 	
 	
 	public static synchronized void print(String message) 
 	{
-		
 		System.out.println(message);
 	}
 	
 	public static synchronized void record(String message, int mask) 
 	{
 		
-		if ((mask & printMask) == mask)
+		if ((mask & printMask) == printMask)
 		{
 			System.out.println(message);
 		}

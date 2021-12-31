@@ -23,16 +23,38 @@ CREATE TABLE RegisteredUsers (
 	CONSTRAINT identifiers UNIQUE (UserID, UserName)
 );
 
+FriendRequests: 
+Field                	| Type        | Null 	| Key    	| Default           | Extra
+UserID 		    	   INT 	  	 NO	  PRI 		  NULL		 	PRIMARY KEY
+FriendUserID           	   INT 	 	 NO	  PRI 		  NULL		 	PRIMARY KEY
+RequestAddedTimestamp	  DATETIME      YES         		  CURRENT_TIMESTAMP     DEFAULT_GENERATED
+
+CREATE TABLE FriendRequests (
+	UserID INT NOT NULL,
+	FriendUserID INT NOT NULL,
+	FriendUserName VARCHAR(32) NOT NULL,
+	RequestAddedTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY(UserID, FriendUserID),
+	FOREIGN KEY(UserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE,
+	FOREIGN KEY(FriendUserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE
+);
+
+
+
 FriendPairs:
 Field                	| Type        | Null 	| Key    	| Default           | Extra
 UserID 		    	   INT 	  	 NO	  PRI 		  NULL		 	PRIMARY KEY
 FriendUserID           	   INT 	 	 NO	  PRI 		  NULL		 	PRIMARY KEY
+FriendUserName             VARCHAR(32)   NO                       NULL
+PrivateChatID		   INT           NO                       NULL 
 FriendAddedTimestamp	  DATETIME      YES         		  CURRENT_TIMESTAMP     DEFAULT_GENERATED
 
 
 CREATE TABLE FriendPairs (
 	UserID INT NOT NULL,
 	FriendUserID INT NOT NULL,
+	FriendUserName VARCHAR(32) NOT NULL,
+	PrivateChatID INT NOT NULL,
 	FriendAddedTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY(UserID, FriendUserID),
 	FOREIGN KEY(UserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE,

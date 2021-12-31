@@ -36,6 +36,7 @@ namespace Messenger_Client
     {
 
         Controller Controller;
+        int DebugMask = 4;
 
         // The constructor initializes the connection handler listening to the server.
         // It also takes and sets the Controller variable for this class. 
@@ -55,7 +56,7 @@ namespace Messenger_Client
         Socket ServerSocket = null;
         Int32 Port = 3000;
 
-        Byte[] BytesReceived = new byte[256];
+        Byte[] BytesReceived = new byte[512];
 
 
         // Declaring the message event delegate
@@ -94,12 +95,71 @@ namespace Messenger_Client
             LoginPending = true;
             PendingUsername = username;
 
-
-
-
-           Debug.WriteLine("Transmitting from Login in connection handler");
-           TransmissionHandler("LR" + Parser.Pack(username, 32) + Parser.Pack(password, 128));
+            Debug.WriteLine("Transmitting from Login in connection handler");
+            TransmissionHandler("LR" + Parser.Pack(username, 32) + Parser.Pack(password, 128));
         }
+
+       
+        /// <summary> 
+        /// 
+        /// </summary> 
+		/// <param name="userID">The ID of the user whose friends will be pulled</param>
+		/// <param name="sessionID">The sessionID used to verify the transmission.</param>
+					    
+
+        public void PullFriends(int userID, string sessionID)
+        {
+            Debugger.Record("Sending pull friends request.", DebugMask);
+
+            string transmitString = "PF" + Parser.Pack(userID.ToString(), 32) + sessionID;
+
+            TransmissionHandler(transmitString);
+        }
+
+
+        /// <summary> 
+        /// This method sends an add friend request. 
+        /// It is unique in that the server will create a pending request and sends a request to the friended user.
+        /// When the friended user sends an add friend request for this user, the pending request will be approved.
+        /// 
+        /// </summary>  
+        /// <param name="userID">The ID of the user requesting the friend add.</param>
+        /// <param name="friendID">The ID of the user to be added. </param>
+        /// <param name="sessionID">The sessionID used to verify the transmission.</param>
+
+
+
+        public void AddFriend(int userID, int friendID, string sessionID)
+        {
+            Debugger.Record("Sending add friend request.", DebugMask);
+
+            string transmitString = "AF" + userID + friendID + sessionID;
+
+            TransmissionHandler(transmitString);
+        }
+
+        // This message pulls all of the chats the user is a member of, in the form of User-Chat Pairs.
+
+        public void PullChats(int userID, int sessionID)
+        {
+            Debugger.Record("Sending pull chats request.", DebugMask);
+
+            string transmitString = "PC" + userID + sessionID;
+
+            TransmissionHandler(transmitString);
+
+        }
+
+        public void PullMessagesForChat(int userID, string sessionID, int chatID)
+        {
+            Debugger.Record("Sending pull messages for chat request.", DebugMask);
+
+            string transmitString = "PM" + Parser.Pack(userID, 32) + sessionID + Parser.Pack(chatID, 32);
+
+            TransmissionHandler(transmitString);
+
+        }
+        
 
         public string GetUsername()
         {

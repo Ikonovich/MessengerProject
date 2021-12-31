@@ -30,7 +30,8 @@ import java.util.HashMap;
 //LR (Login Request):  001101   /   13
 //PF (Pull Friends):  011011  /   27
 //AF (Add Friend):  010111   / 23
-//PC (Pull Chat):  110011    / 51
+//PC (Pull User-Chat Pairs) / 010011 / 19
+//PM (Pull Messages From Chat):  110011    / 51
 //SM (Send Message):  110011   /   51
 
 // The core client opcodes with their bitmasks are:
@@ -45,7 +46,7 @@ import java.util.HashMap;
 
 public class Parser {
 	
-	private static int debugMask = 8; // Indicates the bit mask for Debugger usage. +1 the debugMask to indicate an error message.
+	private static final int debugMask = 8; // Indicates the bit mask for Debugger usage. +1 the debugMask to indicate an error message.
 
 	
 	// Used to determine the parser behavior.
@@ -66,9 +67,10 @@ public class Parser {
 		
 		opcodeMap.put("IR", 13);
 		opcodeMap.put("LR", 13);
-		opcodeMap.put("PF", 27);
+		opcodeMap.put("PF", 19);
 		opcodeMap.put("AF", 23);
-		opcodeMap.put("PC", 51);
+		opcodeMap.put("UC", 19);
+		opcodeMap.put("PM", 51);
 		opcodeMap.put("SM", 51);
 	}
 	
@@ -113,7 +115,7 @@ public class Parser {
 		{
 			
 			try {
-				returnMap.put("UserID", message.substring(0, userIDLength));
+				returnMap.put("UserID", Parser.unpack(message.substring(0, userIDLength)));
 				message = message.substring(userIDLength);
 				
 				Debugger.record("Parser processed at bit 1 for opcode: " + opcode + " with input: " + message, debugMask);
@@ -185,7 +187,7 @@ public class Parser {
 		{
 
 			try {
-				returnMap.put("ChatID", message.substring(0, chatIDLength));
+				returnMap.put("ChatID", unpack(message.substring(0, chatIDLength)));
 				message = message.substring(chatIDLength);
 				
 				Debugger.record("Parser processed at bit 5 for opcode: " + opcode + " with input: " + message, debugMask);
@@ -229,7 +231,12 @@ public class Parser {
 
         return newString;
 	}
-	
+
+	public static String pack(int input, int size)
+	{
+		String inputString = String.valueOf(input);
+		return pack(inputString, size);
+	}
 	public static String unpack(String input) {
 		
         int packStart = input.indexOf("*");

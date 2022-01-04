@@ -5,11 +5,31 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Messenger_Client"
              mc:Ignorable="d" 
-             d:DesignHeight="400" d:DesignWidth="190" VerticalAlignment="Bottom">
-    <Grid VerticalAlignment="Bottom">
-        <ScrollViewer VerticalScrollBarVisibility="Auto"  Height="350">
-            <StackPanel Name ="MessagePanel">
-
+             d:DesignHeight="460" d:DesignWidth="190">
+    <Grid VerticalAlignment="Top" Height="420" Margin="0, 30, 0, 0">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"  VerticalAlignment="Top" Height="365">
+            <StackPanel Name ="MessagePanel" Height="Auto" Width="Auto" VerticalAlignment="Top">
+                <ItemsControl x:Name="MessageDisplay">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderThickness="2, 1, 2, 1" BorderBrush="Black">
+                                <RichTextBox VerticalAlignment="Top" Background="AliceBlue">
+                                    <FlowDocument>
+                                        <Paragraph>
+                                            <Bold>
+                                                <TextBlock Text="{Binding CreateTimestamp, Mode=OneWay}"/>
+                                                <TextBlock Text=":"/>
+                                                <TextBlock Text="{Binding SenderID, Mode=OneWay}"/>
+                                                <TextBlock Text=":"/>
+                                            </Bold>
+                                            <TextBlock Text="{Binding Body}"/>
+                                        </Paragraph>
+                                    </FlowDocument>
+                                </RichTextBox>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
         </ScrollViewer>
         <TextBox Name="MessageEntry" Height="50" VerticalAlignment="Bottom" TextWrapping="Wrap" Margin="0,0,0,5">

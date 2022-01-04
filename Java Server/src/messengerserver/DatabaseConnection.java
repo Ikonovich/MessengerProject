@@ -1,6 +1,9 @@
 package messengerserver;
 
+import jdk.nashorn.internal.runtime.Debug;
+
 import javax.naming.SizeLimitExceededException;
+import javax.xml.transform.Result;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +35,7 @@ public class DatabaseConnection
 	private PreparedStatement addUserChatPair;
 	private PreparedStatement checkUserChatPair;
 	private PreparedStatement pullUserChats;
+	private PreparedStatement pullChatSubscribers;
 	private PreparedStatement addMessage;
 	private PreparedStatement deleteMessage;
 	private PreparedStatement pullMessagesFromChat;
@@ -52,6 +56,7 @@ public class DatabaseConnection
 	private static final String deleteChatQuery = "DELETE FROM Chats WHERE ChatID = ?";
 	private static final String checkChatIDQuery = "SELECT * FROM Chats WHERE ChatID = ?";
 	private static final String pullUserChatsQuery = "SELECT * FROM UserChatPairs WHERE UserID = ?";
+	private static final String pullChatSubscribersQuery = "SELECT * FROM UserChatPairs WHERE ChatID = ?";
 	private static final String addUserChatPairQuery = "INSERT INTO UserChatPairs(UserID, ChatID) VALUES (?, ?)";
 	private static final String checkUserChatPairQuery = "SELECT * FROM UserChatPairs WHERE ChatID = ? AND UserID = ?";
 	private static final String pullMessagesFromChatQuery = "SELECT * FROM Messages WHERE ChatID = ?";
@@ -96,6 +101,7 @@ public class DatabaseConnection
 			deleteChat = connection.prepareStatement(deleteChatQuery);
 			checkChatID = connection.prepareStatement(checkChatIDQuery);
 			pullUserChats = connection.prepareStatement(pullUserChatsQuery);
+			pullChatSubscribers = connection.prepareStatement(pullChatSubscribersQuery);
 			addUserChatPair = connection.prepareStatement(addUserChatPairQuery);
 			checkUserChatPair = connection.prepareStatement(checkUserChatPairQuery);
 			pullMessagesFromChat = connection.prepareStatement(pullMessagesFromChatQuery);
@@ -130,8 +136,18 @@ public class DatabaseConnection
 	{
 		isOccupied = false;
 	}
-	
-	
+
+
+	//<editor-fold desc="Account-related queries">
+
+	/**
+	 * Creates a single new RegisteredUser in the database.
+	 *
+	 * @param username The name of the user to be created.
+	 * @param passwordHash The hashed password of the user to be created.
+	 * @param passwordSalt The password salt of the user to be created.
+	 * @return A boolean indicating whether or not the user was created successfully.
+	 */
 	public boolean createUser(String username, String passwordHash, String passwordSalt) {
 
 		if (getUser(username).size() > 0) {
@@ -189,13 +205,12 @@ public class DatabaseConnection
 		}
 	}
 
+
 	/**
 	 *  This method returns a single user by their UserName.
 	 *  @param username the name of the user.
 	 *	@return a HashMap containing the user's database entry.
  	 */
-
-
 	public HashMap<String, String> getUser(String username)
 	{
 		
@@ -234,15 +249,14 @@ public class DatabaseConnection
 		}
 		
 		return userMap;
-		
 	}
+
 
 	/**
 	 *  This method returns a single user by their UserID.
 	 *  @param userID the ID of the user.
 	 *	@return a HashMap containing the user's database entry.
 	 */
-	
 	public HashMap<String, String> getUser(int userID)
 	{
 		HashMap<String, String> userMap = new HashMap<String, String>();
@@ -283,6 +297,13 @@ public class DatabaseConnection
 		return userMap;
 	}
 
+
+
+	//</editor-fold>
+
+
+
+	//<editor-fold desc="Friend-Related Queries">
 	/**
 	 * This method gets the list of a user's friends, stored as HashMaps.
 	 * @param userID The ID of the user whose friends are being gotten.
@@ -314,6 +335,16 @@ public class DatabaseConnection
 		return friendsMap;
 	}
 
+
+	/**
+	 * This method adds a single friend request to the database.
+	 * Before creating a new friend pair between UserOne and UserTwo, the server ensures that both request ends
+	 * - UserOne:UserTwo and UserTwo:UserOne - have been created.
+	 *
+	 * @param userID The ID of the requesting user.
+	 * @param friendUserID The ID of the user receiving the request.
+	 * @return A boolean indicating whether or not the request was successfully added to the database.
+	 */
 	public boolean addFriendRequest(int userID, int friendUserID)
 	{
 
@@ -357,6 +388,20 @@ public class DatabaseConnection
 
 	}
 
+	/**
+	 * This method looks for a single friend request in the database.
+	 * Before creating a new friend pair between UserOne and UserTwo, the server ensures that both request ends
+	 * - UserOne:UserTwo and UserTwo:UserOne - have been created.
+	 * When the server receives a friend request, it uses this method to check if the counterbalancing request
+	 * has already been made. If it has, it calls addFriend(), adding two new friend pairs - A UserOne:UserTwo
+	 * pair and a UserTwo: UserOne pair - to the database.
+	 * If a counterbalancing friend request does not already exist, the server calls addFriendRequest().
+	 *
+	 * @param userID The ID of the requesting user.
+	 * @param friendUserID The ID of the user receiving the request.
+	 * @return A boolean indicating if the requested pair exists.
+	 */
+
 	public boolean checkFriendRequest(int userID, int friendUserID)
 	{
 		try
@@ -397,15 +442,24 @@ public class DatabaseConnection
 		}
 
 		return false;
-
 	}
 
-	public boolean checkFriend(int userID, int friendUserID)
+	/**
+	 * This method checks to see if two users are friends, by
+	 * checking to see if the UserOne:UserTwo friend pair exists
+	 * in the database. Does not check the counterbalancing
+	 * UserTwo: UserOne pair.
+	 *
+	 * @param userOneID The ID of the first user.
+	 * @param userTwoID The ID of the second user.
+	 * @return A boolean indicating if the two users are friends.
+	 */
+	public boolean checkFriend(int userOneID, int userTwoID)
 	{
 		try
 		{
-			checkFriend.setInt(1, userID);
-			checkFriend.setInt(2, friendUserID);
+			checkFriend.setInt(1, userOneID);
+			checkFriend.setInt(2, userTwoID);
 		}
 		catch (Exception e)
 		{
@@ -532,6 +586,9 @@ public class DatabaseConnection
 
 		return false;
 	}
+	//</editor-fold>
+
+
 
 	/**
 	 * Executes a database query to create a new Chat.
@@ -657,12 +714,39 @@ public class DatabaseConnection
 	}
 
 	/**
-	 * Creates a user-chat pair identifying the user as a member of a specific chat.
+	 * Retrieves an ArrayList of all User-Chat pairs for a specific chat.
+	 *
+	 * @param chatID The chat whose subscribers should be retrieved.
+	 * @return An ArrayList of all User-Chat pairs for the provided chat.
+	 */
+	public ArrayList<HashMap<String, String>> pullChatSubscribers(int chatID)
+	{
+
+		ArrayList<HashMap<String, String>> subscribers = new ArrayList<>();
+		try
+		{
+			pullChatSubscribers.setInt(1, chatID);
+
+			ResultSet results = pullChatSubscribers.executeQuery();
+
+			subscribers = parseResultSet(results);
+		}
+		catch (Exception e)
+		{
+			Debugger.record("Failed to execute pullChatSubscribers query: " + e.getMessage(), debugMask);
+			return subscribers;
+		}
+
+		return subscribers;
+	}
+
+
+	/**
+	 * Creates a user-chat pair identifying the user as a subscriber to a specific chat.
 	 * @param chatID The ID of the chat.
 	 * @param userID The ID of the user.
 	 * @return a boolean indicating success.
 	 */
-
 	public boolean addUserChatPair(int chatID, int userID)
 	{
 		if (checkUserChatPair(chatID, userID) == false)
@@ -794,7 +878,8 @@ public class DatabaseConnection
 
 		ArrayList<HashMap<String, String>> messageList = new ArrayList<HashMap<String, String>>();
 
-		try {
+		try
+		{
 			pullMessagesFromChat.setInt(1, chatID);
 		} catch (SQLException e) {
 			Debugger.record("Error preparing pull messages from chat statement.", debugMask + 1);

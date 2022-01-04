@@ -107,6 +107,18 @@ namespace Messenger_Client
 
         }
 
+        public void SendMessage(string message)
+        {
+            if (ActiveChat != null)
+            {
+
+                string messageOut = "SM" + Parser.Pack(UserID, 32) + SessionID + Parser.Pack(ActiveChat.ChatID, 32) + message;
+
+                ConnectionHandler.SendMessage(UserID, SessionID, ActiveChat.ChatID, message);
+            }
+        }
+
+
 
         //----------BEGIN MESSAGE HANDLING CODE ------------- //
 
@@ -127,7 +139,7 @@ namespace Messenger_Client
         /// <param name="input">The dictionary produced by the parser from a string received by the socket.</param>
         public void MessageHandler(Dictionary<string, string> input)
         {
-            Debugger.Record("MessageHandler called with input: " + string.Join(Environment.NewLine, input) + "\n", DebugMask);
+            Debugger.Record("MessageHandler called with input: " + string.Join(Environment.NewLine, input), DebugMask);
 
 
             string opcode = "";
@@ -160,8 +172,14 @@ namespace Messenger_Client
                 case "MP":
                     MessagePush(input);
                     break;
+                case "CN":
+                    ChatNotification(input);
+                    break;
                 case "AM":
 
+                    break;
+                case "HB":
+                    ReceiveHeartbeat(input);
                     break;
                 default:
                     Debugger.Record("An invalid opcode of " + opcode + " has been received by the Controller.", DebugMask);
@@ -325,10 +343,45 @@ namespace Messenger_Client
                 int chatID = int.Parse(input["ChatID"]);
                 List<Dictionary<string, string>> messageList = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(messageString);
 
-                ActiveChat = new Chat(chatID, messageList);
+                if (ActiveChat == null || ActiveChat.ChatID != chatID)
+                {
+                    ActiveChat = new Chat(chatID, messageList);
+                }
 
                 RaiseUpdateChatEvent();
             }
+        }
+
+        public void ChatNotification(Dictionary<string, string> input)
+        {
+
+            Debugger.Record("ChatNotification called with input: " + string.Join(Environment.NewLine, input) + "\n", DebugMask);
+
+            if (VerifyMessage(input) == true)
+            {
+                int chatID = 0;
+
+                try
+                {
+                    chatID = int.Parse(input["ChatID"]);
+                }
+                catch (Exception e)
+                {
+                    Debugger.Record("ChatNotification failed to parse chatID from input: " + e.Message, DebugMask + 1);
+                }
+
+                if (chatID == ActiveChat.ChatID && chatID != 0)
+                {
+                    ConnectionHandler.PullMessagesForChat(UserID, SessionID, chatID);
+                }
+
+            }
+
+        }
+
+        public void ReceiveHeartbeat(Dictionary<string, string> input)
+        {
+            ConnectionHandler.TransmissionHandler("HB");
         }
 
         private bool VerifyMessage(Dictionary<string, string> input)
@@ -338,6 +391,7 @@ namespace Messenger_Client
 
             if ((userID == UserID.ToString()) && (session == SessionID))
             {
+                Debugger.Record("Message verified.", DebugMask);
                 return true;
             }
 
@@ -359,6 +413,7 @@ namespace Messenger_Client
             RaiseChangeViewEvent(Segment.Right, ViewType.MessageView);
 
         }
+
 
         // ---------- BEGIN EVENT DELEGATES --------- //
 

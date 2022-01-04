@@ -4,15 +4,6 @@ import java.io.FileOutputStream;
 import java.util.Properties;
 
 public class Server {
-	
-	public static final int PORT = 3000;
-
-	public static final int MIN_USERNAME_LENGTH = 8;
-	public static final int MAX_USERNAME_LENGTH = 32;
-	
-	public static final int MIN_PASSWORD_LENGTH = 8;
-	public static final int MAX_PASSWORD_LENGTH = 128;
-
 
 	public static void main(String[] args) 
 	{

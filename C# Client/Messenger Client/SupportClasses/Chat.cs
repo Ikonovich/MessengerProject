@@ -19,7 +19,7 @@ namespace Messenger_Client.SupportClasses
     {
         public int ChatID { get; private set; } // Stores the chat's unique identifier.
 
-        public List<Dictionary<string, string>> Messages { get; private set; } // Stores all messages currently on-hand for this chat.
+        public List<Message> Messages { get; private set; } // Stores all messages currently on-hand for this chat.
 
         private int LastRetrieved; // Stores the index of the last message that was gotten via Retrieve();
 
@@ -30,9 +30,15 @@ namespace Messenger_Client.SupportClasses
         /// <param name="messages">The initializing set of messages of the chat, provided by the server.</param>
         public Chat(int chatID, List<Dictionary<string, string>> messages)
         {
+            Debugger.Record("Creating chat with first entry: " + messages[0]["Message"], DebugMask);
             ChatID = chatID;
             messages.Sort(CompareByDate);
-            Messages = messages;
+            Messages = new List<Message>();
+
+            for (int i = 0; i < messages.Count; i++)
+            {
+                Messages.Add(new Message(messages[i]));
+            }
         }
 
         public void UpdateMessages(List<Dictionary<string, string>> newMessages)
@@ -42,18 +48,26 @@ namespace Messenger_Client.SupportClasses
 
             for (int i = 0; i < newMessages.Count; i++)
             {
-                Messages.Add(newMessages[i]);
+                Messages.Add(new Message(newMessages[i]));
             }
 
         }
 
-        public List<Dictionary<String, String>> RetrieveMessages()
+        public List<Message> RetrieveMessages()
         {
-            List<Dictionary<String, String>> freshMessages = new();
+            List<Message> freshMessages = new();
 
-            for(int i = LastRetrieved; i < Messages.Count; i++, LastRetrieved++)
+            if (LastRetrieved == 0)
             {
-                freshMessages.Add(Messages[i]);
+                return Messages;
+            }
+            else
+            {
+                for (int i = LastRetrieved; i < Messages.Count; i++)
+                {
+                    freshMessages.Add(Messages[i]);
+                    LastRetrieved++;
+                }
             }
 
             return freshMessages;

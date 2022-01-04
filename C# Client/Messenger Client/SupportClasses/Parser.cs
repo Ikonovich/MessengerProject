@@ -15,48 +15,57 @@ namespace Messenger_Client
     /// The primary function returns true if the parse is successful, false otherwise, and
     /// sends output to a provided dictionary. 
     /// 
-    /// All messages must contain as their first two letters an Operation Code or Opcode. This Opcode tells the server
-    /// how to parse and handle the incoming message. Specifically, each Opcode is mapped to a bit mask, and a fall-through
-    /// parser is used to parse each message based on this mask. 
-    ///
-    /// Padding of input strings is done using asterisks (*) at this time.
+    /// The first three characters of a transmission header MUST BE as follows:
+    /// 
+    /// [Index 0] - Multiple Message Indicator - If T (True), the ConnectionHandler stores the message in a transmission buffer.
+    ///  When an F (False) transmission is received following a T transmission or multiple T transmissions, the
+    /// buffer contents are sent to be parsed and the buffer is cleared.
+    /// 
+    /// [Index 1-2] - Opcode - Determines how the remainder of the message is parsed by being assigned to a bitmask.
+    /// 
+    /// 
     ///
     /// As such, all information in a server message __must__ be in the bitmask appropriate order with the
     /// appropriate sizes, and a field __must__ not be present if not required by the given Opcode.
     ///
+    /// Padding of input strings is done using asterisks (*) at this time, using the Parser.Pack function.
+    /// 
     /// The bitmask order is as follows:
-    ///
-    /// 000001: Opcode - always 1. Determines how the remainder of the message is parsed by being assigned to a bitmask.
-    /// 000010: UserID - 32 characters - Present for all messages except login and registration. 
-    /// 000100: UserName - 32 characters - Present for login, registration, and when adding a friend.
-    /// 001000: Password - 128 characters - Present only for login and registration.
-    /// 010000: Session ID - 32 characters - Required for all non-login and non-registration interactions. Very weakly verifies connection
+    /// 00001: UserID - 32 characters - Present for all messages except login and registration. 
+    /// 00010: UserName - 32 characters - Present for login, registration, and when adding a friend.
+    /// 00100: Password - 128 characters - Present only for login and registration.
+    /// 01000: Session ID - 32 characters - Required for all non-login and non-registration interactions. Very weakly verifies connection
     /// integrity.
-    /// 100000: Chat ID - 32 characters - Identifies a single chat between one or multiple people.
+    /// 10000: Chat ID - 32 characters - Identifies a single chat between one or multiple people.
     ///
-    /// The final component of a received transmission, the Message, is whatever remains after the item determined by the bit mask are parsed out.
-    /// The message component is used
+    /// The final component of a received transmission, the Message, is whatever remains after the item determined by the bit mask 
+    /// are parsed out.
+    /// The message component is used to store either user notifications or json objects such as lists of messages and friends.
     /// 
     /// The core server opcodes with their bitmasks are:
     ///
-    /// IR (Initial Registration):  001101  /  13
-    /// LR (Login Request):  001101   /   13
-    /// PF (Pull Friends):  011011  /   27
-    /// AF (Add Friend):  010111   / 23
-    /// PC (Pull User-Chat Pairs) / 010011 / 19
-    /// PM (Pull Messages From Chat):  110011    / 51
-    /// SM (Send Message):  110011   /   51
+    /// IR (Initial Registration):  00110  /  6
+    /// LR (Login Request):  00110  /   6
+    /// PF (Pull Friends):  01101  /   13
+    /// AF (Add Friend):  01011  / 11
+    /// PC (Pull User-Chat Pairs) / 01001 / 9
+    /// PM (Pull Messages From Chat):  11001    / 25
+    /// SM (Send Message):  11001   /   25
+    /// HB (Heartbeat): 00000 / 0
+
     ///
     /// The core client opcodes (What this Parser is responsible for parsing) with their bitmasks are:
     ///
-    /// RU (Registration unsuccessful):  000101 / 5
-    /// RS (Registration successful):  000101 / 5
-    /// LU (Login unsuccessful):	 000101 / 5
-    /// LS (Login successful):  010111 / 7
-    /// FP (Friend Push): 010011 / 19
-    /// CP (User-Chat Pairs Push): 010011 / 19
-    /// MP (Message Push for one chat): 110011 / 51
-    /// AM (Administrative Message): 010011 / 19
+    /// RU (Registration unsuccessful):  00010 / 2
+    /// RS (Registration successful):  00010  / 2
+    /// LU (Login unsuccessful):	 00010 / 2
+    /// LS (Login successful):  01011 / 3
+    /// FP (Friend Push): 01001 / 9
+    /// CP (User-Chat Pairs Push): 01001 / 9
+    /// MP (Message Push for one chat): 11001 / 25
+    /// CN  (Chat Notification): 11001 / 25
+    /// AM (Administrative Message): 01001 / 9
+    /// HB (Heartbeat): 00000 / 0
     ///</summary>
 
     static class Parser
@@ -66,18 +75,27 @@ namespace Messenger_Client
 
         private static int debugMask = 8;
 
+
+        private const int UserNameLength = 32;
+        private const int UserIDLength = 32;
+        private const int PasswordLength = 128;
+        private const int SessionIDLength = 32;
+        private const int ChatIDLength = 8;
+
         static Parser()
         {
             OpcodeMasks = new Dictionary<string, int>();
 
             OpcodeMasks.Add("RS", 5);
             OpcodeMasks.Add("RU", 5);
-            OpcodeMasks.Add("LU", 1);
-            OpcodeMasks.Add("LS", 23);
-            OpcodeMasks.Add("FP", 19);
-            OpcodeMasks.Add("CP", 19);
-            OpcodeMasks.Add("MP", 51);
-            OpcodeMasks.Add("AM", 19);
+            OpcodeMasks.Add("LU", 0);
+            OpcodeMasks.Add("LS", 7);
+            OpcodeMasks.Add("FP", 9);
+            OpcodeMasks.Add("CP", 9);
+            OpcodeMasks.Add("MP", 25);
+            OpcodeMasks.Add("CN", 25);
+            OpcodeMasks.Add("AM", 9);
+            OpcodeMasks.Add("HB", 0);
 
         }
 
@@ -119,13 +137,13 @@ namespace Messenger_Client
 
             // Parse out UserID
 
-            if ((mask & 2) == 2)
+            if ((mask & 1) == 1)
             {
                 try
                 {
-                    string userID = Unpack(remainder.Substring(0, 32));
+                    string userID = Unpack(remainder.Substring(0, UserIDLength));
                     outputDict.Add("UserID", userID);
-                    remainder = remainder.Substring(32);
+                    remainder = remainder.Substring(UserIDLength);
                 }
                 catch
                 {
@@ -136,13 +154,13 @@ namespace Messenger_Client
 
             // Parse out UserName
 
-            if ((mask & 4) == 4)
+            if ((mask & 2) == 2)
             {
                 try
                 {
-                    string username = Unpack(remainder.Substring(0, 32));
+                    string username = Unpack(remainder.Substring(0, UserNameLength));
                     outputDict.Add("UserName", username);
-                    remainder = remainder.Substring(32);
+                    remainder = remainder.Substring(UserNameLength);
                 }
                 catch
                 {
@@ -153,13 +171,13 @@ namespace Messenger_Client
 
 
             // Parse out Password
-            if ((mask & 8) == 8)
+            if ((mask & 4) == 4)
             {
                 try
                 {
-                    string password = Unpack(remainder.Substring(0, 32));
+                    string password = Unpack(remainder.Substring(0, PasswordLength));
                     outputDict.Add("Password", password);
-                    remainder = remainder.Substring(32);
+                    remainder = remainder.Substring(PasswordLength);
                 }
                 catch
                 {
@@ -169,13 +187,13 @@ namespace Messenger_Client
             }
 
             // Parse out session ID.
-            if ((mask & 16) == 16)
+            if ((mask & 8) == 8)
             {
                 try
                 {
-                    string sessionID = remainder.Substring(0, 32);
+                    string sessionID = remainder.Substring(0, SessionIDLength);
                     outputDict.Add("SessionID", sessionID);
-                    remainder = remainder.Substring(32);
+                    remainder = remainder.Substring(SessionIDLength);
                 }
                 catch
                 {
@@ -185,13 +203,13 @@ namespace Messenger_Client
 
             }
 
-            if ((mask & 32) == 32)
+            if ((mask & 16) == 16)
             {
                 try
                 {
-                    string chatID = Unpack(remainder.Substring(0, 32));
+                    string chatID = Unpack(remainder.Substring(0, ChatIDLength));
                     outputDict.Add("ChatID", chatID);
-                    remainder = remainder.Substring(32);
+                    remainder = remainder.Substring(ChatIDLength);
                 }
                 catch
                 {

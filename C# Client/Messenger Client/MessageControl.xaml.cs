@@ -19,6 +19,24 @@ using Messenger_Client.SupportClasses;
 namespace Messenger_Client
 {
 
+    // A struct that stores the data about individual messages for display.
+
+    public class Message
+    {
+        public string MessageID { get; private set; }
+        public string SenderID { get; private set; }
+        public string CreateTimestamp { get; private set; }
+        public string Body { get; private set; }
+
+        public Message(Dictionary<string, string> messageDict)
+        {
+            MessageID = messageDict["MessageID"];
+            SenderID = messageDict["SenderID"];
+            CreateTimestamp = messageDict["CreateTimestamp"];
+            Body = messageDict["Message"];
+        }
+
+    }
 
 
     /// <summary>
@@ -35,20 +53,22 @@ namespace Messenger_Client
 
         private int ChatID; // Stores the currently active chat ID.
 
-
+        public List<Message> MessageList { get; private set; }
 
         private MainWindow MainWindow;
-
 
         public MessageControl()
         {
 
+
+            MessageList = new();
+
             MainWindow = Application.Current.MainWindow as MainWindow;
 
-            Debug.WriteLine("Event subscribed to");
-
-
             InitializeComponent();
+
+            MessageList = new();
+
 
             Controller = Controller.ControllerInstance;
 
@@ -57,17 +77,9 @@ namespace Messenger_Client
 
         }
 
-        
+
         public void OnUpdateChatEvent(object sender, UpdateChatEventArgs e)
         {
-
-            PopulateMessages();
-        }
-
-        public void OnMessageEvent(object sender, MessageEventArgs e)
-        {
-            Debug.WriteLine("Message Event: " + e.Message + "\n");
-
             PopulateMessages();
         }
 
@@ -76,135 +88,126 @@ namespace Messenger_Client
         private void PopulateMessages()
         {
             Chat chat = Controller.ActiveChat;
-            List <Dictionary<String, String>> messageList = chat.RetrieveMessages();
 
-            Debugger.Record("Populating messages.", DebugMask);
+            List<Message> messageList = chat.RetrieveMessages();
 
-            Dispatcher.BeginInvoke(new ThreadStart(() => {
-
-                if (chat.ChatID != ChatID)
-                {
-                    MessagePanel.Children.Clear();
-                    ChatID = chat.ChatID;
-                }
-
-                for (int i = 0; i < messageList.Count; i++)
-                {
-                    NewMessage(messageList[i]);
-                }
-            }));
-        }
-
-
-        // Takes a tuple containing a new message.
-        // Item 1: User who sent message.
-        // Item 2: Time and date of message.
-        // Item 3: The message itself.
-        // Sends it to be added to the display via NewMessage,
-        // then adds the SM header code and receiving user to the beginning and sends it to the
-        // connection handler.
-
-        private void SendMessage(Dictionary<string, string> message)
-        {
-
-            // Gets sender username with filler asterisks.
-
-
-            NewMessage(message);
-
-
-        }
-
-
-        /// <summary> 
-        /// Adds a new message to the interface. Not optimized for XAML binding, since it relies on code behind to set th emessage.
-        /// </summary>  
-        /// <param name="message">A dictionary containg message components: CreateTimestamp, SenderID, Message (Indicating message body)</param>
-
-        public void NewMessage(Dictionary<string, string> message)
-        {
-
-
-
-
-            string timestamp = message["CreateTimestamp"];
-            string senderID = message["SenderID"];
-            string body = message["Message"];
-
-
-            Debugger.Record("Inside dictionary NewMessage function. Message: " + body, DebugMask);
-
-            string newMessage = timestamp + ": " + senderID + ": " + body;
-
-            RichTextBox newBox = new RichTextBox();
-            FlowDocument document = new FlowDocument();
-            Paragraph paragraph = new Paragraph();
-
-            paragraph.Inlines.Add(newMessage);
-
-            document.Blocks.Add(paragraph);
-            newBox.Document = document;
-
-            MessagePanel.Children.Add(newBox);
-
-        }
-
-     
-
-        public void NewMessage(Tuple<string, string, string> message)
-        {
-
-            string newMessage = message.Item1 + " " + message.Item2 + ": " + message.Item3;
-
-            RichTextBox newBox = new RichTextBox();
-            FlowDocument document = new FlowDocument();
-            Paragraph paragraph = new Paragraph();
-
-            paragraph.Inlines.Add(newMessage);
-
-            document.Blocks.Add(paragraph);
-            newBox.Document = document;
-
-            MessagePanel.Children.Add(newBox);
-
-        }
-
-
-
-        private string GetDateTimeString()
-        {
-            DateTime currentTime = DateTime.Now;
-
-            return currentTime.ToString();
-
-        }
-
-
-        private void OnMessageKey(object sender, KeyEventArgs e)
-        {
-
-            if (e.Key == Key.Enter)
+            try
             {
-
-
-                string newMessage = MessageEntry.Text;
-
-                if (Keyboard.IsKeyDown(Key.RightCtrl) || Keyboard.IsKeyDown(Key.LeftCtrl))
-                {
-                    MessageEntry.Text = newMessage + "\n";
-                    MessageEntry.Select(MessageEntry.Text.Length, MessageEntry.Text.Length);
-
-                }
-                else if (newMessage.Length > 0)
+                Application.Current.Dispatcher.Invoke((Action)delegate
                 {
 
-                    string dateTime = GetDateTimeString();
+                    Debugger.Record("ChatID is: " + ChatID + " . New chat ID is: " + chat.ChatID, DebugMask);
 
-                    MessageEntry.Text = "";
-                }
+                    if (chat.ChatID != ChatID)
+                    {
+                        Debugger.Record("Message Control: Replacing old chat with new chat.", DebugMask);
+                        ChatID = chat.ChatID;
+                        MessageList = messageList;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < messageList.Count; i++)
+                        {
+                            Debugger.Record("Adding new chat to old chat.", DebugMask);
+                            MessageList.Add(messageList[i]);
+                        }
+                    }
+
+                    MessageDisplay.ItemsSource = MessageList;
+
+                });
             }
+            catch (Exception e)
+            {
+                Debugger.Record("An error occurred attempting to populate messages: " + e.Message + e.StackTrace, DebugMask);
+            }
+
         }
 
+
+    /// <summary> 
+    /// Adds a new message to the interface. Not optimized for XAML binding, since it relies on code behind to set th emessage.
+    /// </summary>  
+    /// <param name="message">A dictionary containg message components: CreateTimestamp, SenderID, Message (Indicating message body)</param>
+
+    public void NewMessage(Dictionary<string, string> message)
+    {
+
+        string timestamp = message["CreateTimestamp"];
+        string senderID = message["SenderID"];
+        string body = message["Message"];
+
+
+        Debugger.Record("Inside dictionary NewMessage function. Message: " + body, DebugMask);
+
+        string newMessage = timestamp + ": " + senderID + ": " + body;
+
+        RichTextBox newBox = new RichTextBox();
+        FlowDocument document = new FlowDocument();
+        Paragraph paragraph = new Paragraph();
+
+        paragraph.Inlines.Add(newMessage);
+
+        document.Blocks.Add(paragraph);
+        newBox.Document = document;
+
+        MessagePanel.Children.Add(newBox);
+        MessagePanel.UpdateLayout();
 
     }
+
+
+
+    public void NewMessage(Tuple<string, string, string> message)
+    {
+
+        string newMessage = message.Item1 + " " + message.Item2 + ": " + message.Item3;
+
+        RichTextBox newBox = new RichTextBox();
+        FlowDocument document = new FlowDocument();
+        Paragraph paragraph = new Paragraph();
+
+        paragraph.Inlines.Add(newMessage);
+
+        document.Blocks.Add(paragraph);
+        newBox.Document = document;
+
+        MessagePanel.Children.Add(newBox);
+
+    }
+
+
+
+    private string GetDateTimeString()
+    {
+        DateTime currentTime = DateTime.Now;
+
+        return currentTime.ToString();
+
+    }
+
+
+    private void OnMessageKey(object sender, KeyEventArgs e)
+    {
+
+        if (e.Key == Key.Enter)
+        {
+            string newMessage = MessageEntry.Text;
+
+            if (Keyboard.IsKeyDown(Key.RightCtrl) || Keyboard.IsKeyDown(Key.LeftCtrl))
+            {
+                MessageEntry.Text = newMessage + "\n";
+                MessageEntry.Select(MessageEntry.Text.Length, MessageEntry.Text.Length);
+
+            }
+            else if (newMessage.Length > 0)
+            {
+                Controller.SendMessage(newMessage);
+                MessageEntry.Text = "";
+            }
+        }
+    }
+
+
+}
 }

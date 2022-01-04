@@ -3,20 +3,36 @@ package messengerserver;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class ServerController 
 {
-	
-	private static HashSet<String> sessionMap;
+	// Constants storing expected lengths of each packet section, when present.
+
+	public static final int PORT = 3000;
 
 
-	// The length of session ID strings. 32 UTF-8 chars is equivalent to 256 bits.
-	private static final int SESSION_LENGTH = 32;
+	public static final int USER_ID_LENGTH = 32;
+	public static final int MIN_USERNAME_LENGTH = 8;
+	public static final int MAX_USERNAME_LENGTH = 32;
+	public static final int MIN_PASSWORD_LENGTH = 8;
+	public static final int MAX_PASSWORD_LENGTH = 128;
+	public static final int SESSION_ID_LENGTH = 32;
+	public static final int CHAT_ID_LENGTH = 8;
+
+	private static HashSet<String> sessionSet; // Stores all currently active session IDs.
+
+	// Stores all logged-in users, associated with their UserID.
+	// The user ID is stored as a string for efficiency.
+	private static HashMap<String, RegisteredUser> loggedInUsers;
+
+	private static int debugMask = 4;
 
 	static
 	{
-		sessionMap = new HashSet<String>();
+		loggedInUsers = new HashMap<String, RegisteredUser>();
+		sessionSet = new HashSet<String>();
 	}
 	
 	public void start() {
@@ -33,7 +49,7 @@ public class ServerController
 		{
 			
 			boolean run = true;
-			serverSocket = new ServerSocket(Server.PORT);
+			serverSocket = new ServerSocket(PORT);
 			
 			while(run == true) 
 			{
@@ -45,9 +61,7 @@ public class ServerController
 				new Thread(thread).start();
 				
 			}
-			
 			serverSocket.close();
-			
 		}
 		catch (Exception e) 
 		{
@@ -56,29 +70,46 @@ public class ServerController
 		}
 	}
 	
-	public static synchronized boolean addSession(String sessionID)
+	public static synchronized boolean addLoggedInUser(RegisteredUser user)
 	{
-		if (sessionID.length() == SESSION_LENGTH) {
-			return sessionMap.add(sessionID);
-		}
-		return false;
+		String userID = user.getUserIDstr();
 
+		if (loggedInUsers.containsKey(userID))
+		{
+			return false;
+		}
+		loggedInUsers.put(userID, user);
+		return true;
 	}
 	
-	public static synchronized boolean removeSession(String sessionID)
+	public static synchronized boolean removeLoggedInUser(RegisteredUser user)
 	{
-		
-		return sessionMap.remove(sessionID);
+
+		String userID = user.getUserIDstr();
+		if (loggedInUsers.containsKey(userID))
+		{
+			loggedInUsers.remove(userID);
+			return true;
+		}
+		else {
+			Debugger.record("A user was removed from the loggedInUsers map, but the user was not found.", debugMask + 1);
+			return false;
+		}
 	}
 
-	/**
-	 *
-	 * @param sessionID The session ID to check the existence of.
-	 * @return A boolean, true if the session ID is found, false otherwise.
-	 */
-	public static synchronized boolean checkSession(String sessionID)
+	public static synchronized HashMap<String, RegisteredUser> getLoggedInUsers()
 	{
-		return sessionMap.contains(sessionID);
+		return loggedInUsers;
+	}
+
+	public static synchronized boolean addSession(String sessionID)
+	{
+		return sessionSet.add(sessionID);
+	}
+
+	public static synchronized boolean removeSession(String sessionID)
+	{
+		return sessionSet.remove(sessionID);
 	}
 
 }

@@ -13,6 +13,8 @@ import com.google.gson.Gson;
 
 public class ServerThread implements Runnable 
 {
+
+
 	
 	int debugMask = 4; // Indicates the bit mask for Debugger usage. +1 the debugMask to indicate an error message.
 	
@@ -20,10 +22,17 @@ public class ServerThread implements Runnable
 
 	private PrintWriter writer;
 	private BufferedReader reader;
-	
-	private boolean connected = false;
+
+	// Keeps track of information for sending heartbeans (keep-alive signals), in milliseconds.
+	private static final long MAX_TIMEOUT = 20000;
+	private static final long HEARTBEAT_WAIT = 10000; // How long after the last read we should wait before sending a heartbeat.
+	private static final long HEARTBEAT_INTERVAL = 1000; // How long we should wait between heartbeats.
+	private long lastHeartbeat = 0; // Stores when the last heartbeat was sent.
+	private long lastReadTime = 0;
 
 	// Keeps track of data unique to this session and user.
+
+	private RegisteredUser user;
 
 	private String username = "NONE";
 	private int userID = -1;
@@ -40,15 +49,27 @@ public class ServerThread implements Runnable
 		socket = newSocket;
 	}
 
-	/**
-	 * This socket-less constructor should only be used for testing.
-	 */
-	public ServerThread() {}
-	
+
 	public void run() 
 	{
-		connected = true;
+
+        Debugger.record("Starting server thread " + getThreadID(), debugMask);
 		listen();
+
+	}
+
+    public long getThreadID()
+    {
+        return Thread.currentThread().getId();
+    }
+
+	private boolean isAlive() {
+		return (System.currentTimeMillis() - lastReadTime) < MAX_TIMEOUT;
+	}
+
+	private void sendHeartbeat()
+	{
+		transmit("HB");
 	}
 	
 	private void listen() 
@@ -57,31 +78,57 @@ public class ServerThread implements Runnable
 		
 		try 
 		{
-			
 			writer = new PrintWriter(socket.getOutputStream(), true);
 			reader = new BufferedReader((new InputStreamReader(socket.getInputStream())));
-			
-			
-			Debugger.record("Connection with server thread " + getID() + " established.", 4);
-			
-			while(connected) {
+
+			lastReadTime = System.currentTimeMillis();
+
+			Debugger.record("Connection with server thread " + getThreadID() + " established.", 4);
+
+			while(true) {
+
+				if ((System.currentTimeMillis() - lastReadTime) > MAX_TIMEOUT)
+				{
+					onExit();
+					return;
+				}
+				else if ((System.currentTimeMillis() - lastReadTime) > HEARTBEAT_WAIT)
+				{
+					if ((System.currentTimeMillis() - lastHeartbeat) > HEARTBEAT_INTERVAL)
+						sendHeartbeat();
+						lastHeartbeat = System.currentTimeMillis();
+				}
 
 				while (reader.ready())
 				{
+					lastReadTime = System.currentTimeMillis();
+
 					input = reader.readLine();
-					Debugger.record("Thread " + getID() + " received: " + input, 4);
+					Debugger.record("Thread " + getThreadID() + " received: " + input, 4);
 
 					handleMessage(input);
 				}
+
+//				try
+//				{
+//					writer.write(0);
+//				}
+//				catch (Exception e)
+//				{
+//					connected = false;
+//					onExit();
+//					return;
+//				}
+
 			}
 		}
 		catch(Exception e) 
 		{
-			Debugger.record("Thread " + getID() + " has encountered an error: " + e.getMessage(), 5);
+			Debugger.record("Thread " + getThreadID() + " has encountered an error: " + e.getMessage(), 5);
+			e.printStackTrace();
 		}
 
-		Debugger.record("Thread " + getID() + " is exiting.", debugMask);
-		onExit();
+		Debugger.record("Thread " + getThreadID() + " is exiting.", debugMask);
 		
 	}
 	
@@ -93,19 +140,15 @@ public class ServerThread implements Runnable
 		writer.flush();
 
 		lastTransmission = message;
-
 	}
 
 	public String getLastTransmission()
 	{
 		return lastTransmission;
 	}
-	
-	public long getID()
-	{
-		return Thread.currentThread().getId();
-	}
-	
+
+
+
 	private void handleMessage(String message) {
 		
 		HashMap<String, String> inputMap = Parser.parse(message);
@@ -146,6 +189,9 @@ public class ServerThread implements Runnable
 				case "SM":
 					sendMessage(inputMap);
 					return;
+				case "HB":
+					// Heartbeat - Do nothing/
+					return;
 				case "ER":
 					Debugger.record("Error code returned from Parser. Unable to handle message.", debugMask + 1);
 					return;
@@ -170,7 +216,7 @@ public class ServerThread implements Runnable
 	{
 		String opcode = input.get("Opcode");
 
-		if (opcode.equals("IR") || opcode.equals("LR"))
+		if (opcode.equals("HB") || opcode.equals("IR") || opcode.equals("LR"))
 		{
 			// No session or userID assigned, can't be verified normally right now, just return true.
 			return true;
@@ -211,6 +257,7 @@ public class ServerThread implements Runnable
 			// A user with this name was found in the database.
 			transmit("RU" + "The name you are trying to register is already taken.");
 			Debugger.record("A user attempted to register the name " + username + ", but was rejected because it is taken.", debugMask + 1);
+			connection.close();
 			return false;
 		}
 		
@@ -226,7 +273,7 @@ public class ServerThread implements Runnable
 			transmit("RS" + "You have successfully registered with the username " + username);
 			Debugger.record("A user has registered with the name " + username, debugMask);
 		}
-		
+
 		return createStatus;
 	
 	}
@@ -234,7 +281,7 @@ public class ServerThread implements Runnable
 	public String login(HashMap<String, String> input) {
 
 		String transmitMessage = "";
-		Debugger.record("Login activated by message handler in thread " + getID(), debugMask);
+		Debugger.record("Login activated by message handler in thread " + getThreadID(), debugMask);
 		
 		if (input.containsKey("UserName") == false) {
 			Debugger.record("UserName field not present in login input.", debugMask + 1);
@@ -256,12 +303,14 @@ public class ServerThread implements Runnable
 		if (queryResults.containsKey("UserName") == false) {
 			Debugger.record("User attempted to login, but the username query returned no results.", debugMask);
 			transmitMessage = "LU" + "Username was not found.";
+			connection.close();
 			return transmitMessage;
 		}
 		else if ((queryResults.containsKey("PasswordHash") == false) || (queryResults.containsKey("PasswordSalt") == false)) {
 
 			Debugger.record("A user has attempted to login, but the query returned partial results.", debugMask);
 			transmitMessage = "LU" + "An undefined error has occurred while logging in. Please contact the system administrator.";
+			connection.close();
 			return transmitMessage;
 		}
 
@@ -273,6 +322,7 @@ public class ServerThread implements Runnable
 		// Check the accuracy of the provided password.
 		if (Cryptographer.verifyPassword(passwordGiven, passwordHash, passwordSalt) == false) {
 			transmitMessage = "LU" + "Password provided did not match.";
+			connection.close();
 			return transmitMessage;
 		}
 
@@ -281,7 +331,6 @@ public class ServerThread implements Runnable
 
 		if (createSession())
 		{
-
 			try
 			{
 				this.username = username;
@@ -290,23 +339,36 @@ public class ServerThread implements Runnable
 			catch (Exception e)
 			{
 				transmitMessage = "LU" + "An undefined error has occurred while logging in. Please contact the system administrator.";
+
+				connection.close();
 				return transmitMessage;
 
 			}
-			Debugger.record("User " + username + " has logged in successfully.", debugMask);
-			transmitMessage = "LS" + Parser.pack(userID, 32) + Parser.pack(username, 32) + sessionID + "You have logged in with the username " + username;
+			user = new RegisteredUser(this.userID, this.sessionID, this.writer);
+			ServerController.addLoggedInUser(user);
 
+			Debugger.record("User " + username + " has logged in successfully.", debugMask);
+			transmitMessage = "LS" + Parser.pack(userID, ServerController.USER_ID_LENGTH) + Parser.pack(username, ServerController.MAX_USERNAME_LENGTH) + sessionID + "You have logged in with the username " + username;
+
+			connection.close();
 			return transmitMessage;
 		}
 
 		Debugger.record("Login attempt made it to end of method without returning.", debugMask + 1);
+		connection.close();
 		return "LU" + "An undefined error has occurred while logging in. Please contact the system administrator.";
 
 	}
 
+	/**
+	 * Gets a random 256 bit string from the Cryptographer, checks it against the server session
+	 * list, and if it's not present assigns it to this login session and adds it to the server session map.
+	 *
+	 * @return A boolean indicating that the session was created successfully.
+	 */
+
 	private boolean createSession()
 	{
-
 		String newSessionID = "";
 		do
 		{
@@ -317,12 +379,7 @@ public class ServerThread implements Runnable
 		return true;
 	}
 
-	/**
-	 * Gets a random 256 bit string from the Cryptographer, checks it against the server session
-	 * list, and if it's not present assigns it.
-	 * @param input
-	 * @return
-	 */
+
 	
 	public boolean pullFriends(HashMap<String, String> input) {
 		
@@ -335,6 +392,7 @@ public class ServerThread implements Runnable
 		}
 		catch (Exception e) {
 			Debugger.record("User ID could not be parsed, or was not in the input to pulLFriends", debugMask + 1);
+			connection.close();
 			return false;
 		}
 
@@ -343,10 +401,14 @@ public class ServerThread implements Runnable
 		Gson json = new Gson();
 		String friendsJson = json.toJson(friends);
 
-		transmit("FP" + Parser.pack(input.get("UserID"), 32) + sessionID + friendsJson);
+		transmit("FP" + Parser.pack(input.get("UserID"), ServerController.USER_ID_LENGTH) + sessionID + friendsJson);
+
+		connection.close();
 
 		return false;
 	}
+
+
 	
 	public boolean addFriend(HashMap<String, String> input) {
 		
@@ -366,8 +428,9 @@ public class ServerThread implements Runnable
 		{
 			Debugger.record("addFriend function failed to get or parse provided userIDs: " + e.getMessage(), debugMask + 1);
 
-			String message = "ER" + Parser.pack(Integer.toString(this.userID), 32) + sessionID + "Unable to send or approve friend request.";
+			String message = "ER" + Parser.pack(Integer.toString(this.userID), ServerController.USER_ID_LENGTH) + sessionID + "Unable to send or approve friend request.";
 			transmit(message);
+			connection.close();
 			return false;
 		}
 
@@ -377,17 +440,22 @@ public class ServerThread implements Runnable
 			{
 				HashMap<String, String> userMap= new HashMap<>();
 				userMap.put("UserID", input.get("UserID"));
+				connection.close();
 				return (pullFriends(userMap));
 			}
 			else
 			{
+				connection.close();
 				return false;
 			}
 		}
 		else {
-			return connection.addFriendRequest(userOneID, userTwoID);
+			boolean returnVal = connection.addFriendRequest(userOneID, userTwoID);
+			connection.close();
+			return returnVal;
 		}
 	}
+
 
 	public boolean removeFriend(HashMap<String, String> input)
 	{
@@ -407,15 +475,19 @@ public class ServerThread implements Runnable
 		catch (Exception e)
 		{
 			Debugger.record("RemoveFriend function failed to parse provided userIDs: " + e.getMessage(), debugMask + 1);
+			connection.close();
 			return false;
 		}
 
-		return (connection.removeFriend(userOneID, userTwoID) && (connection.removeFriend(userTwoID, userOneID)));
+		boolean returnVal = (connection.removeFriend(userOneID, userTwoID) && (connection.removeFriend(userTwoID, userOneID)));
+		connection.close();
+		return returnVal;
 	}
+
+
 
 	public boolean pullUserChatPairs(HashMap<String, String> input) {
 
-		DatabaseConnection connection = DatabasePool.getConnection();
 
 		int userID = 0;
 		try
@@ -425,19 +497,24 @@ public class ServerThread implements Runnable
 		catch (Exception e)
 		{
 			Debugger.record("PullUserChatPairs failed to parse userID from input.", debugMask + 1);
+
 			return false;
 		}
+
+		DatabaseConnection connection = DatabasePool.getConnection();
 
 		ArrayList<HashMap<String, String>> chatPairs = connection.pullUserChats(userID);
 
 		Gson json = new Gson();
 		String chatPairsJson = json.toJson(chatPairs);
 
-		String transmitMessage = "CP" + userID + sessionID + chatPairsJson;
+		String transmitMessage = "CP" + Parser.pack(userID, ServerController.USER_ID_LENGTH) + sessionID + chatPairsJson;
 		transmit(transmitMessage);
-
+		connection.close();
 		return false;
 	}
+
+
 
 	public boolean pullMessages(HashMap<String, String> input) {
 
@@ -461,77 +538,129 @@ public class ServerThread implements Runnable
 				Gson json = new Gson();
 				String messagesJson = json.toJson(messages);
 
-				String transmitMessage = "MP" + Parser.pack(userID, 32) + sessionID + Parser.pack(chatID, 32) + messagesJson;
+				String transmitMessage = "MP" + Parser.pack(userID, ServerController.USER_ID_LENGTH) + sessionID + Parser.pack(chatID, ServerController.CHAT_ID_LENGTH) + messagesJson;
 				transmit(transmitMessage);
 			}
 			else
 			{
 				Debugger.record("Message push called but found no results to send.", debugMask);
 			}
+			connection.close();
 			return true;
 		}
 		catch (Exception e)
 		{
 			Debugger.record("PullMessages failed to get messages.", debugMask + 1);
 		}
-
+		connection.close();
 		return false;
 	}
 
+	/**
+	 * Sends a single message the DatabaseConnection to be added to a chat,
+	 * and then spins up a thread to notify all users subscribed to that chat.
+	 *
+	 * @param input A dictionary containing the input received from the parser.
+	 * @return A boolean indicating if a message has been successfully added to the database.
+	 */
 	public boolean sendMessage(HashMap<String, String> input) {
-		
+
+		int userID;
+		int chatID;
+		String message;
+
+		try
+		{
+			userID = Integer.parseInt(input.get("UserID"));
+			chatID = Integer.parseInt(input.get("ChatID"));
+			message = input.get("Message");
+		}
+		catch (Exception e)
+		{
+			Debugger.record("sendMessage failed to get or parse message parameters from input: " + e.getMessage(), debugMask + 1);
+			return false;
+		}
+
 		DatabaseConnection connection = DatabasePool.getConnection();
 
+		if (connection.addMessage(chatID, userID, message) == true)
+		{
+			Debugger.record("Server thread added message successfully, spinning up notification thread.", debugMask);
+			NotificationThread notifier = new NotificationThread(chatID);
 
+			new Thread(notifier).start();
 
+			connection.close();
+			return true;
+		}
+		connection.close();
 		return false;
 	}
+
+	/**
+	 * Verifies that a username a user is registering with meets the registration requirements.
+	 * @param username The username to check.
+	 * @return True if the name passes all checks, false otherwise.
+	 */
 	
 	public boolean checkUsernameSyntax(String username) {
 		
-		if (username.length() < Server.MIN_USERNAME_LENGTH) {
+		if (username.length() < ServerController.MIN_USERNAME_LENGTH) {
 			return false;
 		}
-		if (username.length() > Server.MAX_PASSWORD_LENGTH) {
+		if (username.length() > ServerController.MAX_USERNAME_LENGTH) {
 			return false;
 		}
-		
-		
+
 		return true;
 	}
 	
 	public boolean checkPasswordSyntax(String password) {
 		
-		if (password.length() < Server.MIN_PASSWORD_LENGTH) {
+		if (password.length() < ServerController.MIN_PASSWORD_LENGTH) {
 			return false;
 		}
-		if (password.length() > Server.MAX_PASSWORD_LENGTH) {
+		if (password.length() > ServerController.MAX_PASSWORD_LENGTH) {
 			return false;
 		}
 		
 		return true;
 	}
 
-	// Handles things that have to be handled on closing.
-
+	/**
+	 * Handles clean up before the server thread exits.
+	 */
 	private void onExit() {
 
-		if (socket != null) {
+		try {
 
-			try
-			{
+			// Remove the user from the logged in user map so no attempt is made to send them notifications.
+			if (user != null) {
+				ServerController.removeLoggedInUser(user);
+			}
+			// Remove the session from the servercontroller set so the ID can be reused.
+			if (sessionID != "NONE") {
+				ServerController.removeSession(sessionID);
+			}
+			// Close the print writer for the socket.
+			if (writer != null) {
+				writer.close();
+			}
+			// Close the reader for the socket.
+			if (reader != null) {
+				reader.close();
+			}
+			// Finally, close the socket itself.
+			if (socket != null) {
 				socket.close();
 			}
-			catch(IOException e) {
-
-				Debugger.record("Failure to close a socket on a thread.", debugMask + 1);
-			}
+		}
+		catch (Exception e)
+		{
+			Debugger.record("ServerThread encountered error upon closing: " + e.getMessage(), debugMask + 1);
 		}
 
-		if (sessionID != "NONE") {
-			ServerController.removeSession(sessionID);
-		}
-
-
+        Debugger.record("Exiting server thread " + getThreadID(), debugMask);
+        return;
 	}
 }

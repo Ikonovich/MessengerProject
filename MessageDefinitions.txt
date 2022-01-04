@@ -1,34 +1,51 @@
-All messages must contain as their first two letters an Operation Code or Opcode. This Opcode tells the server
-how to parse and handle the incoming message. Specifically, each Opcode is mapped to a bit mask, and a fall-through
-parser is used to parse each message based on this mask. 
+// The first three characters of a transmission MUST BE as follows:
+//
+// [Index 0] - Multiple Message Indicator - If T (True), the ServerThread stores the message in a transmission buffer.
+// When an F (False) transmission is received following a T transmission or multiple T transmissions, the
+// buffer contents are sent to be parsed and the buffer is cleared.
+// [Index 1-2] - Opcode - Determines how the remainder of the message is parsed by being assigned to a bitmask.
+//
+//
+//As such, all information in a server message __must__ be in the bitmask appropriate order with the
+//appropriate sizes, and a field __must__ not be present if not required by the given Opcode.
+//
+// Padding of input strings is done using asterisks (*) at this time, using the Parser.Pack function.
+//
+//The bitmask order is as follows:
+//
+// 00001: UserID - 32 characters - Present for all messages except login and registration.
+// 00010: UserName - 32 characters - Present for login, registration, and when adding a friend.
+// 00100: Password - 128 characters - Present only for login and registration.
+// 01000: Session ID - 32 characters - Required for all non-login and non-registration interactions. Very weakly verifies connection
+// integrity.
+// 10000: Chat ID - 32 characters - Identifies a single chat between one or multiple people.
+//
+// The final component of a received transmission, the Message, is whatever remains after the item determined by the bit mask are parsed out.
+//
+// The core server opcodes with their bitmasks are:
+//
+// IR (Initial Registration):  00110  /  6
+// LR (Login Request):  00110  /   6
+// PF (Pull Friends):  01101  /   13
+// AF (Add Friend):  01011  / 11
+// PC (Pull User-Chat Pairs) / 01001 / 9
+// PM (Pull Messages From Chat):  11001    / 25
+// SM (Send Message):  11001   /   25
+// HB (Heartbeat): 00000 / 0
 
-Padding of input strings is done using asterisks (*) at this time.
+// The core client opcodes with their bitmasks are:
+//
+// RU (Registration unsuccessful):  00010 / 2
+// RS (Registration successful):  00010  / 2
+// LU (Login unsuccessful):	 00010 / 2
+// LS (Login successful):  01011 / 3
+// FP (Friend Push): 01001 / 9
+// CP (User-Chat Pairs Push): 01001 / 9
+// MP (Message Push for one chat): 11001 / 25
+// CN  (Chat Notification): 11001 / 25
+// AM (Administrative Message): 01001 / 9
+// HB (Heartbeat): 00000 / 0
 
-As such, all information in a server message __must__ be in the bitmask appropriate order with the
-appropriate sizes, and a field __must__ not be present if not required by the given Opcode.
-
-The bitmask order is as follows:
-
-0: Opcode - always 1. 
-1: UserID - 32 characters - Present for all messages except login and registration.
-2: UserName/FriendID - 32 characters - Present for login, registration, and when adding a friend.
-3: Password - 128 characters - Present only for login and registration.
-4: Session ID - 32 characters - Required for all non-login and non-registration interactions. Very weakly verifies connection
-integrity.
-5: Chat ID - 8 characters - Identifies a single chat between one or multiple people.
-
-The final component of a received transmission, the Message, is whatever remains after the item determined by the bit mask are parsed out.
-
-The available server op codes with their bit masks are:
-
-IR (Initial Registration):  001101  /  13
-LR (Login Request):  001101   /   13
-PF (Pull Friends):  010011  /   19
-AF (Add Friend):  010111   / 23
-FR (Friend Request):  010111   / 23
-PC (Pull User Chats): 010011 / 19
-PM (Pull Messages):  110011    / 51
-SM (Send Message):  110011   /   51
 
 
 ---- Packet format ----
@@ -36,7 +53,8 @@ All messages sent from both client and server contain the following information:
 
 Description:					Index in Packet String: 	Purpose:
 
-[Requested connection type - 2 chars]  		[0-1]				Used to verify chain of custody of the packet.
+[Multiple Message Indicator - 1 char]		[0]				Indicates whether to combine the following transmission with this one.
+[Requested connection type - 2 chars]  		[1-2]				Used to verify chain of custody of the packet.
 
 
 From there, message types differ on their contents and must be parsed appropriately.

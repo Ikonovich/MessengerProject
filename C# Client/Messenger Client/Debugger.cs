@@ -27,7 +27,7 @@ namespace Messenger_Client
         {
 
 
-			Debug.WriteLine(message);
+			Debug.WriteLine(message + "\n");
 
 			if ((printMask & bitmask) == printMask)
 			{

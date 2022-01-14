@@ -45,9 +45,14 @@ namespace Messenger_Client
             string passwordTwo = RegistrationPasswordTwo.Text;
 
             // Parameter checking //
-            if (username.Length < 8 || username.Length > 32)
+            if (username.Length < 8)
             {
+                Controller.RaiseNotificationPopupEvent("Username must be at least 8 characters.");
                 return;
+            }
+            else if (username.Length > 32)
+            {
+                Controller.RaiseNotificationPopupEvent("Username must be no more than 32 characters.");
             }
 
             // Performs a regex match to ensure only underscores and alphanumeric characters are in the username.
@@ -55,15 +60,23 @@ namespace Messenger_Client
 
             if (reg.Match(username).Success == true)
             {
+                Controller.RaiseNotificationPopupEvent("Username must contain only Alphanumeric characters or underscores.");
                 return;
             }
 
-            else if (passwordOne.Length < 8 || passwordOne.Length > 128)
+            if (passwordOne.Length < 8)
             {
+                Controller.RaiseNotificationPopupEvent("Password must be at least 8 characters.");
                 return;
             }
-            else if (!string.Equals(passwordOne, passwordTwo))
+            if (passwordOne.Length > 128)
             {
+                Controller.RaiseNotificationPopupEvent("Password must be 128 characters or less.");
+                return;
+            }
+            if (!string.Equals(passwordOne, passwordTwo))
+            {
+                Controller.RaiseNotificationPopupEvent("Password fields must match.");
                 return;
             }
 
@@ -76,7 +89,7 @@ namespace Messenger_Client
 
         public void GoToLogin(object sender, RequestNavigateEventArgs e)
         {
-            MainWindow.LoginView();
+            Controller.RaiseChangeViewEvent(Segment.Right, ViewType.LoginView);
         }
 
         public void GoToRegistrationAttempt(object sender, RequestNavigateEventArgs e)

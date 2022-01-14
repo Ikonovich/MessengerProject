@@ -19,6 +19,8 @@ namespace Messenger_Client.SupportClasses
     {
         public int ChatID { get; private set; } // Stores the chat's unique identifier.
 
+        public string ChatName { get; private set; }
+
         public List<Message> Messages { get; private set; } // Stores all messages currently on-hand for this chat.
 
         private int LastRetrieved; // Stores the index of the last message that was gotten via Retrieve();
@@ -28,9 +30,9 @@ namespace Messenger_Client.SupportClasses
 
         /// <param name="chatID">The ID of the chat, provided by the server.</param>
         /// <param name="messages">The initializing set of messages of the chat, provided by the server.</param>
-        public Chat(int chatID, List<Dictionary<string, string>> messages)
+        public Chat(int chatID, string chatName, List<Dictionary<string, string>> messages)
         {
-            Debugger.Record("Creating chat with first entry: " + messages[0]["Message"], DebugMask);
+            ChatName = chatName;
             ChatID = chatID;
             messages.Sort(CompareByDate);
             Messages = new List<Message>();
@@ -41,6 +43,15 @@ namespace Messenger_Client.SupportClasses
             }
         }
 
+        public void ReplaceMessages(List<Dictionary<string, string>> newMessages)
+        {
+            Messages = new List<Message>();
+           
+            for (int i = 0; i < newMessages.Count; i++)
+            {
+                Messages.Add(new Message(newMessages[i]));
+            }
+        }
         public void UpdateMessages(List<Dictionary<string, string>> newMessages)
         {
 
@@ -53,12 +64,21 @@ namespace Messenger_Client.SupportClasses
 
         }
 
-        public List<Message> RetrieveMessages()
+        public List<Message> RetrieveAll()
+        {
+            return Messages;
+        }
+
+        public List<Message> RetrieveNew()
         {
             List<Message> freshMessages = new();
 
+            Debugger.Record("Retrieving messages from chat.", DebugMask);
+
             if (LastRetrieved == 0)
             {
+                Debugger.Record("Retrieving messages from chat. Message count:" + Messages.Count, DebugMask);
+                LastRetrieved = Messages.Count;
                 return Messages;
             }
             else
@@ -69,6 +89,7 @@ namespace Messenger_Client.SupportClasses
                     LastRetrieved++;
                 }
             }
+            Debugger.Record("Retrieving messages from chat. Message count:" + freshMessages.Count, DebugMask);
 
             return freshMessages;
 

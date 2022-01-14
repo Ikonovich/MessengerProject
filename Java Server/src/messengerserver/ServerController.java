@@ -10,7 +10,7 @@ public class ServerController
 {
 	// Constants storing expected lengths of each packet section, when present.
 
-	public static final int PORT = 3000;
+	public static final int PORT = 4269;
 
 
 	public static final int USER_ID_LENGTH = 32;
@@ -20,6 +20,15 @@ public class ServerController
 	public static final int MAX_PASSWORD_LENGTH = 128;
 	public static final int SESSION_ID_LENGTH = 32;
 	public static final int CHAT_ID_LENGTH = 8;
+
+	// Server configuration
+
+	public static final int PACKET_SIZE = 1024; // Determines the maximum size of transmitted packets.
+
+	// Keeps track of information for sending heartbeats (keep-alive signals), in milliseconds.
+	public static final long MAX_TIMEOUT = 5000;
+	public static final long HEARTBEAT_WAIT = 2000; // How long after the last read we should wait before sending a heartbeat.
+	public static final long HEARTBEAT_INTERVAL = 2000; // How long we should wait between heartbeats.
 
 	private static HashSet<String> sessionSet; // Stores all currently active session IDs.
 

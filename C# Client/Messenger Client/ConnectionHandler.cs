@@ -35,6 +35,7 @@ namespace Messenger_Client
     /// LU (Login unsuccessful):	 000101 / 5
     /// LS (Login successful):  010111 / 7
     /// FP (Friend Push): 010011 / 19
+    /// UR (User search Results) : 01001 / 9
     /// CP (User-Chat Pairs Push): 010011 / 19
     /// MP (Message Push for one chat): 110011 / 51
     /// CN  (Chat Notification): 110011 / 51
@@ -56,6 +57,12 @@ namespace Messenger_Client
 
         Dictionary<string, string> TransmissionBuffer = new Dictionary<string, string>();
 
+        private int ByteCount = 0; // Stores the number of bytes received by the most recent transmission.
+
+        // Determines the wait time between reconnect attempts. Should be slightly longer than the server automatic disconnect
+        // time. You should update the Connect(), Receive() and MessageReceived() error messages if you change this (They say 5 seconds).
+        private const int ReconnectWait = 5100;
+
         // Determine the packed size of transmitted items.
         private const int UserNameLength = 32;
         private const int UserIDLength = 32;
@@ -71,16 +78,14 @@ namespace Messenger_Client
         public ConnectionHandler(Controller controller) 
         {
             Controller = controller;
-            Connect();
-            Receive();
         }
 
 
         // Connection-related variables
         Socket ServerSocket = null;
-        Int32 Port = 3000;
+        Int32 Port = 4269;
 
-        Byte[] BytesReceived = new byte[2048];
+        Byte[] BytesReceived = new byte[1048];
 
 
         // Declaring the message event delegate
@@ -89,9 +94,6 @@ namespace Messenger_Client
         public event MessageEventHandler MessageEvent;
 
         private static string Username { get; set; } = "Not Logged In";
-
-        private bool LoginPending = false;
-        private string PendingUsername = "None";
 
 
 
@@ -115,22 +117,34 @@ namespace Messenger_Client
         /// 
         public void Login(string username, string password)
         {
-
-            LoginPending = true;
-            PendingUsername = username;
-
-            Debug.WriteLine("Transmitting from Login in connection handler");
             TransmissionHandler("LR" + Parser.Pack(username, UserNameLength) + Parser.Pack(password, PasswordLength));
         }
 
-       
-        /// <summary> 
-        /// 
-        /// </summary> 
-		/// <param name="userID">The ID of the user whose friends will be pulled</param>
-		/// <param name="sessionID">The sessionID used to verify the transmission.</param>
-					    
 
+        public void Logout(int userID, string sessionID)
+        {
+            TransmissionHandler("LO" + Parser.Pack(userID, UserIDLength) + sessionID);
+        }
+
+        /// <summary> 
+        /// Sends a server request to push requests for this user, if any.
+        /// </summary>
+        /// <param name="param">description</param>
+        /// <param name="param">description</param>
+
+        public void PullRequests(int userID, string sessionID)
+        {
+
+            Debugger.Record("Sending pull requests request.", DebugMask);
+
+            string transmitString = "PR" + Parser.Pack(userID.ToString(), UserIDLength) + sessionID;
+
+            TransmissionHandler(transmitString);
+        }
+
+
+		/// <param name="userID">The ID of the user whose friends will be pulled</param>
+		/// <param name="sessionID">The sessionID used to verify the transmission.</param>					   
         public void PullFriends(int userID, string sessionID)
         {
             Debugger.Record("Sending pull friends request.", DebugMask);
@@ -141,30 +155,13 @@ namespace Messenger_Client
         }
 
 
-        /// <summary> 
-        /// This method sends an add friend request. 
-        /// It is unique in that the server will create a pending request and sends a request to the friended user.
-        /// When the friended user sends an add friend request for this user, the pending request will be approved.
-        /// 
-        /// </summary>  
-        /// <param name="userID">The ID of the user requesting the friend add.</param>
-        /// <param name="friendID">The ID of the user to be added. </param>
-        /// <param name="sessionID">The sessionID used to verify the transmission.</param>
 
 
 
-        public void AddFriend(int userID, int friendID, string sessionID)
-        {
-            Debugger.Record("Sending add friend request.", DebugMask);
-
-            string transmitString = "AF" + Parser.Pack(userID, UserIDLength) + Parser.Pack(friendID, UserIDLength) + sessionID;
-
-            TransmissionHandler(transmitString);
-        }
 
         // This message pulls all of the chats the user is a member of, in the form of User-Chat Pairs.
 
-        public void PullChats(int userID, int sessionID)
+        public void PullChats(int userID, string sessionID)
         {
             Debugger.Record("Sending pull chats request.", DebugMask);
 
@@ -184,13 +181,42 @@ namespace Messenger_Client
 
         }
 
-        public void SendMessage(int userID, string sessionID, int chatID, string message)
+        public void SendMessage(int userID, string username, string sessionID, int chatID, string message)
         {
 
-            string transmitString = "SM" + Parser.Pack(userID, UserIDLength) + sessionID + Parser.Pack(chatID, ChatIDLength) + message;
+            string transmitString = "SM" + Parser.Pack(userID, UserIDLength) + Parser.Pack(username, UserNameLength) + sessionID + Parser.Pack(chatID, ChatIDLength) + message;
 
             TransmissionHandler(transmitString);
         }
+
+
+        /// <summary> 
+        /// This method sends an add friend request. 
+        /// It is unique in that the server will create a pending request and sends a request to the friended user.
+        /// When the friended user sends an add friend request for this user, the pending request will be approved.
+        /// 
+        /// </summary>  
+        /// <param name="userID">The ID of the user requesting the friend add.</param>
+        /// <param name="friendID">The ID of the user to be added. </param>
+        /// <param name="sessionID">The sessionID used to verify the transmission.</param>
+
+        public void SendFriendRequest(int userID, string sessionID, string friendUserID)
+        {
+
+            Debugger.Record("Sending friend request.", DebugMask);
+
+            string transmitString = "AF" + Parser.Pack(userID, UserIDLength) + Parser.Pack(friendUserID, UserIDLength) + sessionID;
+
+            TransmissionHandler(transmitString);
+        }
+
+        public void UserSearch(int userID, string searchString, string sessionID)
+        {
+            string transmitString = "US" + Parser.Pack(userID, 32) + Parser.Pack(searchString, 32) + sessionID;
+
+            TransmissionHandler(transmitString);
+        }
+
 
 
         public string GetUsername()
@@ -198,61 +224,125 @@ namespace Messenger_Client
             return Username;
         }
 
-        private void Connect()
+        public void Connect()
         {
-            IPHostEntry hostEntry = null; // Container for host address info.
-            IPAddress hostAddress = IPAddress.Loopback;
-            //IPAddress hostAddress = IPAddress.Parse("131.204.254.86");
 
-            hostEntry = Dns.GetHostEntry(hostAddress); // Resolves the hostAddress to a HostEntry;
+            bool successful = false;
+            int attempt = 0;
 
-            foreach (IPAddress address in hostEntry.AddressList)
-            {
-                IPEndPoint endPoint = new IPEndPoint(address, Port);
 
-                Socket tempSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-                tempSocket.Connect(endPoint);
-
-                // Breaks out of the for loop when the socket is able to connect to the server.
-
-                if (tempSocket.Connected)
+            while (successful == false)
+            { 
+                try
                 {
-                    ServerSocket = tempSocket;
-                    break;
+                    IPHostEntry hostEntry = null; // Container for host address info.
+                    IPAddress hostAddress = IPAddress.Loopback;
+                    //IPAddress hostAddress = IPAddress.Parse("131.204.254.86");
+
+                    hostEntry = Dns.GetHostEntry(hostAddress); // Resolves the hostAddress to a HostEntry;
+
+                    foreach (IPAddress address in hostEntry.AddressList)
+                    {
+                        IPEndPoint endPoint = new IPEndPoint(address, Port);
+
+                        Socket tempSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+                        tempSocket.Connect(endPoint);
+
+                        // Breaks out of the for loop when the socket is able to connect to the server.
+
+                        if (tempSocket.Connected)
+                        {
+                            ServerSocket = tempSocket;
+                            break;
+                        }
+                    }
+                    successful = true;
+                }
+                catch (Exception e)
+                {
+                    Debugger.Record("Failed to connect to server: " + e.Message, DebugMask);
+
+                    Controller.RaiseNotificationPopupEvent("Failed to connect to server. Reattempting in 5 seconds.");
+                }
+
+                if (successful == false)
+                {
+                    attempt++;
+
+                    if (attempt == 1)
+                    {
+                        Controller.RaiseNotificationPopupEvent("Failed to connect to server. Reattempting in 5 seconds.");
+                    }
+                    else
+                    {
+                        Controller.RaiseNotificationPopupEvent("Connect attempt #" + attempt + " failed. Reattempting in 5 seconds.");
+                    }
+                    Thread.Sleep(ReconnectWait);
                 }
             }
+            Receive();
         }
 
         private void Receive()
         {
-
-            do
+            try
             {
-
-                string message = "Message";
-                ServerSocket.BeginReceive(BytesReceived, 0, BytesReceived.Length, 0, new AsyncCallback(MessageReceived), message);
-
-                string stringReceived = Encoding.ASCII.GetString(BytesReceived);
-
-
-                if (stringReceived.Length > 0)
+                do
                 {
-                    HeaderParser(stringReceived);
-                }
+                    string message = "Message";
+                    ServerSocket.BeginReceive(BytesReceived, 0, BytesReceived.Length, 0, new AsyncCallback(MessageReceived), message);
 
-            } while (ServerSocket.Available > 0);
-            
-          
+                    string stringReceived = Encoding.ASCII.GetString(BytesReceived, 0, ByteCount);
+
+
+                    if (stringReceived.Length > 0)
+                    {
+                        HeaderParser(stringReceived);
+                    }
+
+                } while (ServerSocket.Available > 0);
+            }
+            catch (Exception e)
+            {
+                Debugger.Record("An error has occurred in Receive(): " + e.Message, DebugMask);
+                Controller.RaiseNotificationPopupEvent("An undefined connection failure has occurred. Attempting to reconnect in 5 seconds.");
+                Thread.Sleep(ReconnectWait);
+                Connect();
+            }
+
+
         }
+
+
+        /// <summary> 
+        /// This method attempts to end receive on the socket after being triggered,
+        /// getting the number of bytes currently waiting.
+        /// The number of bytes is then used in the Receive method to read the correct number of bytes from the socket.
+        /// 
+        /// If it fails a read, it will loop continuously, presenting an initial error message followed by a looping error message.
+        /// </summary>
 
         private void MessageReceived(IAsyncResult result) 
         {
-            int byteCount = ServerSocket.EndReceive(result);
+
+            try
+            {
+                ByteCount = ServerSocket.EndReceive(result);
+            }
+            catch (Exception e)
+            {
+                Debugger.Record("Connection to server lost: " + e.Message, DebugMask);
+
+                Controller.RaiseNotificationPopupEvent("Connection with the server was lost. Will attempt to reconnect after 5 seconds.");
+                Thread.Sleep(ReconnectWait);
+                Connect();
+
+            }
+
 
             //string stringReceived = Encoding.ASCII.GetString(BytesReceived, 0, byteCount);
 
-            Debug.WriteLine("Message received");
             Receive();
         }
 
@@ -261,8 +351,8 @@ namespace Messenger_Client
 
         private void HeaderParser(string received)
         {
-            Debug.WriteLine("Header parser activated\n");
-            Debug.WriteLine(received);
+
+            Debug.WriteLine("Recieved message: " + received + "\n");
 
             string message = "";
 
@@ -277,28 +367,48 @@ namespace Messenger_Client
                 string partialIndicator = received.Substring(0, 1);
                 string opcode = received.Substring(1, 2);
 
+                string transmitMessage = "";
+
                 if (partialIndicator == "F")
                 {
 
                     if (TransmissionBuffer.ContainsKey(opcode) && (TransmissionBuffer[opcode] != ""))
                     {
-                        message = TransmissionBuffer[opcode] + received.Substring(3);
+                        Debugger.Record("\nAdding to TransmissionBuffer: " + received.Substring(75).Replace("\0", ""), DebugMask);
+
+                        TransmissionBuffer[opcode] = TransmissionBuffer[opcode] + received.Substring(75).Replace("\0", "");
+                        Debugger.Record("\nWith results:" + TransmissionBuffer[opcode], DebugMask);
+
+
+                        transmitMessage = TransmissionBuffer[opcode];
                         TransmissionBuffer[opcode] = "";
+
+                        Debugger.Record("\nEmptying TransmissionBuffer. Result: " + transmitMessage + "\n", DebugMask);
+
+
                     }
                     else
                     {
-                        message = received.Substring(1);
+                        transmitMessage = received.Substring(1).Replace("\0", "");
                     }
                 }
                 else if (partialIndicator == "T")
                 {
-                    if (TransmissionBuffer.ContainsKey(opcode))
+
+                    if (TransmissionBuffer.ContainsKey(opcode) && TransmissionBuffer[opcode] != "")
                     {
-                        TransmissionBuffer[opcode] = TransmissionBuffer[opcode] + received.Substring(3);
+                        Debugger.Record("\nAdding to TransmissionBuffer: " + received.Substring(75).Replace("\0", ""), DebugMask);
+                     
+                        TransmissionBuffer[opcode] = TransmissionBuffer[opcode] + received.Substring(75).Replace("\0", "");
+
+
+                        Debugger.Record("\nWith results:"  + TransmissionBuffer[opcode], DebugMask);
+
                     }
                     else
                     {
-                        TransmissionBuffer[opcode] = received.Substring(1);
+                        Debugger.Record("\nInitializing TransmissionBuffer: " + received.Substring(1), DebugMask);
+                        TransmissionBuffer[opcode] = received.Substring(1).Replace("\0", "");
                     }
                     // Do not proceed to parsing at this time, because more messages are to follow to combine with this one.
                     return;
@@ -311,7 +421,7 @@ namespace Messenger_Client
 
                 ////// End Transmission Buffer handling //////
 
-                RaiseMessageEvent(message);
+                RaiseMessageEvent(transmitMessage);
 
                 if (Controller == null)
                 {
@@ -320,19 +430,19 @@ namespace Messenger_Client
 
                 Dictionary<string, string> results = new();
 
-                if (Parser.Parse(message, out results) == true)
+                if (Parser.Parse(transmitMessage, out results) == true)
                 {
-                    Debug.WriteLine("Parse successful. Sending message to controller.\n");
+                    Debug.WriteLine("\nParse successful. Sending message to controller.\n");
                     Controller.MessageHandler(results);
                 }
                 else
                 {
-                    Controller.RaisePopupEvent("An impossible-to-parse message has been received from the server: \n" + message);
+                    Controller.RaiseNotificationPopupEvent("An impossible-to-parse message has been received from the server: \n" + message);
                 }
             }
             catch (Exception e)
             {
-                Debugger.Record("HeaderParser failed to handle an incoming message.", DebugMask);
+                Debugger.Record("HeaderParser failed to handle an incoming message: " + e.Message, DebugMask);
             }
         }
 
@@ -341,9 +451,24 @@ namespace Messenger_Client
         public void TransmissionHandler(string messageOut)
         {
 
-            Debug.WriteLine("Transmitting: " + messageOut);
-            Byte[] sent = Encoding.ASCII.GetBytes(messageOut + "\n");
-            ServerSocket.Send(sent);
+
+            if (ServerSocket != null)
+            {
+                try
+                {
+                    Debug.WriteLine("Transmitting: " + messageOut);
+                    Byte[] sent = Encoding.ASCII.GetBytes("F" + messageOut + "\n");
+                    ServerSocket.Send(sent);
+                }
+                catch (Exception e)
+                {
+                    Controller.RaiseNotificationPopupEvent("There is a problem with the connection to the server.");
+                }
+            }
+            else
+            {
+                Controller.RaiseNotificationPopupEvent("There is a problem with the connection to the server.");
+            }
         }
 
         private void MessageSent(IAsyncResult result)

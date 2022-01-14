@@ -39,6 +39,5 @@ namespace Messenger_Client.SupportClasses
                 Debugger.Record("Unable to parse user or chat ID in friend constructor.", DebugMask);
             }
         }
-
     }
 }

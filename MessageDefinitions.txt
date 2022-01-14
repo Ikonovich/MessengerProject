@@ -14,7 +14,7 @@
 //The bitmask order is as follows:
 //
 // 00001: UserID - 32 characters - Present for all messages except login and registration.
-// 00010: UserName - 32 characters - Present for login, registration, and when adding a friend.
+// 00010: UserName - 32 characters - Present for login, registration, and when adding or searching for a friend.
 // 00100: Password - 128 characters - Present only for login and registration.
 // 01000: Session ID - 32 characters - Required for all non-login and non-registration interactions. Very weakly verifies connection
 // integrity.
@@ -26,11 +26,15 @@
 //
 // IR (Initial Registration):  00110  /  6
 // LR (Login Request):  00110  /   6
-// PF (Pull Friends):  01101  /   13
+// LO (Logout Request):  01001  /   9
+// PF (Pull Friends):  01001  /   9
 // AF (Add Friend):  01011  / 11
+// PR (Pull Friend Requests): 01001 / 9
+// US (User Search): 01011 / 11
 // PC (Pull User-Chat Pairs) / 01001 / 9
 // PM (Pull Messages From Chat):  11001    / 25
-// SM (Send Message):  11001   /   25
+// CC (Create Chat): 01011 / 11  -- For this code, the "Message" component stores the desired chat name
+// SM (Send Message):  11001   /   27
 // HB (Heartbeat): 00000 / 0
 
 // The core client opcodes with their bitmasks are:
@@ -40,8 +44,10 @@
 // LU (Login unsuccessful):	 00010 / 2
 // LS (Login successful):  01011 / 3
 // FP (Friend Push): 01001 / 9
+// FR (Friend Request(s) Push): 01001 / 9
+// UR (User search Results) : 01001 / 9
 // CP (User-Chat Pairs Push): 01001 / 9
-// MP (Message Push for one chat): 11001 / 25
+// MP (Message Push for one chat): 11011 / 27  
 // CN  (Chat Notification): 11001 / 25
 // AM (Administrative Message): 01001 / 9
 // HB (Heartbeat): 00000 / 0
@@ -82,7 +88,7 @@ Add Friend[AF]:
 
 [User ID - 32 chars]       			[2-34]				Identifies the source(sent from client) or destination(sent from server) of the packet.
 [Session ID - 32 chars]				[35-66]				Weakly ensures that the message is coming from the correct client or the genuine server
-[Friend Username - 32 chars]			[67-98]			Contains the username of the friend being added
+[Friend UserID - 32 chars]			[67-98]			Contains the userID of the friend being added
 
 
 

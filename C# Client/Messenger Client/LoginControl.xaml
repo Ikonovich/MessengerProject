@@ -8,26 +8,61 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 0, 0, 170">
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment ="Center" Text="Enter your username and password to login. If you do not have an account, you can " TextWrapping="Wrap">
-                <Hyperlink NavigateUri="None"  RequestNavigate="GoToRegistration">
-                    <Bold>register</Bold>. <LineBreak/>
+            <TextBlock FontWeight="DemiBold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment ="Center" Text="Enter your username and password to login. If you do not have an account, you can " TextWrapping="Wrap">
+                <Hyperlink NavigateUri="None" RequestNavigate="GoToRegistration" TextDecorations="None">
+                    <Bold Foreground="DarkCyan">register</Bold>. <LineBreak/>
                 </Hyperlink>
             </TextBlock>
-            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="Wrap" ToolTip="Between 8-32 characters. Alphanumeric characters and underscores only.">
-            <Bold>Username:</Bold>
+            <TextBlock 
+                HorizontalAlignment="Left" VerticalAlignment="Center" 
+                TextWrapping="Wrap" 
+                ToolTip="Between 8-32 characters. Alphanumeric characters and underscores only.">
+            <Bold Foreground="White">Username:</Bold>
             </TextBlock>
-            <TextBox Name="LoginUsername" Background="AntiqueWhite" HorizontalAlignment="Center" VerticalAlignment="Center" Width="200" Height="20" MaxLength="32"/>
+            <TextBox Margin="4" 
+                     Name="LoginUsername" 
+                     Foreground ="White" 
+                     Background="Black" 
+                     HorizontalAlignment="Center" VerticalAlignment="Center" 
+                     Width="200" Height="20" 
+                     MaxLength="32"
+                     ToolTip="Between 8-32 characters. Alphanumeric characters and underscores only."/>
             <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="Wrap" ToolTip="Between 8-128 characters.">
-            <Bold>Password:</Bold>
+            <Bold Foreground="White">Password:</Bold>
             </TextBlock>
-            <TextBox Name="LoginPassword" Background="AntiqueWhite" HorizontalAlignment="Center" VerticalAlignment="Center" Width="200" Height="20" MaxLength="128" />
+            <TextBox Margin="4" 
+                     Foreground ="White" 
+                     Background="Black" 
+                     Name="LoginPassword"  
+                     HorizontalAlignment="Center" VerticalAlignment="Center" 
+                     Width="200" Height="20" 
+                     MaxLength="128" 
+                     ToolTip="Between 8-128 characters."/>
 
             <TextBlock HorizontalAlignment="Right" VerticalAlignment ="Center" Margin="0, 10, 30, 0">
-                <Hyperlink NavigateUri="None"  RequestNavigate="LoginAttempt">
-                    <Bold>LOGIN</Bold> <LineBreak/>
+                <Hyperlink NavigateUri="None"  RequestNavigate="LoginAttempt" TextDecorations="None">
+                    <TextBlock Text="LOGIN" FontWeight="Bold"  Background="Transparent" Foreground="DarkCyan">
+                        <TextBlock.Triggers>
+                            <EventTrigger RoutedEvent="PreviewMouseDown">
+                                
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="PreviewMouseDown">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation 
+                                            Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" 
+                                            From="DarkCyan"
+                                            To="Red"
+                                            Timeline.AutoReverse ="true"
+                                            Duration="0:0:0.5"
+                                            />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </TextBlock.Triggers> <LineBreak/>
+                    </TextBlock>
                 </Hyperlink>
             </TextBlock>
         </StackPanel>
-            
     </Grid>
 </UserControl>

@@ -25,6 +25,7 @@ namespace Messenger_Client
     {
         public string MessageID { get; private set; }
         public string SenderID { get; private set; }
+        public string SenderName { get; private set; }
         public string CreateTimestamp { get; private set; }
         public string Body { get; private set; }
 
@@ -32,6 +33,7 @@ namespace Messenger_Client
         {
             MessageID = messageDict["MessageID"];
             SenderID = messageDict["SenderID"];
+            SenderName = messageDict["SenderName"];
             CreateTimestamp = messageDict["CreateTimestamp"];
             Body = messageDict["Message"];
         }
@@ -73,46 +75,28 @@ namespace Messenger_Client
             Controller = Controller.ControllerInstance;
 
             MessageEntry.KeyDown += OnMessageKey;
-            Controller.UpdateChatEvent += OnUpdateChatEvent;
+            Controller.ChangeChatEvent += OnChangeChatEvent;
 
         }
 
 
-        public void OnUpdateChatEvent(object sender, UpdateChatEventArgs e)
+        public void OnChangeChatEvent(object sender, ChangeChatEventArgs e)
         {
+
+            Chat chat = Controller.ActiveChat;
+            Debugger.Record("ChatID is: " + ChatID + " . New chat ID is: " + chat.ChatID, DebugMask);
+            MessageList = chat.RetrieveAll();
+
             PopulateMessages();
         }
 
-
-
         private void PopulateMessages()
         {
-            Chat chat = Controller.ActiveChat;
-
-            List<Message> messageList = chat.RetrieveMessages();
 
             try
             {
                 Application.Current.Dispatcher.Invoke((Action)delegate
                 {
-
-                    Debugger.Record("ChatID is: " + ChatID + " . New chat ID is: " + chat.ChatID, DebugMask);
-
-                    if (chat.ChatID != ChatID)
-                    {
-                        Debugger.Record("Message Control: Replacing old chat with new chat.", DebugMask);
-                        ChatID = chat.ChatID;
-                        MessageList = messageList;
-                    }
-                    else
-                    {
-                        for (int i = 0; i < messageList.Count; i++)
-                        {
-                            Debugger.Record("Adding new chat to old chat.", DebugMask);
-                            MessageList.Add(messageList[i]);
-                        }
-                    }
-
                     MessageDisplay.ItemsSource = MessageList;
 
                 });
@@ -198,7 +182,6 @@ namespace Messenger_Client
             {
                 MessageEntry.Text = newMessage + "\n";
                 MessageEntry.Select(MessageEntry.Text.Length, MessageEntry.Text.Length);
-
             }
             else if (newMessage.Length > 0)
             {

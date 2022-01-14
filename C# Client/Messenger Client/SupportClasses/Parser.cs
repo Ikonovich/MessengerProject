@@ -46,8 +46,9 @@ namespace Messenger_Client
     ///
     /// IR (Initial Registration):  00110  /  6
     /// LR (Login Request):  00110  /   6
-    /// PF (Pull Friends):  01101  /   13
+    /// PF (Pull Friends):  01001  /   9
     /// AF (Add Friend):  01011  / 11
+    /// US (User Search): 01011 / 11
     /// PC (Pull User-Chat Pairs) / 01001 / 9
     /// PM (Pull Messages From Chat):  11001    / 25
     /// SM (Send Message):  11001   /   25
@@ -59,8 +60,9 @@ namespace Messenger_Client
     /// RU (Registration unsuccessful):  00010 / 2
     /// RS (Registration successful):  00010  / 2
     /// LU (Login unsuccessful):	 00010 / 2
-    /// LS (Login successful):  01011 / 3
-    /// FP (Friend Push): 01001 / 9
+    /// LS (Login successful):  01001 / 9
+    /// FP (Friend Push): 01001 / 9 
+    /// UR (User search Results) : 01001 / 9
     /// CP (User-Chat Pairs Push): 01001 / 9
     /// MP (Message Push for one chat): 11001 / 25
     /// CN  (Chat Notification): 11001 / 25
@@ -86,11 +88,14 @@ namespace Messenger_Client
         {
             OpcodeMasks = new Dictionary<string, int>();
 
-            OpcodeMasks.Add("RS", 5);
-            OpcodeMasks.Add("RU", 5);
+            OpcodeMasks.Add("RS", 2);
+            OpcodeMasks.Add("RU", 2);
             OpcodeMasks.Add("LU", 0);
-            OpcodeMasks.Add("LS", 7);
+            OpcodeMasks.Add("LS", 11);
+            OpcodeMasks.Add("LO", 9);
             OpcodeMasks.Add("FP", 9);
+            OpcodeMasks.Add("FR", 9);
+            OpcodeMasks.Add("UR", 9);
             OpcodeMasks.Add("CP", 9);
             OpcodeMasks.Add("MP", 25);
             OpcodeMasks.Add("CN", 25);
@@ -137,7 +142,7 @@ namespace Messenger_Client
 
             // Parse out UserID
 
-            if ((mask & 1) == 1)
+            if ((mask & 1) > 0)
             {
                 try
                 {
@@ -154,7 +159,7 @@ namespace Messenger_Client
 
             // Parse out UserName
 
-            if ((mask & 2) == 2)
+            if ((mask & 2) > 0)
             {
                 try
                 {
@@ -171,7 +176,7 @@ namespace Messenger_Client
 
 
             // Parse out Password
-            if ((mask & 4) == 4)
+            if ((mask & 4) > 0)
             {
                 try
                 {

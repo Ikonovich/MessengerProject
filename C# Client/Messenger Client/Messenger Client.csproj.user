@@ -7,6 +7,15 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="BlankControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="ChatsViewControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="FindFriendsControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="MessageControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -19,8 +28,20 @@
     <Compile Update="RegistrationControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="RequestsControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="BlankControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="ChatsViewControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="FindFriendsControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -34,6 +55,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="RegistrationControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="RequestsControl.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

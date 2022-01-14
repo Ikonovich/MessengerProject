@@ -23,14 +23,10 @@ CREATE TABLE RegisteredUsers (
 	CONSTRAINT identifiers UNIQUE (UserID, UserName)
 );
 
-FriendRequests: 
-Field                	| Type        | Null 	| Key    	| Default           | Extra
-UserID 		    	   INT 	  	 NO	  PRI 		  NULL		 	PRIMARY KEY
-FriendUserID           	   INT 	 	 NO	  PRI 		  NULL		 	PRIMARY KEY
-RequestAddedTimestamp	  DATETIME      YES         		  CURRENT_TIMESTAMP     DEFAULT_GENERATED
-
+FriendRequests:
 CREATE TABLE FriendRequests (
 	UserID INT NOT NULL,
+	UserName VARCHAR(32) NOT NULL,
 	FriendUserID INT NOT NULL,
 	FriendUserName VARCHAR(32) NOT NULL,
 	RequestAddedTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -66,11 +62,13 @@ Chats:
 Field             | Type        | Null | Key | Default           | Extra
 ChatID		    INT           NO     PRI   NULL                AUTO_INCREMENT
 OwnerID		    INT           NO           NULL           
+OwnerName 	    VARCHAR(32)   NULL         "Chat"
 CreateTimestamp	    DATETIME      YES         CURRENT_TIMESTAMP  DEFAULT_GENERATED
 
 CREATE TABLE Chats(
 	ChatID INT NOT NULL AUTO_INCREMENT,
 	OwnerID INT NOT NULL,
+	OwnerName VARCHAR(32) NOT NULL DEFAULT "Chat",
 	CreateTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY(ChatID)
 );
@@ -97,7 +95,8 @@ Messages:
 Field             | Type        | Null | Key | Default           | Extra
 MessageID	    INT		  NO     PRI   NULL 		   AUTO_INCREMENT
 ChatID              INT           NO           NULL
-SenderID	    INT   NO           NULL      
+SenderID	    INT   	  NO           NULL      
+SenderName          VARCHAR(32)   NO           NULL
 Message		    TEXT          NO           NULL
 CreateTimestamp	    DATETIME      YES         CURRENT_TIMESTAMP  DEFAULT_GENERATED
 ModifiedTimestamp   DATETIME      YES           NULL 		 on update CURRENT_TIMESTAMP
@@ -106,6 +105,7 @@ CREATE TABLE Messages (
 	MessageID INT NOT NULL AUTO_INCREMENT,
 	ChatID INT NOT NULL,
 	SenderID INT NOT NULL,
+	SenderName VARCHAR(32) NOT NULL,
 	Message TEXT NOT NULL,
 	CreateTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
 	ModifiedTimestamp DATETIME ON UPDATE CURRENT_TIMESTAMP,

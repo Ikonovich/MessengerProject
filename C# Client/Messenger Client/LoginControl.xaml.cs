@@ -37,7 +37,7 @@ namespace Messenger_Client
         public void GoToRegistration(object sender, RequestNavigateEventArgs e)
         {
             Debug.WriteLine("Registration event fired.");
-            MainWindow.RegistrationView();
+            Controller.RaiseChangeViewEvent(Segment.Right, ViewType.RegisterView);
         }
 
 

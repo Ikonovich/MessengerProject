@@ -1,23 +1,10 @@
 ﻿using Messenger_Client.SupportClasses;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Messenger_Client
 {
@@ -28,11 +15,47 @@ namespace Messenger_Client
     public partial class FriendsControl : UserControl, INotifyPropertyChanged
     {
 
+        private int DebugMask = 64;
+
+        // Determines whether or not the sort options dropdown is currently visible.
+
+        private bool isSortDropdownVisible = false;
+
+        public bool IsSortDropdownVisible
+        {
+            get
+            {
+                return isSortDropdownVisible;
+            }
+            set
+            {
+                isSortDropdownVisible = value;
+                OnPropertyChanged(nameof(IsSortDropdownVisible));
+            }
+        }
+
+        private string currentSort = "Sort"; // Stores the currently selected sort selection for display.
+        public string CurrentSort
+        {
+            get
+            {
+                return currentSort;
+            }
+            set
+            {
+                currentSort = value;
+                OnPropertyChanged(nameof(CurrentSort));
+            }
+        }
+
+
+
         private Controller Controller;
 
-        public List<FriendUser> FriendList;
+        public List<FriendUser> FriendList; // Stores all friends.
 
-        private int DebugMask = 64;
+        public List<FriendUser> VisibleFriendList; // Stores what friends are visible at the current time.
+
 
         public FriendsControl()
         {
@@ -46,29 +69,19 @@ namespace Messenger_Client
 
             Controller.UpdateFriendsEvent += OnUpdateFriends;
 
-            ActiveSort.Selected += OnSortSelect;
-            AlphabeticalSort.Selected += OnSortSelect;
-            RecentSort.Selected += OnSortSelect;
-            FavoriteSort.Selected += OnSortSelect;
-
             SearchBox.TextChanged += OnSearch;
-            
+            SearchBox.GotFocus += OnSearchSelect;
+            SearchBox.LostFocus += OnSearchDeselect;
         }
 
         private void PopulateFriendsList(List<FriendUser> friends)
         {
 
-            Debug.WriteLine("Populating friends list.");
-            
-    
             Application.Current.Dispatcher.Invoke((Action)delegate
             {
-                FriendList = friends;
-                FriendsDisplay.ItemsSource = FriendList;
+                VisibleFriendList = friends;
+                FriendsDisplay.ItemsSource = VisibleFriendList;
             });
-            
-
-
         }
 
         //private void OnFriendSelected(object sender, MouseButtonEventArgs e)
@@ -88,11 +101,19 @@ namespace Messenger_Client
 
         private void OnSortSelect(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("Sort selected");
-            FrameworkElement element = sender as FrameworkElement;
-            string parameter = element.Name;
 
-            FriendSort(parameter);
+            if (IsSortDropdownVisible == false)
+            {
+                IsSortDropdownVisible = true;
+            }
+            else
+            {
+                FrameworkElement element = sender as FrameworkElement;
+                string parameter = element.Name;
+
+                FriendSort(parameter);
+                IsSortDropdownVisible = false;
+            }
         }
 
         private void FriendSort(string parameter)
@@ -101,31 +122,36 @@ namespace Messenger_Client
             List<FriendUser> sortedFriends = FriendList;
 
             if (parameter == "ActiveSort")
-            {
+            { 
                 sortedFriends.Sort(ActiveCompare);
+                CurrentSort = "Active";
             }
             else if (parameter == "AlphabeticalSort")
             {
                 sortedFriends.Sort(AlphabeticalCompare);
+                CurrentSort = "Alpha";
+
             }
             else if (parameter == "RecentSort")
             {
                 sortedFriends.Sort(RecentCompare);
-
+                CurrentSort = "Recent";
             }
 
             else if (parameter == "FavoriteSort")
             {
                 sortedFriends.Sort(FavoriteCompare);
+                    
+                CurrentSort = "Favorite";
             }
 
             FriendList = sortedFriends;
             PopulateFriendsList(FriendList);
+
         }
 
         private int AlphabeticalCompare(FriendUser itemOne, FriendUser itemTwo)
         {
-
             string stringOne = itemOne.UserName;
             string stringTwo = itemOne.UserName;
             return string.Compare(stringOne, stringTwo);
@@ -191,6 +217,20 @@ namespace Messenger_Client
         // Begin event handlers
 
 
+        private void OnSearchSelect(object sender, RoutedEventArgs e)
+        {
+            TextBox searchBox = sender as TextBox;
+            searchBox.Clear();
+        }
+
+        private void OnSearchDeselect(object sender, RoutedEventArgs e)
+        {
+            TextBox searchBox = sender as TextBox;
+            searchBox.Text = "Search";
+
+            PopulateFriendsList(FriendList);
+        }
+
         private void OnSearch(object sender, TextChangedEventArgs e)
         {
             TextBox searchBox = sender as TextBox;
@@ -199,16 +239,23 @@ namespace Messenger_Client
 
             List<FriendUser> foundItems = new List<FriendUser>();
 
-            for (int i = 0; i < FriendList.Count; i++)
+            if (searchText != "")
             {
-                string nameString = FriendList[i].UserName;
-
-                if (nameString.Contains(searchText))
+                for (int i = 0; i < FriendList.Count; i++)
                 {
-                    foundItems.Add(FriendList[i]);
+                    string nameString = FriendList[i].UserName;
+
+                    if (nameString.Contains(searchText))
+                    {
+                        foundItems.Add(FriendList[i]);
+                    }
                 }
+                PopulateFriendsList(foundItems);
             }
-            PopulateFriendsList(foundItems);
+            else
+            {
+                PopulateFriendsList(FriendList);
+            }
         }
 
 
@@ -217,7 +264,8 @@ namespace Messenger_Client
 
             Debug.WriteLine("OnUpdateFriends activated in friends control.");
 
-            PopulateFriendsList(e.Friends);
+            FriendList = e.Friends;
+            PopulateFriendsList(FriendList);
         }
 
         // ---------- BEGIN EVENT DELEGATES --------- //
@@ -225,11 +273,12 @@ namespace Messenger_Client
 
         private void OnFriendSelected(object sender, RoutedEventArgs e)
         {
-            Button friendButton = sender as Button;
+            Button button = sender as Button;
 
-            int chatID = (int)friendButton.Tag;
+            int chatID = (int)button.Tag;
+            string chatName = (string)button.Content;
 
-            Controller.ChatSelected(chatID);
+            Controller.ChatSelected(chatID, chatName);
         }
 
 
@@ -244,8 +293,5 @@ namespace Messenger_Client
             if (handler != null)
                 handler(this, new PropertyChangedEventArgs(propertyName));
         }
-
-
-
     }
 }

@@ -37,7 +37,20 @@ namespace Messenger_Client
         LoginView = 0,
         RegisterView = 1,
         FriendsView = 2,
-        MessageView = 3
+        MessageView = 3,
+        FindFriendsView = 4,
+        ChatsView = 5,
+        RequestsView = 6,
+        Blank = 7
+    }
+
+    // Defining the events for an UpdateRequests event
+    /// <param name="Requests">A list of dictionaries containing friend requests reported from the server.</param>    
+
+    public class UpdateRequestsEventArgs
+    {
+        public UpdateRequestsEventArgs(List<Dictionary<string, string>> requests) { Requests = requests; }
+        public List<Dictionary<string, string>> Requests { get; }
     }
 
     // Defining the arguments for a ChangeView event
@@ -55,14 +68,55 @@ namespace Messenger_Client
         public ViewType ViewType { get; }
     }
 
-    // Defining the arguments for a PopupEvent
+    // Defining the arguments for a SelectionPopupEvent
 
     /// <param name=message">The message that will be displayed by the popup</param>
-    public class PopupEventArgs
+    /// <param name="optionOneText">The text displayed for option one</param>
+    /// <param name="optionTwoText">The text displayed for option two</param>
+    /// <param name="OptionOneTag">The function to be called if option one is selected.</param>
+    /// <param name="optionTwoTag">The function to be called if option two is selected.</param>
+    /// <param name="Parameter">The parameter provided to the functions called.</param>
+    public class SelectionPopupEventArgs
     {
-        public PopupEventArgs(string message) { Message = message; }
+        public SelectionPopupEventArgs(string message, string optionOneText, string optionOneTag, string optionTwoText, string optionTwoTag, string parameterOne, string parameterTwo) 
+        { 
+            Message = message;
+            OptionOneText = optionOneText;
+            OptionOneTag = optionOneTag;
+            OptionTwoText = optionTwoText;
+            OptionTwoTag = optionTwoTag;
+            ParameterOne = parameterOne;
+            ParameterTwo = parameterTwo;
+
+
+        }
+        public string Message { get; }
+        public string OptionOneText { get; }
+        public string OptionTwoText { get; }
+        public string OptionOneTag { get; }
+        public string OptionTwoTag { get; }
+        public string ParameterOne { get; }
+        public string ParameterTwo { get; }
+
+    }
+
+    // Defining the arguments for a NotificationPopupEvent
+
+    /// <param name=message">The message that will be displayed by the popup</param>
+    public class NotificationPopupEventArgs
+    {
+        public NotificationPopupEventArgs(string message) { Message = message; }
         public string Message { get; }
     }
+
+    // Defining the arguments for a UpdateUserSearch event.
+    public class UpdateUserSearchEventArgs
+    {
+        public UpdateUserSearchEventArgs(List<Dictionary<string, string>> results) { Results = results; }
+
+        public List<Dictionary<string, string>> Results { get; }
+    }
+
 
     // Defining the arguments for a FriendsUpdate event.
     public class UpdateFriendsEventArgs
@@ -71,13 +125,29 @@ namespace Messenger_Client
         public List<FriendUser> Friends { get; }
     }
 
+
     /// <summary> 
-    /// Defining the arguments for an UpdateChat event, which signals the 
-    /// MessageControl to update its display.
+    /// Defining the arguments for an UpdateChat event, which sends the selection
+    /// of received user-chat pairs to the Chats View.
     /// </summary>
     public class UpdateChatEventArgs
     {
-        public UpdateChatEventArgs() { }
+        public UpdateChatEventArgs(List<Chat> chatList) { ChatList = chatList; }
+
+        public List<Chat> ChatList { get; }
+    }
+
+
+    /// <summary> 
+    /// Defining the arguments for a ChangeChat event, which signals the 
+    /// MessageControl to update its display by getting the ActiveChat from the
+    /// Controller.
+    /// </summary>
+    /// 
+    public class ChangeChatEventArgs
+    {
+        public ChangeChatEventArgs() { }
+
     }
 
 

@@ -7,35 +7,34 @@
              mc:Ignorable="d" 
              d:DesignHeight="460" d:DesignWidth="190">
     <Grid VerticalAlignment="Top" Height="420" Margin="0, 30, 0, 0">
-        <ScrollViewer VerticalScrollBarVisibility="Auto"  VerticalAlignment="Top" Height="365">
-            <StackPanel Name ="MessagePanel" Height="Auto" Width="Auto" VerticalAlignment="Top">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"  VerticalAlignment="Top" Height="365" Margin="10">
+            <StackPanel Margin="4, 0, 4, 4" Name ="MessagePanel" Height="Auto" Width="Auto" VerticalAlignment="Top" Background="#30302c">
                 <ItemsControl x:Name="MessageDisplay">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border BorderThickness="2, 1, 2, 1" BorderBrush="Black">
-                                <RichTextBox VerticalAlignment="Top" Background="AliceBlue">
-                                    <FlowDocument>
-                                        <Paragraph>
-                                            <Bold>
-                                                <TextBlock Text="{Binding CreateTimestamp, Mode=OneWay}"/>
-                                                <TextBlock Text=":"/>
-                                                <TextBlock Text="{Binding SenderID, Mode=OneWay}"/>
-                                                <TextBlock Text=":"/>
-                                            </Bold>
-                                            <TextBlock Text="{Binding Body}"/>
-                                        </Paragraph>
-                                    </FlowDocument>
-                                </RichTextBox>
-                            </Border>
+                            <RichTextBox Margin="4" BorderThickness="0" VerticalAlignment="Top" Background="#30302c" ToolTip="{Binding CreateTimestamp, Mode=OneWay}">
+                                <FlowDocument>
+                                    <Paragraph>
+                                        <Bold>
+                                            <TextBlock Background="Transparent" 
+                                                           Foreground="White"  
+                                                           Text="{Binding SenderName, Mode=OneWay}"/>
+                                            <TextBlock Foreground="AntiqueWhite"  
+                                                           Text=":"/>
+                                        </Bold>
+                                        <TextBlock Foreground="White"  Text="{Binding Body}"/>
+                                    </Paragraph>
+                                </FlowDocument>
+                            </RichTextBox>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
-        </ScrollViewer>
-        <TextBox Name="MessageEntry" Height="50" VerticalAlignment="Bottom" TextWrapping="Wrap" Margin="0,0,0,5">
+            </ScrollViewer>
+        <TextBox Foreground="White" Background="#3d3a38" BorderBrush="DarkOrange" BorderThickness="1,1, 1, 0" Name="MessageEntry" Height="50" VerticalAlignment="Bottom" TextWrapping="Wrap" Margin="0,0,0,5">
             <TextBox.Resources>
                 <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="0,0,7,7"/>
+                    <Setter Property="CornerRadius" Value="0,0,30,30"/>
                 </Style>
             </TextBox.Resources>
         </TextBox>

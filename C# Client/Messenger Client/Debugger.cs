@@ -21,13 +21,15 @@ namespace Messenger_Client
 		// Bit 6 - FriendControl messages.
 
 
-		private static int printMask = 127;
+		private static int printMask = 4;
 
 		public static void Record(string message, int bitmask)
         {
 
 
-			Debug.WriteLine(message + "\n");
+			Debug.WriteLine(message);
+			Debug.WriteLine("\n");
+
 
 			if ((printMask & bitmask) == printMask)
 			{

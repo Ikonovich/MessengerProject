@@ -1,0 +1,28 @@
+Permissions are defined using a bitmask, arranged in the following order, from LSB to MSB (little endian):
+
+0: Can Read
+1: Can Talk
+2: Can Upload Files
+3: Can Delete
+4: Can Restrict uploading
+5: Can Mute 
+6: Can Ban
+7: Chat Owner
+
+
+
+Muted users cannot talk. Banned users cannot read or talk. Only chat owners can change other user's permissions.
+
+
+These permissions are enumerated in both server and client under Permissions (In the server as a class,
+in the client as an enum). There exist the following:
+
+Permissions.Read
+Permissions.Talk
+Permissions.Upload
+Permissions.Delete
+Permissions.Restrict
+Permissions.Mute
+Permissions.Ban
+
+These permissions are stored in individual user-chat pairs in the field Permissions.

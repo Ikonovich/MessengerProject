@@ -1,0 +1,18 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /var/server
+
+permissions:
+  - object: /
+    pattern: "**"
+    owner: root
+    group: root
+
+hooks:
+  ApplicationStart:
+    - location: server_build.sh
+      timeout: 300
+      runas: root

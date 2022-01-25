@@ -68,6 +68,14 @@ namespace Messenger_Client
         private const int UserIDLength = 32;
         private const int PasswordLength = 128;
         private const int ChatIDLength = 8;
+        private const int MessageIDLength = 32;
+
+        // Connection-related variables
+        Socket ServerSocket = null;
+        Int32 Port = 4269;
+
+        // Stores the server address
+        private const string ServerAddress = "18.216.118.7";
 
         // The constructor initializes the connection handler listening to the server.
         // It also takes and sets the Controller variable for this class. 
@@ -80,10 +88,6 @@ namespace Messenger_Client
             Controller = controller;
         }
 
-
-        // Connection-related variables
-        Socket ServerSocket = null;
-        Int32 Port = 4269;
 
         Byte[] BytesReceived = new byte[1048];
 
@@ -189,6 +193,18 @@ namespace Messenger_Client
             TransmissionHandler(transmitString);
         }
 
+        public void EditMessage(int userID, string sessionID, int messageID, string message)
+        {
+            string transmitString = "EM" + Parser.Pack(userID, UserIDLength) + sessionID + Parser.Pack(messageID, MessageIDLength) + message;
+            TransmissionHandler(transmitString);
+        }
+
+
+        public void DeleteMessage(int userID, string sessionID, string messageID)
+        {
+            string transmitString = "DM" + Parser.Pack(userID, UserIDLength) + sessionID + Parser.Pack(messageID, MessageIDLength);
+            TransmissionHandler(transmitString);
+        }
 
         /// <summary> 
         /// This method sends an add friend request. 
@@ -236,8 +252,8 @@ namespace Messenger_Client
                 try
                 {
                     IPHostEntry hostEntry = null; // Container for host address info.
+                    //IPAddress hostAddress = IPAddress.Parse(ServerAddress);
                     IPAddress hostAddress = IPAddress.Loopback;
-                    //IPAddress hostAddress = IPAddress.Parse("131.204.254.86");
 
                     hostEntry = Dns.GetHostEntry(hostAddress); // Resolves the hostAddress to a HostEntry;
 

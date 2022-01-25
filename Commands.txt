@@ -1,0 +1,29 @@
+Commands:
+
+When a message beginning with the letters "CO" is sent, the server inteprets this as a command. The Message
+component of a command (The remainder of the message after the bitmask parsing has been completed) must be a 
+JSON-formatted a dictionary containing, at minimum, a "Command" key with an associated string value.
+Depending on which command is used, the dictionary must also contain other keys, most commonly "UserID", containing
+the User ID of the user to be acted upon by the command.
+
+Commands can not be carried out on users with higher permissions than the commanding user.
+
+The available commands and their additional key-value requirements are as follows:
+
+"RestrictUploading": UserID  // Removes the Upload permission.
+"AllowUploading" : UserID  // Adds the Upload permission.
+"Mute": UserID // Removes the Talk permission
+"Unmute" : UserID // Restores the Talk permission
+"Ban" : UserID // Removes the read and talk permissions
+"Unban" : UserID // Restores the read and talk permissions
+
+// Only owners can utilize these commands.
+
+"AllowDelete" : UserID // Allows the user to delete messages
+"DisallowDelete" : UserID // Disllows the user from deleting messages
+"AllowRestrict" : UserID // Allows the user to restrict/allow uploads
+"DisallowRestrict" : UserID // Disallows the user from restricting/allowing uploads
+"AllowMute" : UserID // Allows the user to mute/unmute other users
+"DisallowMute" : UserID // Disallows the user from muting/unmuting other users
+"AllowBan" : UserID // Allows the user to ban/unban other users
+"DisallowBan" : UserID // Disallows the user from banning/unbanning other users

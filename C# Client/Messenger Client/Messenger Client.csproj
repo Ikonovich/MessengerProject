@@ -6,6 +6,7 @@
     <RootNamespace>Messenger_Client</RootNamespace>
     <UseWPF>true</UseWPF>
     <StartupObject>Messenger_Client.App</StartupObject>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
 

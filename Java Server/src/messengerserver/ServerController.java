@@ -6,7 +6,10 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class ServerController 
+// Enumeration for user permissions
+
+
+public class ServerController implements Runnable
 {
 	// Constants storing expected lengths of each packet section, when present.
 
@@ -20,15 +23,16 @@ public class ServerController
 	public static final int MAX_PASSWORD_LENGTH = 128;
 	public static final int SESSION_ID_LENGTH = 32;
 	public static final int CHAT_ID_LENGTH = 8;
+	public static final int MESSAGE_ID_LENGTH = 32;
 
 	// Server configuration
 
 	public static final int PACKET_SIZE = 1024; // Determines the maximum size of transmitted packets.
 
 	// Keeps track of information for sending heartbeats (keep-alive signals), in milliseconds.
-	public static final long MAX_TIMEOUT = 5000;
-	public static final long HEARTBEAT_WAIT = 2000; // How long after the last read we should wait before sending a heartbeat.
-	public static final long HEARTBEAT_INTERVAL = 2000; // How long we should wait between heartbeats.
+	public static final long MAX_TIMEOUT = 100000;
+	public static final long HEARTBEAT_WAIT = 45000; // How long after the last read we should wait before sending a heartbeat.
+	public static final long HEARTBEAT_INTERVAL = 45000; // How long we should wait between heartbeats.
 
 	private static HashSet<String> sessionSet; // Stores all currently active session IDs.
 
@@ -44,7 +48,7 @@ public class ServerController
 		sessionSet = new HashSet<String>();
 	}
 	
-	public void start() {
+	public void run() {
 		
 		listen();
 	}
@@ -83,10 +87,6 @@ public class ServerController
 	{
 		String userID = user.getUserIDstr();
 
-		if (loggedInUsers.containsKey(userID))
-		{
-			return false;
-		}
 		loggedInUsers.put(userID, user);
 		return true;
 	}
@@ -98,6 +98,7 @@ public class ServerController
 		if (loggedInUsers.containsKey(userID))
 		{
 			loggedInUsers.remove(userID);
+			Debugger.record("A user was removed from the loggedInUsers map", debugMask);
 			return true;
 		}
 		else {

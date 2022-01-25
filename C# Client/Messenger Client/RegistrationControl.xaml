@@ -17,7 +17,7 @@
             </TextBlock>
             <TextBlock Text="Username:" 
                        FontWeight="Bold" 
-                       Foreground="AntiqueWhite" 
+                       Foreground="White" 
                        HorizontalAlignment="Left" 
                        VerticalAlignment="Center" 
                        TextWrapping="Wrap" 
@@ -26,7 +26,7 @@
             <TextBox Margin="4" ToolTip="Between 8-32 characters. Alphanumeric characters and underscores only." Name="RegistrationUsername" Foreground="White" Background="Black" HorizontalAlignment="Center" VerticalAlignment="Center" Width="200" Height="20" MaxLength="32"/>
             <TextBlock Text="Password:" 
                        FontWeight="Bold" 
-                       Foreground="AntiqueWhite" 
+                       Foreground="White" 
                        HorizontalAlignment="Left" 
                        VerticalAlignment="Center" 
                        TextWrapping="Wrap" 
@@ -35,7 +35,7 @@
             <TextBox Margin="4" ToolTip="Between 8-128 characters." Name="RegistrationPasswordOne" Foreground="White" Background="Black" HorizontalAlignment="Center" VerticalAlignment="Center" Width="200" Height="20" MaxLength="128"/>
             <TextBlock Text="Reenter Password:" 
                        FontWeight="Bold" 
-                       Foreground="AntiqueWhite" 
+                       Foreground="White" 
                        HorizontalAlignment="Left" 
                        VerticalAlignment="Center" 
                        TextWrapping="Wrap" 

@@ -31,6 +31,9 @@
     <Compile Update="RequestsControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Sidebar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Page Update="BlankControl.xaml">
@@ -58,6 +61,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="RequestsControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Sidebar.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

@@ -15,30 +15,11 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Diagnostics;
 using Messenger_Client.SupportClasses;
+using System.ComponentModel;
 
 namespace Messenger_Client
 {
 
-    // A struct that stores the data about individual messages for display.
-
-    public class Message
-    {
-        public string MessageID { get; private set; }
-        public string SenderID { get; private set; }
-        public string SenderName { get; private set; }
-        public string CreateTimestamp { get; private set; }
-        public string Body { get; private set; }
-
-        public Message(Dictionary<string, string> messageDict)
-        {
-            MessageID = messageDict["MessageID"];
-            SenderID = messageDict["SenderID"];
-            SenderName = messageDict["SenderName"];
-            CreateTimestamp = messageDict["CreateTimestamp"];
-            Body = messageDict["Message"];
-        }
-
-    }
 
 
     /// <summary>
@@ -46,14 +27,36 @@ namespace Messenger_Client
     /// </summary>
     /// 
 
-    public partial class MessageControl : UserControl
+    public partial class MessageControl : UserControl, INotifyPropertyChanged
     {
+
 
         private int DebugMask = 32;
 
+        // Binding for displaying the chat title
+        private string chatTitle;
+        public string ChatTitle
+        {
+            get
+            {
+                return chatTitle;
+            }
+            set
+            {
+                chatTitle = value;
+                OnPropertyChanged(nameof(ChatTitle));
+            }
+        }
+
+        private bool IsEditing = false;
+
+        private int EditMessageID = 0;
+
+        string SelectedMessageID = ""; // Stores the ID of the currently selected message, or 0.
+
         private Controller Controller;
 
-        private int ChatID; // Stores the currently active chat ID.
+        private Chat ActiveChat; // Stores the currently active chat.
 
         public List<Message> MessageList { get; private set; }
 
@@ -61,7 +64,6 @@ namespace Messenger_Client
 
         public MessageControl()
         {
-
 
             MessageList = new();
 
@@ -82,23 +84,23 @@ namespace Messenger_Client
 
         public void OnChangeChatEvent(object sender, ChangeChatEventArgs e)
         {
+            ActiveChat = Controller.ActiveChat;
+            Debugger.Record("ChatName is: " + ActiveChat.ChatName, DebugMask);
+            MessageList = ActiveChat.RetrieveAll();
 
-            Chat chat = Controller.ActiveChat;
-            Debugger.Record("ChatID is: " + ChatID + " . New chat ID is: " + chat.ChatID, DebugMask);
-            MessageList = chat.RetrieveAll();
+            ChatTitle = "Chat with " + ActiveChat.ChatName;
 
             PopulateMessages();
         }
 
+
         private void PopulateMessages()
         {
-
             try
             {
                 Application.Current.Dispatcher.Invoke((Action)delegate
                 {
                     MessageDisplay.ItemsSource = MessageList;
-
                 });
             }
             catch (Exception e)
@@ -109,88 +111,222 @@ namespace Messenger_Client
         }
 
 
-    /// <summary> 
-    /// Adds a new message to the interface. Not optimized for XAML binding, since it relies on code behind to set th emessage.
-    /// </summary>  
-    /// <param name="message">A dictionary containg message components: CreateTimestamp, SenderID, Message (Indicating message body)</param>
-
-    public void NewMessage(Dictionary<string, string> message)
-    {
-
-        string timestamp = message["CreateTimestamp"];
-        string senderID = message["SenderID"];
-        string body = message["Message"];
-
-
-        Debugger.Record("Inside dictionary NewMessage function. Message: " + body, DebugMask);
-
-        string newMessage = timestamp + ": " + senderID + ": " + body;
-
-        RichTextBox newBox = new RichTextBox();
-        FlowDocument document = new FlowDocument();
-        Paragraph paragraph = new Paragraph();
-
-        paragraph.Inlines.Add(newMessage);
-
-        document.Blocks.Add(paragraph);
-        newBox.Document = document;
-
-        MessagePanel.Children.Add(newBox);
-        MessagePanel.UpdateLayout();
-
-    }
-
-
-
-    public void NewMessage(Tuple<string, string, string> message)
-    {
-
-        string newMessage = message.Item1 + " " + message.Item2 + ": " + message.Item3;
-
-        RichTextBox newBox = new RichTextBox();
-        FlowDocument document = new FlowDocument();
-        Paragraph paragraph = new Paragraph();
-
-        paragraph.Inlines.Add(newMessage);
-
-        document.Blocks.Add(paragraph);
-        newBox.Document = document;
-
-        MessagePanel.Children.Add(newBox);
-
-    }
-
-
-
-    private string GetDateTimeString()
-    {
-        DateTime currentTime = DateTime.Now;
-
-        return currentTime.ToString();
-
-    }
-
-
-    private void OnMessageKey(object sender, KeyEventArgs e)
-    {
-
-        if (e.Key == Key.Enter)
+        private string GetDateTimeString()
+        { 
+            return DateTime.Now.ToString();
+        }
+        
+        private Message GetMessage(string messageID)
         {
-            string newMessage = MessageEntry.Text;
 
-            if (Keyboard.IsKeyDown(Key.RightCtrl) || Keyboard.IsKeyDown(Key.LeftCtrl))
+            for (int i = 0; i < MessageList.Count; i++)
             {
-                MessageEntry.Text = newMessage + "\n";
-                MessageEntry.Select(MessageEntry.Text.Length, MessageEntry.Text.Length);
+                Message tempMessage = MessageList[i];
+
+                if (tempMessage.MessageID == messageID)
+                {
+                    return tempMessage;
+                }
             }
-            else if (newMessage.Length > 0)
+
+            throw new IndexOutOfRangeException("MessageControl.GetMessage(): Did not find messageID " + messageID);
+        }
+
+        private void OnMessageKey(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
             {
-                Controller.SendMessage(newMessage);
-                MessageEntry.Text = "";
+                string newMessage = MessageEntry.Text;
+
+                if (Keyboard.IsKeyDown(Key.RightCtrl) || Keyboard.IsKeyDown(Key.LeftCtrl))
+                {
+                    MessageEntry.Text = newMessage + "\n";
+                    MessageEntry.Select(MessageEntry.Text.Length, MessageEntry.Text.Length);
+                }
+                else if (IsEditing == true)
+                {
+                    Controller.EditMessage(EditMessageID, newMessage);
+                    MessageEntry.Text = "";
+                    IsEditing = false;
+                    EditMessageID = 0;
+                }
+                else if (newMessage.Length > 0)
+                {
+                    Controller.SendMessage(newMessage);
+                    MessageEntry.Text = "";
+                }
             }
         }
+
+        private void OnMessageRightClick(object sender, RoutedEventArgs args)
+        {
+
+            Debugger.Record("On Message Right Click in message control", DebugMask);
+
+            Grid currentItem = sender as Grid;
+
+            SelectedMessageID = (string)currentItem.Tag;
+
+
+            ButtonMenu.PlacementTarget = currentItem;
+
+            RestrictButton.Visibility = Visibility.Visible;
+            ButtonMenu.IsOpen = true;
+
+            string senderID = "0";
+
+            for (int i = 0; i < MessageList.Count; i++)
+            {
+                Message tempMessage = MessageList[i];
+                
+                if (tempMessage.MessageID == SelectedMessageID)
+                {
+                    senderID = tempMessage.SenderID;
+                    Debugger.Record("Sender ID: " + senderID + " Assigned to message: " + SelectedMessageID, DebugMask);
+                    break;
+                }
+            }
+
+            /// <summary> 
+            /// This section of code controls the visibility of the Button Menu buttons.
+            /// </summary>
+            /// 
+
+            EditButton.Visibility = Visibility.Collapsed;
+            DeleteButton.Visibility = Visibility.Collapsed;
+            RestrictButton.Visibility = Visibility.Collapsed;
+            MuteButton.Visibility = Visibility.Collapsed;
+            BanButton.Visibility = Visibility.Collapsed;
+            NoOptionsIndicator.Visibility = Visibility.Collapsed;
+
+            bool isEmpty = true;
+
+            if (senderID == Controller.UserID.ToString())
+            {
+                EditButton.Visibility = Visibility.Visible;
+                DeleteButton.Visibility = Visibility.Visible;
+                isEmpty = false;
+            }
+
+            if ((ActiveChat.PermissionMask & (int)Permissions.Delete) == (int)Permissions.Delete)
+            {
+                DeleteButton.Visibility = Visibility.Visible;
+                isEmpty = false;
+            }
+
+            if ((ActiveChat.PermissionMask & (int)Permissions.Restrict) == (int)Permissions.Restrict)
+            {
+                RestrictButton.Visibility = Visibility.Visible;
+                isEmpty = false;
+            }
+
+            if ((ActiveChat.PermissionMask & (int)Permissions.Mute) == (int)Permissions.Mute)
+            {
+                MuteButton.Visibility = Visibility.Visible;
+                isEmpty = false;
+            }
+
+            if ((ActiveChat.PermissionMask & (int)Permissions.Ban) == (int)Permissions.Ban)
+            {
+                BanButton.Visibility = Visibility.Visible;
+                isEmpty = false;
+            }
+
+            if (isEmpty == true)
+            {
+                NoOptionsIndicator.Visibility = Visibility.Visible;
+            }
+        }
+
+
+        private void OnMouseLeaveButtonMenu(object sender, RoutedEventArgs args)
+        {
+            ButtonMenu.IsOpen = false;
+            SelectedMessageID = "0";
+        }
+
+
+        /// <summary> 
+        /// Fires when the edit button is selected in the dropdown menu accessed when right clicking a message.
+        /// </summary> 
+        /// <param name="sender">Should be the button named EditButton.</param>
+        /// <param name="args">The args sent by Button.Click</param>
+
+        private void OnEditClick(object sender, RoutedEventArgs args)
+        {
+
+            Control control = sender as Control;
+            Message tempMessage;
+            try
+            {
+                tempMessage = GetMessage(SelectedMessageID);
+                EditMessageID = int.Parse(tempMessage.MessageID);
+                MessageEntry.Text = tempMessage.Body;
+                IsEditing = true;
+                ButtonMenu.IsOpen = false;
+            }
+            catch (FormatException e)
+            {
+                Debugger.Record(e.Message, DebugMask);
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                Debugger.Record(e.Message, DebugMask);
+            }
+        }
+
+
+        /// <summary> 
+        /// Fires when the delete button is selected in the dropdown menu accessed when right clicking a message.
+        /// </summary> 
+        /// <param name="sender">Should be the button named DeleteButton.</param>
+        /// <param name="args">The args sent by Button.Click</param>
+
+        private void OnDeleteClick(object sender, RoutedEventArgs args)
+        {
+            Control Control = sender as Control;
+
+            Controller.DeleteMessage(SelectedMessageID);
+            ButtonMenu.IsOpen = false;
+        }
+
+        /// <summary> 
+        /// Fires when the restrict button is selected in the dropdown menu accessed when right clicking a message.
+        /// </summary> 
+        /// <param name="sender">Should be the button named MuteButton.</param>
+        /// <param name="args">The args sent by Button.Click</param>
+        private void OnRestrictClick(object sender, RoutedEventArgs args)
+        {
+            Controller.RaiseNotificationPopupEvent("Restricting uploads has not yet been implemented.");
+            ButtonMenu.IsOpen = false;
+        }
+
+        /// <summary> 
+        /// Fires when the mute button is selected in the dropdown menu accessed when right clicking a message.
+        /// </summary> 
+        /// <param name="sender">Should be the button named MuteButton.</param>
+        /// <param name="args">The args sent by Button.Click</param>
+        private void OnMuteClick(object sender, RoutedEventArgs args)
+        {
+            Controller.RaiseNotificationPopupEvent("Muting users has not yet been implemented.");
+            ButtonMenu.IsOpen = false;
+        }
+
+        private void OnBanClick(object sender, RoutedEventArgs args)
+        {
+            Controller.RaiseNotificationPopupEvent("Banning users has not yet been implemented.");
+            ButtonMenu.IsOpen = false;
+        }
+
+        //INotifyPropertyChanged members
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            Debugger.Record("Property change called for: " + propertyName, 2);
+            var handler = PropertyChanged;
+            if (handler != null)
+                handler(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
-
-
-}
 }

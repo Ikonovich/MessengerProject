@@ -32,7 +32,7 @@ namespace Messenger_Client
         private Dictionary<string, string> CodeToRequestMap = new();
 
 
-        private int UserID = 0;
+        public int UserID { get; private set; } = 0;
         public string SessionID { get; private set; } = "";
 
         public List<FriendUser> Friends{ get; private set; }
@@ -162,13 +162,19 @@ namespace Messenger_Client
 
         public void SendMessage(string message)
         {
-            Debug.WriteLine("Sending message. Is active chat null?");
-            if (ActiveChat != null)
-            {
-                Debug.WriteLine("No");
-                ConnectionHandler.SendMessage(UserID, DisplayUsername, SessionID, ActiveChat.ChatID, message);
-            }
+            ConnectionHandler.SendMessage(UserID, DisplayUsername, SessionID, ActiveChat.ChatID, message);
         }
+
+        public void EditMessage(int messageID, string message)
+        {
+            ConnectionHandler.EditMessage(UserID, SessionID, messageID, message);
+        }
+
+        public void DeleteMessage(string messageID)
+        {
+            ConnectionHandler.DeleteMessage(UserID, SessionID, messageID);
+        }
+
 
 
         /// <param name="friendUserName">The username of the friend to be added.</param>
@@ -478,22 +484,27 @@ namespace Messenger_Client
             if (VerifyMessage(input) == true)
             {
 
-                string messageString = input["Message"];
-                List<Dictionary<string, string>> messageList;
 
+                List<Dictionary<string, string>> messageList;
                 int chatID = int.Parse(input["ChatID"]);
 
-
-                Debugger.Record("MessagePush parsing with ChatID " + chatID + " and length " + messageString.Length + " : " + messageString + "\n", DebugMask);
                 try
                 {
-                    messageList = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(messageString);
+                    string messageString = input["Message"];
+
+                    if (messageString.Length == 0)
+                    {
+                        messageList = new List<Dictionary<string, string>>();
+                    }
+                    else
+                    {
+                        messageList = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(messageString);
+                    }
                 }
                 catch (Exception e)
                 {
                     Debugger.Record("MessagePush failed to parse message: " + e.Message, DebugMask);
                     return;
-
                 }
                 if (ActiveChat == null || ActiveChat.ChatID != chatID)
                 {

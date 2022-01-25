@@ -68,10 +68,6 @@ namespace Messenger_Client
             // Subscribing to events
 
             Controller.UpdateFriendsEvent += OnUpdateFriends;
-
-            SearchBox.TextChanged += OnSearch;
-            SearchBox.GotFocus += OnSearchSelect;
-            SearchBox.LostFocus += OnSearchDeselect;
         }
 
         private void PopulateFriendsList(List<FriendUser> friends)

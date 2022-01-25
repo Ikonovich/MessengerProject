@@ -41,7 +41,7 @@ namespace Messenger_Client
         }
 
 
-        public void LoginAttempt(object sender, RequestNavigateEventArgs e)
+        public void LoginAttempt()
         {
 
             string username = LoginUsername.Text;
@@ -51,6 +51,19 @@ namespace Messenger_Client
 
             Controller.Login(username, password);
 
+        }
+
+        private void OnLoginButton(object sender, RequestNavigateEventArgs e)
+        {
+            LoginAttempt();
+        }
+
+        private void OnMessageKey(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                LoginAttempt();
+            }
         }
     }
 }

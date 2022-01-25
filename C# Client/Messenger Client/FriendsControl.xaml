@@ -7,314 +7,157 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
+    <Control.Resources>
+        <ControlTemplate x:Key="CancelSearchButton" TargetType="Button">
+            <Grid Margin="2"> 
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Background" Value="Transparent">
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Opacity="0.7" Color="Gray"></SolidColorBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Image Source="{Binding Tag, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Button}}}"/>
+            </Grid>
+        </ControlTemplate>
+    </Control.Resources>
     <Grid>
-        <Border CornerRadius ="10" BorderBrush ="Transparent" BorderThickness="0" HorizontalAlignment="Center" VerticalAlignment="Top" Width="192" Height ="415" Margin="5, 0, 0, 0">
-            <Grid>
-                <!--Sort menu-->
-                <!--Current sort method display-->
-                <Border Name="CurrentSortHolder"
-                    Background="Transparent" 
-                    VerticalAlignment="Top"
-                    HorizontalAlignment="Left"
-                    Width="98" Height="25" 
-                    Margin="10, 4, 0, 0">
-                    <Button Name="OpenSortDropdown"
-                    Content="{Binding CurrentSort,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Control}}"
-                    Click="OnSortSelect" 
-                    ToolTip="Displays the current sorting method. Click for sorting options."
-                    Width="90" Height="26" 
-                    HorizontalAlignment ="Center" 
-                    VerticalAlignment="Top" 
-                    Margin="0, -1, 15, 0">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Canvas x:Name="SortCanvas" Background="Black" Width="75" Height="30">
-                                    <Canvas.Triggers>
-                                        <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation
-                                                                    Storyboard.TargetName="SortCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Black"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                        <EventTrigger RoutedEvent="Button.MouseLeave">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation
-                                                                    Storyboard.TargetName="SortCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Black"
-                                                                    Duration="0"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                    </Canvas.Triggers>
-                                    <Image Margin="58, 6, 0, 0" 
-                                       Height="15" 
-                                       Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\ChevronDown28px.png"/>
-                                    
-                                    <TextBlock Text="{Binding Content,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Control}}" 
-                                       Margin="10, 5, 0, 0"  
-                                       FontSize="13" 
-                                       HorizontalAlignment="Center" 
-                                       VerticalAlignment="Center" 
-                                       Background="Transparent" 
-                                       FontWeight="Bold" 
-                                       Foreground="White">
-                                    </TextBlock>
-                                </Canvas>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                </Border>
-                <!-- Sort options dropdown / popup-->
-                <Popup PlacementTarget="{Binding ElementName=CurrentSortHolder}" 
-                       Placement="Bottom" 
-                       VerticalOffset="-31" 
-                       HorizontalOffset="0" 
-                       Name="OptionsPopup" 
-                       IsOpen="{Binding IsSortDropdownVisible, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Control}}" 
-                       Width="120" Height="140" 
-                       StaysOpen="True">
-                    <StackPanel Name="SortOptionsPanel">
-                        <Button Name="ActiveSort" 
-                                Click="OnSortSelect" 
-                                ToolTip="Sort by most recently active."
-                                Width="200" Height="35" 
-                                HorizontalAlignment ="Left" 
-                                VerticalAlignment="Top" 
-                                Margin="0, 0, 0, 0">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="35">
-                                        <Canvas.Triggers>
-                                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </EventTrigger>
-                                            <EventTrigger RoutedEvent="Button.MouseLeave">
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </EventTrigger>
-                                        </Canvas.Triggers>
-                                        <TextBlock Name="UserBlock" Text="Active" Margin="22, 10, 0, 0"  FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="White">
-                                        </TextBlock>
-                                    </Canvas>
-                                </ControlTemplate>
-                            </Button.Template>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.1*"></RowDefinition>
+            <RowDefinition Height="1*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <TextBlock FontWeight="DemiBold"
+                   Grid.Row="0"
+                   Text="Friend List"
+                   Foreground="White"
+                   FontSize="15"
+                   Margin="15, 8, 0, 0">
+        </TextBlock>
+        <Grid Width="40" HorizontalAlignment="Right">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Background" Value="Transparent"></Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <SolidColorBrush Color="Gray" Opacity="0.7">
+                                    </SolidColorBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <Grid x:Name="SearchArea">
+                <Image Height="20" 
+                   HorizontalAlignment="Center"
+                   Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\SearchIcon30px.png"></Image>
+                <!---->
+                <Popup IsOpen="True"
+                       StaysOpen="True"
+                       Height="50"
+                       Width="{Binding ElementName=FriendsDisplay, Path=ActualWidth}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"></ColumnDefinition>
+                            <ColumnDefinition Width="0.3*"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="1"
+                                Template="{StaticResource CancelSearchButton}"
+                                Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Cancel50px.png">
                         </Button>
-                        <Button Name="AlphabeticalSort" 
-                                Click="OnSortSelect" 
-                                ToolTip="Sort by alphabetical order"
-                                Width="200" Height="35" 
-                                HorizontalAlignment ="Left" 
-                                VerticalAlignment="Top">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="35">
-                                        <Canvas.Triggers>
-                                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </EventTrigger>
-                                            <EventTrigger RoutedEvent="Button.MouseLeave">
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </EventTrigger>
-                                        </Canvas.Triggers>
-                                        <TextBlock Text="Alphabetical" Margin="22, 10, 0, 0"  FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="White">
-                                        </TextBlock>
-                                    </Canvas>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                        <Button Name="RecentSort" 
-                                Click="OnSortSelect" 
-                                ToolTip="Sort by who you've most recently engaged with"
-                                Width="200" Height="35" 
-                                HorizontalAlignment ="Left" 
-                                VerticalAlignment="Top">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="35">
-                                        <Canvas.Triggers>
-                                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </EventTrigger>
-                                            <EventTrigger RoutedEvent="Button.MouseLeave">
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </EventTrigger>
-                                        </Canvas.Triggers>
-                                        <TextBlock Text="Recent" Margin="22, 10, 0, 0"  FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="White">
-                                        </TextBlock>
-                                    </Canvas>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                        <Button Name="FavoriteSort" 
-                                Click="OnSortSelect" 
-                                ToolTip="Sort by who you interact with the most"
-                                Width="200" Height="35" 
-                                HorizontalAlignment ="Left" 
-                                VerticalAlignment="Top">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="35">
-                                        <Canvas.Triggers>
-                                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </EventTrigger>
-                                            <EventTrigger RoutedEvent="Button.MouseLeave">
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </EventTrigger>
-                                        </Canvas.Triggers>
-                                        <TextBlock Text="Favorite" Margin="22, 10, 0, 0"  FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="White">
-                                        </TextBlock>
-                                    </Canvas>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                    </StackPanel>
+                    </Grid>
                 </Popup>
-                
-                <!--Search box-->
-                <Border BorderBrush ="#CC5500" 
-                        BorderThickness="2, 2, 2, 2" 
-                        HorizontalAlignment="Right" 
-                        VerticalAlignment="Top" 
-                        Height ="25" 
-                        Width="90" Margin="0, 3, 10, 0">
-                    <TextBox Name ="SearchBox" 
-                             ToolTip="Search for friends by name" 
-                             Text="Search" TextWrapping="NoWrap" 
-                             Background="#30302c" 
-                             Margin="0, 0, 0, 0" 
-                             BorderBrush="Transparent"
-                             Foreground="White"/>
-                </Border>
-                <ScrollViewer Height="350" VerticalScrollBarVisibility="Auto" Margin="10, 5, 10, 0">
-                    <StackPanel>
-                        <ItemsControl x:Name="FriendsDisplay">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border BorderBrush="Black" BorderThickness="0" Background="#3f4240">
-                                        <Button Width="200" Height="30" Content="{Binding UserName}" Tag="{Binding ChatID}" Click ="OnFriendSelected" HorizontalAlignment ="Left" VerticalAlignment="Top">
-                                            <Button.Template>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="30">
-                                                        <Canvas.Triggers>
-                                                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                                                <BeginStoryboard>
-                                                                    <Storyboard>
-                                                                        <ColorAnimation
+            </Grid>
+        </Grid>
+        <ScrollViewer
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    VerticalScrollBarVisibility="Auto"
+                    Grid.Row="1">
+            <StackPanel>
+                <ItemsControl x:Name="FriendsDisplay">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="Black" BorderThickness="0" Background="#3f4240">
+                                <Button 
+                                        Width="100" Height="30" 
+                                        Content="{Binding UserName}" 
+                                        Tag="{Binding ChatID}" 
+                                        Click ="OnFriendSelected" 
+                                        HorizontalAlignment ="Center" 
+                                        VerticalAlignment="Top"
+                                        Margin="0, 0, 0, 0">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="30">
+                                                <Canvas.Triggers>
+                                                    <EventTrigger RoutedEvent="Canvas.MouseEnter">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <ColorAnimation
                                                                     Storyboard.TargetName="UserCanvas"
                                                                     Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
                                                                     From="Transparent"
                                                                     To="Gray"
                                                                     Duration="0"/>
-                                                                    </Storyboard>
-                                                                </BeginStoryboard>
-                                                            </EventTrigger>
-                                                            <EventTrigger RoutedEvent="Button.MouseLeave">
-                                                                <BeginStoryboard>
-                                                                    <Storyboard>
-                                                                        <ColorAnimation
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                    <EventTrigger RoutedEvent="Button.MouseLeave">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <ColorAnimation
                                                                     Storyboard.TargetName="UserCanvas"
                                                                     Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
                                                                     From="Gray"
                                                                     To="Transparent"
                                                                     Duration="0"/>
-                                                                    </Storyboard>
-                                                                </BeginStoryboard>
-                                                            </EventTrigger>
-                                                        </Canvas.Triggers>
-                                                        <TextBlock Name="UserBlock" Text="{TemplateBinding Content}" Tag="{TemplateBinding Tag}" Margin="10, 5, 0, 0"  FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="DarkGray">
-                                                        </TextBlock>
-                                                    </Canvas>
-                                                </ControlTemplate>
-                                            </Button.Template>
-                                        </Button>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </ScrollViewer>
-            </Grid>
-        </Border>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                </Canvas.Triggers>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                                                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Name="UserBlock" 
+                                                               Grid.Column="1"
+                                                               Text="{TemplateBinding Content}" 
+                                                               Tag="{TemplateBinding Tag}" 
+                                                               Margin="10, 5, 0, 0"  
+                                                               FontSize="14" 
+                                                               HorizontalAlignment="Center" 
+                                                               VerticalAlignment="Center" 
+                                                               Background="Transparent" 
+                                                               FontWeight="Bold" 
+                                                               Foreground="DarkGray">
+                                                    </TextBlock>
+                                                    <Image Grid.Column="0"
+                                                           Margin="-15, 5, 0, 0"
+                                                           Height="20" 
+                                                           HorizontalAlignment="Left"
+                                                           Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\PersonIconDefault30px.png"></Image>
+                                                </Grid>
+                                            </Canvas>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

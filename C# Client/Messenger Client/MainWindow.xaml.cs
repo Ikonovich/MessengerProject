@@ -269,6 +269,21 @@ namespace Messenger_Client
 
         // Bindings for content display
 
+        private UserControl sidebarSegment;
+
+        public UserControl SidebarSegment
+        {
+            get
+            {
+                return sidebarSegment;
+            }
+            set
+            {
+                sidebarSegment = value;
+                OnPropertyChanged(nameof(SidebarSegment));
+            }
+        }
+
         private UserControl rightSegment;
 
         public UserControl RightSegment
@@ -333,7 +348,7 @@ namespace Messenger_Client
         public ChatsViewControl ChatsViewControl;
         public RequestsControl RequestsControl;
         public BlankControl BlankControl;
-
+        public Sidebar Sidebar;
 
 
         public MainWindow()
@@ -347,6 +362,7 @@ namespace Messenger_Client
             ChatsViewControl = new ChatsViewControl();
             RequestsControl = new RequestsControl();
             BlankControl = new BlankControl();
+            Sidebar = new Sidebar();
 
             Controller = Controller.ControllerInstance;
 
@@ -369,6 +385,7 @@ namespace Messenger_Client
 
             //// Setting the default view mode.
             Controller.RaiseChangeViewEvent(Segment.Right, ViewType.LoginView);
+            SidebarSegment = Sidebar;
 
             Controller.Connect();
         }

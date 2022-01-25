@@ -19,12 +19,13 @@ namespace Messenger_Client.SupportClasses
     {
         public int ChatID { get; private set; } // Stores the chat's unique identifier.
 
+        public int PermissionMask { get; set; } = 0; // Stores the permissions the currently logged in user has in the particular chat.
+
         public string ChatName { get; private set; }
 
         public List<Message> Messages { get; private set; } // Stores all messages currently on-hand for this chat.
 
         private int LastRetrieved; // Stores the index of the last message that was gotten via Retrieve();
-
 
         private int DebugMask = 32; // Debug mask for support classes.
 

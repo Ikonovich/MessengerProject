@@ -9,124 +9,309 @@
         WindowStyle="None"
         Background="Transparent"
         Title="Messenger" Height="450" Width="450">
- 
     <Grid>
         <Grid.Background>
-            <SolidColorBrush Color="#3d3c38"/>
+            <SolidColorBrush Color="#333333"/>
+
             <!--<ImageBrush stretch ="UniformToFill" ImageSource ="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Clouds.jpg"/>-->
         </Grid.Background>
-        <Border Name="WindowBorder"  BorderBrush="Black" BorderThickness="0, 30, 0, 5" Background="Transparent"/>
-        <!--Notification Popup-->
-        <Popup Name ="MessagePopup" IsOpen="{Binding IsNotificationPopupOpen,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" StaysOpen="False" Height="150" Width="200" Placement="Center">
-            <Border BorderBrush="Black" BorderThickness="7" Height="150" Width="200" Background="#3f4240" CornerRadius="30">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock HorizontalAlignment ="Center" Foreground="White" FontWeight="Bold"  Name="PopupText"  Width="150" TextWrapping="Wrap" Text="{Binding NotificationPopupMessage,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
-                    <Button Name="ClosePopupButton" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 20, 0, 0" Click="OnClosePopup">
-                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Bold>Okay</Bold>
-                        </TextBlock>
-                    </Button>
-                </StackPanel>
-            </Border>
-        </Popup>
-
-        <!--Selection Popup-->
-        <Popup Name ="ConfirmationPopup" 
-               IsOpen="{Binding IsSelectionPopupOpen,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
-               StaysOpen="True" 
-               Height="150"
-               Width="200" 
-               Placement="Center">
-            <Border BorderBrush="Black" 
-                    BorderThickness="7" 
-                    Height="150" 
-                    Width="200" 
-                    Background="#3f4240" 
-                    CornerRadius="30">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock HorizontalAlignment ="Center" 
-                               Margin="0, 0, 0, 15"
-                               Foreground="White" 
-                               FontWeight="Bold" 
-                               Width="150" 
-                               TextWrapping="Wrap" 
-                               Text="{Binding SelectionPopupMessage,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
-                    </TextBlock>
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
-                        <Button 
-                            Name ="ButtonOne"
-                            Width="40" 
-                            Height="30" 
-                            Content="{Binding OptionOneText,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
-                            Tag="{Binding OptionOneTag,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
-                            Click ="OnPopupSelection" 
-                            HorizontalAlignment ="Right" 
-                            VerticalAlignment="Top">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Canvas x:Name="YesButtonCanvas" 
-                                            Background="Gray">
-                                        <Canvas.Triggers>
-                                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation
-                                                            Storyboard.TargetName="YesButtonCanvas"
-                                                            Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                            From="Transparent"
-                                                            To="Gray"
-                                                            Duration="0"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </EventTrigger>
-                                            <EventTrigger RoutedEvent="Button.MouseLeave">
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation
-                                                        Storyboard.TargetName="YesButtonCanvas"
-                                                        Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                        From="Gray"
-                                                        To="Transparent"
-                                                        Duration="0"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </EventTrigger>
-                                        </Canvas.Triggers>
-                                        <TextBlock x:Name ="TextOne"
-                                                   Margin="10, 5, 0, 0"  
-                                                   FontSize="14" 
-                                                   HorizontalAlignment="Center" 
-                                                   VerticalAlignment="Center" 
-                                                   Background="Transparent" 
-                                                   FontWeight="Bold" 
-                                                   Foreground="DarkGray" 
-                                                   Text="{Binding OptionOneText,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
+        <!--Top/Menu bar border-->
+        <Border BorderThickness="0.4">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="BorderBrush" Value="Transparent"></Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="DarkOrange"></Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Grid>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"></RowDefinition>
+                        <RowDefinition Height="1*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Background="Black">
+                        <!--Notification Popup-->
+                        <Popup Name ="MessagePopup" IsOpen="{Binding IsNotificationPopupOpen,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" StaysOpen="False" Height="150" Width="200" Placement="Center">
+                            <Border BorderBrush="Black" BorderThickness="7" Height="150" Width="200" Background="#3f4240" CornerRadius="30">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock HorizontalAlignment ="Center" Foreground="White" FontWeight="Bold"  Name="PopupText"  Width="150" TextWrapping="Wrap" Text="{Binding NotificationPopupMessage,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
+                                    <Button Name="ClosePopupButton" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 20, 0, 0" Click="OnClosePopup">
+                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Bold>Okay</Bold>
                                         </TextBlock>
-                                    </Canvas>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                        <Button Name ="ButtonTwo"
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                        <!--Selection Popup-->
+                        <Popup Name ="ConfirmationPopup" 
+                   IsOpen="{Binding IsSelectionPopupOpen,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
+                   StaysOpen="True" 
+                   Height="150"
+                   Width="200" 
+                   Placement="Center">
+                            <Border BorderBrush="Black" 
+                        BorderThickness="7" 
+                        Height="150" 
+                        Width="200" 
+                        Background="#3f4240" 
+                        CornerRadius="30">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock HorizontalAlignment ="Center" 
+                                   Margin="0, 0, 0, 15"
+                                   Foreground="White" 
+                                   FontWeight="Bold" 
+                                   Width="150" 
+                                   TextWrapping="Wrap" 
+                                   Text="{Binding SelectionPopupMessage,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
+                                    </TextBlock>
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                                        <Button 
+                                Name ="ButtonOne"
                                 Width="40" 
                                 Height="30" 
-                                Tag="{Binding OptionTwoTag,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
+                                Content="{Binding OptionOneText,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
+                                Tag="{Binding OptionOneTag,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
                                 Click ="OnPopupSelection" 
                                 HorizontalAlignment ="Right" 
                                 VerticalAlignment="Top">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Canvas x:Name="YesButtonCanvas" 
+                                                Background="Gray">
+                                                        <Canvas.Triggers>
+                                                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <ColorAnimation
+                                                                Storyboard.TargetName="YesButtonCanvas"
+                                                                Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                                From="Transparent"
+                                                                To="Gray"
+                                                                Duration="0"/>
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </EventTrigger>
+                                                            <EventTrigger RoutedEvent="Button.MouseLeave">
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <ColorAnimation
+                                                            Storyboard.TargetName="YesButtonCanvas"
+                                                            Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                            From="Gray"
+                                                            To="Transparent"
+                                                            Duration="0"/>
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </EventTrigger>
+                                                        </Canvas.Triggers>
+                                                        <TextBlock x:Name ="TextOne"
+                                                       Margin="10, 5, 0, 0"  
+                                                       FontSize="14" 
+                                                       HorizontalAlignment="Center" 
+                                                       VerticalAlignment="Center" 
+                                                       Background="Transparent" 
+                                                       FontWeight="Bold" 
+                                                       Foreground="DarkGray" 
+                                                       Text="{Binding OptionOneText,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
+                                                        </TextBlock>
+                                                    </Canvas>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                        <Button Name ="ButtonTwo"
+                                    Width="40" 
+                                    Height="30" 
+                                    Tag="{Binding OptionTwoTag,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
+                                    Click ="OnPopupSelection" 
+                                    HorizontalAlignment ="Right" 
+                                    VerticalAlignment="Top">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Canvas x:Name="NoButtonCanvas" 
+                                                Background="Transparent">
+                                                        <Canvas.Triggers>
+                                                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <ColorAnimation
+                                                Storyboard.TargetName="NoButtonCanvas"
+                                                Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                From="Transparent"
+                                                To="Gray"
+                                                Duration="0"/>
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </EventTrigger>
+                                                            <EventTrigger RoutedEvent="Button.MouseLeave">
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <ColorAnimation
+                                                Storyboard.TargetName="NoButtonCanvas"
+                                                Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                From="Gray"
+                                                To="Transparent"
+                                                Duration="0"/>
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </EventTrigger>
+                                                        </Canvas.Triggers>
+                                                        <TextBlock 
+                                                x:Name="TextTwo"
+                                                Margin="10, 5, 0, 0"  
+                                                FontSize="14" 
+                                                HorizontalAlignment="Center" 
+                                                VerticalAlignment="Center" 
+                                                Background="Transparent" 
+                                                FontWeight="Bold" 
+                                                Foreground="DarkGray" 
+                                                Text="{Binding OptionTwoText,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
+                                                        </TextBlock>
+                                                    </Canvas>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+
+                        <!--Username label box-->
+                        <StackPanel Height ="22" Width="230" 
+                    Margin="5, 7, 4, 4"
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Top">
+                            <Button Name="UserNameButton"
+                        Click="OnUserNameDropdown" 
+                        Width="230" Height="22" 
+                        HorizontalAlignment ="Center" 
+                        VerticalAlignment="Top" 
+                        Margin="0, 0, 0, 0">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Canvas x:Name="NameCanvas" Background="Transparent" Width="230" Height="22">
+                                            <Canvas.Triggers>
+                                                <EventTrigger RoutedEvent="Canvas.MouseEnter">
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation
+                                                                        Storyboard.TargetName="NameCanvas"
+                                                                        Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                                        From="Transparent"
+                                                                        To="#3f4240"
+                                                                        Duration="0"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </EventTrigger>
+                                                <EventTrigger RoutedEvent="Button.MouseLeave">
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation
+                                                                        Storyboard.TargetName="NameCanvas"
+                                                                        Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                                        From="#3f4240"
+                                                                        To="Transparent"
+                                                                        Duration="0"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </EventTrigger>
+                                            </Canvas.Triggers>
+                                            <Image Margin="0, 0, 0, 0" 
+                                       Height="20"
+                                       Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\CoolIcon.png">
+                                            </Image>
+                                            <TextBlock Text="{Binding DisplayText,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}" 
+                                           Margin="25, 0, 0, 0"  
+                                           FontSize="13" 
+                                           HorizontalAlignment="Center" 
+                                           VerticalAlignment="Center" 
+                                           FontWeight="Bold" 
+                                           Foreground="DarkGray">
+                                            </TextBlock>
+                                        </Canvas>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                        <!-- Username options dropdown / popup-->
+                        <Popup PlacementTarget="{Binding ElementName=UserNameButton}" 
+                   Placement="Bottom" 
+                   VerticalOffset="-31" HorizontalOffset="0" 
+                   Name="UserNamePopup" 
+                   IsOpen="{Binding IsUserNameDropdownVisible, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
+                   Width="120" Height="35" StaysOpen="False">
+                            <StackPanel Name="UserOptionsPanel">
+                                <Button Name="LogoutButton" 
+                                ToolTip="Log out of your account"
+                                Click="OnUserDropdownSelect" 
+                                Width="200" Height="35" 
+                                HorizontalAlignment ="Left" VerticalAlignment="Top" 
+                                Margin="0, 0, 0, 0">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="35">
+                                                <Canvas.Triggers>
+                                                    <EventTrigger RoutedEvent="Canvas.MouseEnter">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <ColorAnimation
+                                                                        Storyboard.TargetName="UserCanvas"
+                                                                        Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                                        From="Transparent"
+                                                                        To="#3f4240"
+                                                                        Duration="0"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                    <EventTrigger RoutedEvent="Button.MouseLeave">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <ColorAnimation
+                                                                        Storyboard.TargetName="UserCanvas"
+                                                                        Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                                        From="#3f4240"
+                                                                        To="Transparent"
+                                                                        Duration="0"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                </Canvas.Triggers>
+                                                <TextBlock Text="Log Out" Margin="22, 10, 0, 0"  FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="White">
+                                                </TextBlock>
+                                            </Canvas>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </Popup>
+                        <!--Request indicator-->
+                        <Button Name="RequestsButton" 
+                    Visibility="{Binding RequestVisibility, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"
+                    ToolTip="View new requests"
+                    Click="OnRequestsSelected" 
+                    Cursor="Hand" 
+                    Margin="300, 0, 0, 0" 
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Top">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Canvas x:Name="NoButtonCanvas" 
-                                            Background="Transparent">
+                                    <Canvas x:Name="RequestCanvas" 
+                                Background="Transparent" 
+                                Width="30" Height="30">
                                         <Canvas.Triggers>
                                             <EventTrigger RoutedEvent="Canvas.MouseEnter">
                                                 <BeginStoryboard>
                                                     <Storyboard>
                                                         <ColorAnimation
-                                            Storyboard.TargetName="NoButtonCanvas"
-                                            Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                            From="Transparent"
-                                            To="Gray"
-                                            Duration="0"/>
+                                                                        Storyboard.TargetName="RequestCanvas"
+                                                                        Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                                        From="Transparent"
+                                                                        To="#3f4240"
+                                                                        Duration="0"/>
                                                     </Storyboard>
                                                 </BeginStoryboard>
                                             </EventTrigger>
@@ -134,478 +319,126 @@
                                                 <BeginStoryboard>
                                                     <Storyboard>
                                                         <ColorAnimation
-                                            Storyboard.TargetName="NoButtonCanvas"
-                                            Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                            From="Gray"
-                                            To="Transparent"
-                                            Duration="0"/>
+                                                                        Storyboard.TargetName="RequestCanvas"
+                                                                        Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                                        From="#3f4240"
+                                                                        To="Transparent"
+                                                                        Duration="0"/>
                                                     </Storyboard>
                                                 </BeginStoryboard>
                                             </EventTrigger>
                                         </Canvas.Triggers>
-                                        <TextBlock 
-                                            x:Name="TextTwo"
-                                            Margin="10, 5, 0, 0"  
-                                            FontSize="14" 
-                                            HorizontalAlignment="Center" 
-                                            VerticalAlignment="Center" 
-                                            Background="Transparent" 
-                                            FontWeight="Bold" 
-                                            Foreground="DarkGray" 
-                                            Text="{Binding OptionTwoText,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
+                                        <Image Height="20"
+                                Margin="5, 5, 0, 0"
+                                Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\alertRed.png">
+                                        </Image>
+                                    </Canvas>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!--Exit button-->
+                        <Button Width="30" Height="30" Content="X" Click ="OnExitButton" HorizontalAlignment ="Right" VerticalAlignment="Top">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Canvas x:Name="ExitCanvas" Background="Transparent" Width="30" Height="30">
+                                        <Canvas.Triggers>
+                                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <ColorAnimation
+                                                Storyboard.TargetName="ExitCanvas"
+                                                Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                From="Transparent"
+                                                To="Gray"
+                                                Duration="0"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                            <EventTrigger RoutedEvent="Button.MouseLeave">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <ColorAnimation
+                                                Storyboard.TargetName="ExitCanvas"
+                                                Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                From="Gray"
+                                                To="Transparent"
+                                                Duration="0"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </Canvas.Triggers>
+                                        <TextBlock Margin="10, 5, 0, 0"  FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="DarkGray" Text="{TemplateBinding Content}">
                                         </TextBlock>
                                     </Canvas>
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-        </Popup>
 
-        <!--Username label box-->
-        <StackPanel Height ="22" Width="230" 
-                Margin="5, 7, 4, 4"
-                HorizontalAlignment="Left" 
-                VerticalAlignment="Top">
-                <Button Name="UserNameButton"
-                    Click="OnUserNameDropdown" 
-                    Width="230" Height="22" 
-                    HorizontalAlignment ="Center" 
-                    VerticalAlignment="Top" 
-                    Margin="0, 0, 0, 0">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Canvas x:Name="NameCanvas" Background="Transparent" Width="230" Height="22">
-                            <Canvas.Triggers>
-                                <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation
-                                                                    Storyboard.TargetName="NameCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                                <EventTrigger RoutedEvent="Button.MouseLeave">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation
-                                                                    Storyboard.TargetName="NameCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </Canvas.Triggers>
-                            <Image Margin="0, 0, 0, 0" 
-                                   Height="20"
-                                   Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\CoolIcon.png">
-                            </Image>
-                            <TextBlock Text="{Binding DisplayText,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}" 
-                                       Margin="25, 0, 0, 0"  
-                                       FontSize="13" 
-                                       HorizontalAlignment="Center" 
-                                       VerticalAlignment="Center" 
-                                       FontWeight="Bold" 
-                                       Foreground="DarkGray">
-                            </TextBlock>
-                        </Canvas>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
-        </StackPanel>
-        <!-- Username options dropdown / popup-->
-        <Popup PlacementTarget="{Binding ElementName=UserNameButton}" 
-               Placement="Bottom" 
-               VerticalOffset="-31" HorizontalOffset="0" 
-               Name="UserNamePopup" 
-               IsOpen="{Binding IsUserNameDropdownVisible, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
-               Width="120" Height="35" StaysOpen="False">
-            <StackPanel Name="UserOptionsPanel">
-                <Button Name="LogoutButton" 
-                            ToolTip="Log out of your account"
-                            Click="OnUserDropdownSelect" 
-                            Width="200" Height="35" 
-                            HorizontalAlignment ="Left" VerticalAlignment="Top" 
-                            Margin="0, 0, 0, 0">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="35">
-                                <Canvas.Triggers>
-                                    <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                        <BeginStoryboard>
-                                            <Storyboard>
-                                                <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger>
-                                    <EventTrigger RoutedEvent="Button.MouseLeave">
-                                        <BeginStoryboard>
-                                            <Storyboard>
-                                                <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger>
-                                </Canvas.Triggers>
-                                <TextBlock Text="Log Out" Margin="22, 10, 0, 0"  FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="White">
-                                </TextBlock>
-                            </Canvas>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </StackPanel>
-        </Popup>
-        <!--Request indicator-->
-        <Button Name="RequestsButton" 
-                Visibility="{Binding RequestVisibility, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"
-                ToolTip="View new requests"
-                Click="OnRequestsSelected" 
-                Cursor="Hand" 
-                Margin="300, 0, 0, 0" 
-                HorizontalAlignment="Center" 
-                VerticalAlignment="Top">
-            <Button.Template>
-                <ControlTemplate TargetType="Button">
-                    <Canvas x:Name="RequestCanvas" 
-                            Background="Transparent" 
-                            Width="30" Height="30">
-                        <Canvas.Triggers>
-                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation
-                                                                    Storyboard.TargetName="RequestCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                            <EventTrigger RoutedEvent="Button.MouseLeave">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation
-                                                                    Storyboard.TargetName="RequestCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Canvas.Triggers>
-                        <Image Height="20"
-                            Margin="5, 5, 0, 0"
-                            Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\alertRed.png">
-                        </Image>
-                    </Canvas>
-                </ControlTemplate>
-            </Button.Template>
-        </Button>
-
-        <!--Exit button-->
-        <Button Width="30" Height="30" Content="X" Click ="OnExitButton" HorizontalAlignment ="Right" VerticalAlignment="Top">
-            <Button.Template>
-                <ControlTemplate TargetType="Button">
-                    <Canvas x:Name="ExitCanvas" Background="Transparent" Width="30" Height="30">
-                        <Canvas.Triggers>
-                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation
-                                            Storyboard.TargetName="ExitCanvas"
-                                            Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                            From="Transparent"
-                                            To="Gray"
-                                            Duration="0"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                            <EventTrigger RoutedEvent="Button.MouseLeave">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation
-                                            Storyboard.TargetName="ExitCanvas"
-                                            Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                            From="Gray"
-                                            To="Transparent"
-                                            Duration="0"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Canvas.Triggers>
-                        <TextBlock Margin="10, 5, 0, 0"  FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="DarkGray" Text="{TemplateBinding Content}">
-                        </TextBlock>
-                    </Canvas>
-                </ControlTemplate>
-            </Button.Template>
-        </Button>
-
-        <!--Minimize button-->
-        <Button Content="-" Click ="OnMinimizeButton" Width="30" Height="30" HorizontalAlignment ="Right" VerticalAlignment="Top" Margin="0, 0, 29, 0">
-            <Button.Template>
-                <ControlTemplate TargetType="Button">
-                    <Canvas x:Name="MinimizeCanvas" Background="Transparent" Width="30" Height="30">
-                           <Canvas.Triggers>
-                                <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation
-                                            Storyboard.TargetName="MinimizeCanvas"
-                                            Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                            From="Transparent"
-                                            To="Gray"
-                                            Duration="0"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                                <EventTrigger RoutedEvent="Button.MouseLeave">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation
-                                            Storyboard.TargetName="MinimizeCanvas"
-                                            Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                            From="Gray"
-                                            To="Transparent"
-                                            Duration="0"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </Canvas.Triggers>
-                        <TextBlock Margin="10, 0, 0, 0"  FontSize="25" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="DarkGray" FontWeight="Bold" Text="{TemplateBinding Content}">
-                        </TextBlock>
-                    </Canvas>
-                </ControlTemplate>
-            </Button.Template>
-        </Button>
+                        <!--Minimize button-->
+                        <Button Content="-" Click ="OnMinimizeButton" Width="30" Height="30" HorizontalAlignment ="Right" VerticalAlignment="Top" Margin="0, 0, 29, 0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Canvas x:Name="MinimizeCanvas" Background="Transparent" Width="30" Height="30">
+                                        <Canvas.Triggers>
+                                            <EventTrigger RoutedEvent="Canvas.MouseEnter">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <ColorAnimation
+                                                Storyboard.TargetName="MinimizeCanvas"
+                                                Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                From="Transparent"
+                                                To="Gray"
+                                                Duration="0"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                            <EventTrigger RoutedEvent="Button.MouseLeave">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <ColorAnimation
+                                                Storyboard.TargetName="MinimizeCanvas"
+                                                Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
+                                                From="Gray"
+                                                To="Transparent"
+                                                Duration="0"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </Canvas.Triggers>
+                                        <TextBlock Margin="10, 0, 0, 0"  FontSize="25" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="DarkGray" FontWeight="Bold" Text="{TemplateBinding Content}">
+                                        </TextBlock>
+                                    </Canvas>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                    <Grid Grid.Row="1" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.4*"/>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1.7*" />
+                        </Grid.ColumnDefinitions>
 
 
-        <StackPanel Name="LeftView" 
-                    Margin="0, 30, 0, 0" 
-                    HorizontalAlignment="Left" 
-                    Width="190">
-            <!--Current view label box-->
-            <Border Visibility="{Binding IsCurrentViewVisible ,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"
-                    Name="CurrentViewHolder"
-                    Background="Black" 
-                    Width="120" Height="30" 
-                    Margin="0, 10, 0, 10">
-            <Button Click="OnLeftViewDropdown" 
-                    Width="120" Height="35" 
-                    HorizontalAlignment ="Center" 
-                    VerticalAlignment="Top" 
-                    Margin="0, 0, 0, 0">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="35">
-                            <Canvas.Triggers>
-                                <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                                <EventTrigger RoutedEvent="Button.MouseLeave">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </Canvas.Triggers>
-                                <Image Margin="95, 6, 0, 0" 
-                                       Height="18" 
-                                       Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\ChevronDown28px.png"/>
-                                <TextBlock Text="{Binding CurrentLeftView,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
-                                       Margin="18, 5, 0, 0"  
-                                       FontSize="13" 
-                                       HorizontalAlignment="Center" 
-                                       VerticalAlignment="Center" 
-                                       Background="Transparent" 
-                                       FontWeight="Bold" 
-                                       Foreground="White">
-                            </TextBlock>
+                        <ContentControl Name ="SegmentSidebar" 
+                            Grid.Column="0"
+                            Content="{Binding SidebarSegment,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}" 
+                            VerticalAlignment="Stretch"/>
 
-                            </Canvas>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
-            </Border>
-            <!-- Left view options dropdown / popup-->
-            <Popup PlacementTarget="{Binding ElementName=CurrentViewHolder}" 
-                   Placement="Bottom" 
-                   VerticalOffset="-31" HorizontalOffset="0" 
-                   Name="OptionsPopup" 
-                   IsOpen="{Binding IsOptionsDropdownVisible, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" 
-                   Width="120" Height="105" 
-                   StaysOpen="False">
-                <StackPanel Name="ViewOptionsPanel">
-                    <Button Name="FriendsListView" 
-                            ToolTip="Display a list of your friends"
-                            Click="OnLeftViewSelect" 
-                            Width="200" Height="35" 
-                            HorizontalAlignment ="Left" VerticalAlignment="Top" 
-                            Margin="0, 0, 0, 0">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="35">
-                                    <Canvas.Triggers>
-                                        <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                        <EventTrigger RoutedEvent="Button.MouseLeave">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                    </Canvas.Triggers>
-                                    <TextBlock Name="UserBlock" Text="Friends List" Margin="22, 10, 0, 0"  FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="White">
-                                    </TextBlock>
-                                </Canvas>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                    <Button Name="ChatsView" Click="OnLeftViewSelect" Width="200" Height="35" HorizontalAlignment ="Left" VerticalAlignment="Top">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="35">
-                                    <Canvas.Triggers>
-                                        <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                        <EventTrigger RoutedEvent="Button.MouseLeave">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                    </Canvas.Triggers>
-                                    <TextBlock Name="UserBlock" Text="Chats" Margin="22, 10, 0, 0"  FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="White">
-                                    </TextBlock>
-                                </Canvas>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                    <Button Name="FindFriendsView" 
-                            ToolTip="Search for friends"
-                            Click="OnLeftViewSelect" 
-                            Width="200" Height="35" 
-                            HorizontalAlignment ="Left" VerticalAlignment="Top">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="35">
-                                    <Canvas.Triggers>
-                                        <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="#3f4240"
-                                                                    Duration="0"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                        <EventTrigger RoutedEvent="Button.MouseLeave">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="#3f4240"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                    </Canvas.Triggers>
-                                    <TextBlock Name="UserBlock" Text="Find Friends" Margin="22, 10, 0, 0"  FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="White">
-                                    </TextBlock>
-                                </Canvas>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                </StackPanel>
-            </Popup>
-            <!--<Border Name="OptionsDropdown" Visibility="{Binding IsOptionsDropdownVisible,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" BorderBrush ="#CC5500" BorderThickness="2" HorizontalAlignment="Left" VerticalAlignment="Top" Height ="25" Width="186" Margin="5, 30, 0, 0">
-                <ComboBox ToolTip="Navigate" Background="Transparent" IsEditable="False">
-                    <ComboBoxItem Name ="FriendsListView" Background ="Transparent" IsSelected="True" ToolTip="View your friends"> Friends List </ComboBoxItem>
-                    <ComboBoxItem Name ="FindFriendsView" Background ="Transparent" ToolTip="Search for friends by username"> Find Friends </ComboBoxItem>
-                    <ComboBoxItem Name ="ChatsView" Background ="Transparent" ToolTip="View your subscribed chats"> Chats </ComboBoxItem>
-                </ComboBox>
-            </Border>-->
+                        <ContentControl Name ="SegmentLeft" 
+                                Grid.Column="1"
+                                Content="{Binding LeftSegment,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}"
+                                VerticalAlignment="Stretch"/>
 
-            <ContentControl Name ="SegmentLeft" 
-                            Content="{Binding LeftSegment,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}" 
-                            Width="194" Height="450" 
-                            VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
-
-        </StackPanel>
-        <ContentControl Name ="SegmentRight" 
-                        Content="{Binding RightSegment,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}" 
-                        Width="251" Height="450" 
-                        VerticalAlignment="Bottom" HorizontalAlignment="{Binding RightSegmentAlignment,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}" 
-                        Margin="0,0,5,0"/>
-
+                        <ContentControl Name ="SegmentRight" 
+                            
+                            Grid.Column="2"
+                            Content="{Binding RightSegment,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}" 
+                            VerticalAlignment="Stretch"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

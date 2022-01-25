@@ -61,29 +61,39 @@ CREATE TABLE FriendPairs (
 Chats:
 Field             | Type        | Null | Key | Default           | Extra
 ChatID		    INT           NO     PRI   NULL                AUTO_INCREMENT
+ChatName 	    VARCHAR(32)   NO          "Chat"
 OwnerID		    INT           NO           NULL           
-OwnerName 	    VARCHAR(32)   NULL         "Chat"
+OwnerName 	    VARCHAR(32)   NULL        NULL
 CreateTimestamp	    DATETIME      YES         CURRENT_TIMESTAMP  DEFAULT_GENERATED
 
 CREATE TABLE Chats(
 	ChatID INT NOT NULL AUTO_INCREMENT,
+	ChatName VARCHAR(32) NOT NULL DEFAULT "Chat",
 	OwnerID INT NOT NULL,
-	OwnerName VARCHAR(32) NOT NULL DEFAULT "Chat",
+	OwnerName VARCHAR(32) NOT NULL,
 	CreateTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY(ChatID)
 );
 
 
+Notes: IsMember field is used to determine if a chat will show up under the "Chats" portion
+of the client. For private chats (Chats between two users, created when a friend is added),
+this option is set to FALSE by the server. These chats will only appear in the friends display,
+and not in the regular chats display.
+
 UserChatPairs:
 Field             | Type        | Null | Key | Default           | Extra
 UserID		    INT 	  NO     PRI                     
 ChatID              INT           NO     PRI
-
+Permissions	    INT 	  NO          
+IsMember            INT           NO        
 
 
 CREATE TABLE UserChatPairs (
 	UserID INT NOT NULL,
 	ChatID INT NOT NULL,
+	IsMember BOOLEAN NOT NULL DEFAULT false,
+	Permissions INT NOT NULL,
 	PRIMARY KEY(UserID, ChatID),
 	FOREIGN KEY(UserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE,
 	FOREIGN KEY(ChatID) REFERENCES Chats(ChatID) ON DELETE CASCADE

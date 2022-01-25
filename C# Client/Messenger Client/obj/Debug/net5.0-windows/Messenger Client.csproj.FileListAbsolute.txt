@@ -95,3 +95,5 @@ C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\ChatsViewControl.baml
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RequestsControl.g.cs
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RequestsControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Sidebar.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Sidebar.baml

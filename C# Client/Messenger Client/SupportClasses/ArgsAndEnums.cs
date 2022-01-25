@@ -14,6 +14,32 @@ namespace Messenger_Client
     /// 
     /// </summary>
 
+    // Defines the opcode components for parsing messages.
+
+    public enum Opcodes
+    {
+        UserID = 1,
+        UserName = 2,
+        Password = 4,
+        SessionID = 8,
+        ChatID = 16
+    }
+
+
+    // Enumerates the permissions granted a user in a particular chatroom.
+    public enum Permissions
+    {
+        Read = 1,
+        Talk = 2,
+        Upload = 4,
+        Delete = 8,
+        Restrict = 16,
+        Mute = 32,
+        Ban = 64,
+        Owner = 128
+    }
+
+
     // Enumerates the activity levels available to a user.
     public enum Activity
     {
@@ -21,6 +47,8 @@ namespace Messenger_Client
         Busy = 1,
         Offline = 2
     }
+
+
 
     // Enumerates the various segments where content can be displayed. Currently there are only left and right segments.
     public enum Segment

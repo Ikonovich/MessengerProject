@@ -29,12 +29,19 @@
 // LO (Logout Request):  01001  /   9
 // PF (Pull Friends):  01001  /   9
 // AF (Add Friend):  01011  / 11
+// RF (Remove Friend):  01011  / 11
 // PR (Pull Friend Requests): 01001 / 9
 // US (User Search): 01011 / 11
 // PC (Pull User-Chat Pairs) / 01001 / 9
 // PM (Pull Messages From Chat):  11001    / 25
 // CC (Create Chat): 01011 / 11  -- For this code, the "Message" component stores the desired chat name
+// CO (Command) 11001 / 9 -- For this code, the "Message" component stores a dictionary containing "Command" keys and an associated string as
+documented in Commands.txt. Depending on the specific command, the dictionary will be required to contain other components, such as the userID of the 
+user for the command to act on.
+
 // SM (Send Message):  11001   /   27
+// DM (Send Message):  01001   /   9 - For this code, the "Message" component stores the MessageID. The server determines if the user has permissions to 
+delete that particular message (If the message is theres or they have delete permissions in the chat).
 // HB (Heartbeat): 00000 / 0
 
 // The core client opcodes with their bitmasks are:

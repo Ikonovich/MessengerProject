@@ -6,63 +6,205 @@
              xmlns:local="clr-namespace:Messenger_Client"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <ScrollViewer Height="350" VerticalScrollBarVisibility="Auto" Margin="10, 0, 10, 0">
-            <StackPanel>
-                <TextBlock Name="DisplayMessage" 
-                           Text="You have 0 requests waiting."
+    <Control.Resources>
+        <ControlTemplate x:Key="ImageButton" TargetType="Button">
+            <Grid Margin="2">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Background" Value="Transparent">
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Opacity="0.7" Color="Gray"></SolidColorBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Image Height="50"
+                    Source="{Binding Tag, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Button}}}"/>
+            </Grid>
+        </ControlTemplate>
+        <ControlTemplate x:Key="InboxTemplate" TargetType="Button">
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="Black" Opacity=".4"></SolidColorBrush>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="Gray" Opacity=".4"></SolidColorBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <TextBlock Margin="5, 0, 0, 10"
+                           Text="Friend request from"
                            Foreground="White"
-                           HorizontalAlignment="Center"
-                           Margin="0, 0, 0, 21.5">
-                </TextBlock>
-                <ItemsControl x:Name="RequestsDisplay">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border BorderBrush="Black" BorderThickness="0" Background="#3f4240">
-                                <Button Width="200" Height="30" 
-                                        Content="{Binding Item1}" Tag="{Binding Item2}" 
-                                        Click ="OnRequestSelected" 
-                                        HorizontalAlignment ="Left" VerticalAlignment="Top">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="30">
-                                                <Canvas.Triggers>
-                                                    <EventTrigger RoutedEvent="Canvas.MouseEnter">
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Transparent"
-                                                                    To="Gray"
-                                                                    Duration="0"/>
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </EventTrigger>
-                                                    <EventTrigger RoutedEvent="Button.MouseLeave">
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <ColorAnimation
-                                                                    Storyboard.TargetName="UserCanvas"
-                                                                    Storyboard.TargetProperty="(Canvas.Background).(SolidColorBrush.Color)" 
-                                                                    From="Gray"
-                                                                    To="Transparent"
-                                                                    Duration="0"/>
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </EventTrigger>
-                                                </Canvas.Triggers>
-                                                <TextBlock Name="UserBlock" Text="{TemplateBinding Content}" Tag="{TemplateBinding Tag}" Margin="10, 5, 0, 0"  FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="DarkGray">
-                                                </TextBlock>
-                                            </Canvas>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-        </ScrollViewer>
+                           FontWeight="DemiBold"></TextBlock>
+                <TextBlock Margin="0, 30, 0, 10"
+                           Text="{Binding SenderName}"
+                           Foreground="White"
+                           FontWeight="DemiBold"></TextBlock>
+
+            </Grid>
+        </ControlTemplate>
+        <ControlTemplate x:Key="SentFriendRequestTemplate" TargetType="Button">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="Black" Opacity=".4"></SolidColorBrush>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Grid.Style>
+                <TextBlock Margin="5, 0, 0, 10"
+                           Text="Friend request from"
+                           Foreground="White"
+                           FontWeight="DemiBold"></TextBlock>
+                <TextBlock Margin="0, 30, 0, 10"
+                           Text="{Binding SenderName}"
+                           Foreground="White"
+                           FontWeight="DemiBold"></TextBlock>
+            </Grid>
+        </ControlTemplate>
+    </Control.Resources>
+    <Grid>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height=".4*"></RowDefinition>
+                <RowDefinition Height=".5*"></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0"
+                       x:Name="InboxMessage" 
+                       Foreground="White" 
+                       Height="100" 
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Top" 
+                       Margin="0, 30, 0, 0"
+                       Text="Hello"></TextBlock>
+            <ScrollViewer VerticalScrollBarVisibility="Auto"  
+                                  Grid.Row="1"
+                                  VerticalAlignment="Stretch"
+                                  HorizontalAlignment="Stretch">
+                <Grid Name ="RequestPanel">
+                    <ItemsControl x:Name="InboxDisplay">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ToolTip="{Binding Path=RequestID, Mode=OneWay}"
+                                      PreviewMouseLeftButtonDown="OnRequestClick" 
+                                      Tag="{Binding Path=RequestID, Mode=OneWay}">
+                                    <!--ToolTip="Click to view">-->
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <SolidColorBrush Color="Black" Opacity="0.2"></SolidColorBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background">
+                                                        <Setter.Value>
+                                                            <SolidColorBrush Color="Gray" Opacity="0.2"></SolidColorBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+                                    <RichTextBox Margin="0, 4, 4, 4" BorderThickness="0" VerticalAlignment="Top" Background="Transparent">
+                                        <FlowDocument>
+                                            <Paragraph>
+                                                <Bold>
+                                                    <TextBlock Background="Transparent" 
+                                                                   Foreground="White"  
+                                                                   Text="{Binding DisplayMessage, Mode=OneWay}"/>
+                                                </Bold>
+                                            </Paragraph>
+                                        </FlowDocument>
+                                    </RichTextBox>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+        <!--This grid stores the request confirmation dropdown on a higher Z-index-->
+        <Border Panel.ZIndex="2"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Height="200"
+                Margin="0, 0, 0, 0"
+                Visibility="{Binding ConfirmationPopupVisibility, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Control}}}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="BorderBrush" Value="DarkOrange"></Setter>
+                    <Setter Property="BorderThickness" Value="0.5"></Setter>
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <SolidColorBrush Color="Black" Opacity=".7" ></SolidColorBrush>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Border.Style>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="StorageBlock" Height="0" Width="0"></TextBlock>
+                <TextBlock Name="ConfirmationText" 
+                        Margin="30, 50, 30, 0"
+                        Grid.Row="0"
+                        FontWeight="DemiBold"
+                        Text="Would you like to send a friend request to Fake user?"
+                        TextWrapping="Wrap"
+                        Foreground="White"></TextBlock>
+                <Button x:Name="ConfirmationButton"
+                        Template="{StaticResource ImageButton}"
+                        Click="OnRequestApprove"
+                        Grid.Row="1"
+                        Margin="30, 0, 0, 0"
+                        Height="60"
+                        Width="60"
+                        ToolTip="Send request"
+                        HorizontalAlignment="Left"
+                        Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Checkmark50px.png"></Button>
+                <Button Template="{StaticResource ImageButton}" 
+                        Click="OnRequestDecline"
+                        Grid.Row="1"
+                        Margin="0, 0, 30, 0"
+                        Height="60"
+                        Width="60"
+                        ToolTip="Send request"
+                        HorizontalAlignment="Right"
+                        Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Cancel50px.png"></Button>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

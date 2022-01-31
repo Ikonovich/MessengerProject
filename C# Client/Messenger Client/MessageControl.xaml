@@ -9,8 +9,50 @@
              Name="MessageControlClass"
              HorizontalAlignment="Stretch"
              VerticalAlignment="Stretch">
-    
+
     <Control.Resources>
+        <ControlTemplate x:Key="CancelButton" TargetType="Button">
+                <Grid Margin="2">
+                    <Grid.Style>
+                        <Style TargetType="Grid">
+                            <Setter Property="Background" Value="Black">
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <SolidColorBrush Opacity="0.7" Color="Gray"></SolidColorBrush>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Style>
+                    <Image Height="30"
+                    Source="{Binding Tag, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Button}}}"/>
+                </Grid>
+            </ControlTemplate>
+            <ControlTemplate x:Key="SmallImageButton" TargetType="Button">
+            <Grid Margin="2" Height="35" Width="30">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Background" Value="Transparent">
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Opacity="0.7" Color="Gray"></SolidColorBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Image Height="20"
+                    Source="{Binding Tag, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Button}}}"/>
+            </Grid>
+        </ControlTemplate>
         <ControlTemplate x:Key="DropdownButton" TargetType="Button">
             <Grid VerticalAlignment="Stretch" 
                   HorizontalAlignment="Stretch"
@@ -43,104 +85,120 @@
             </Grid>
         </ControlTemplate>
     </Control.Resources>
-    <Grid VerticalAlignment="Stretch" 
-          HorizontalAlignment="Stretch">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="0.225*"></RowDefinition>
-            <RowDefinition Height="2*"></RowDefinition>
-            <RowDefinition Height="50"></RowDefinition>
-        </Grid.RowDefinitions>
-        <Grid HorizontalAlignment="Stretch">
-            <Grid.Background>
-                <SolidColorBrush Color="Black" Opacity="0.2"></SolidColorBrush>
-            </Grid.Background>
-            <Image Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Chat50px.png"
-                   HorizontalAlignment="Left"
-                   Margin="15, 0, 0, 0">
-            </Image>
-            <TextBox x:Name="ChatNameDisplay"
-                     Text="{Binding ChatTitle, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Control}, Mode=OneWay}"
-                     FontWeight="DemiBold"
-                     FontSize="15"
-                     Grid.Row="0"
-                     Margin="0, 7, 0, 0"
-                     Background="Transparent"
-                     BorderThickness="0"
-                     HorizontalAlignment="Center"
-                     Foreground="White">
-            </TextBox>
-        </Grid>
-        <ScrollViewer Grid.Row="1"
-                      VerticalScrollBarVisibility="Auto"  
-                      VerticalAlignment="Stretch" 
-                      HorizontalAlignment="Stretch"
-                      Margin="0, 0, 0, 0">
-            <Grid Margin="0, 0, 4, 4" Name ="MessagePanel" Height="Auto" Width="Auto" VerticalAlignment="Top" Background="#30302c">
-                <ItemsControl x:Name="MessageDisplay">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Background="Transparent" PreviewMouseLeftButtonDown="OnMessageRightClick" Tag="{Binding Path=MessageID, Mode=OneWay}">
-                                <Grid.Style>
-                                    <Style TargetType="{x:Type Grid}">
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="Red"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Grid.Style>
-                                <TextBlock Text="{Binding Path=MessageID, Mode=OneWay}"/>
-                                <RichTextBox Margin="0, 4, 4, 4" BorderThickness="0" VerticalAlignment="Top" Background="#30302c" ToolTip="{Binding CreateTimestamp, Mode=OneWay}">
-                                    <FlowDocument>
-                                        <Paragraph>
-                                            <Bold>
-                                                <TextBlock Background="Transparent" 
+    <Grid>
+        <Grid  VerticalAlignment="Stretch" 
+                   HorizontalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.265*"></RowDefinition>
+                    <RowDefinition Height="2*"></RowDefinition>
+                    <RowDefinition Height="50"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0"
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Stretch">
+                    <Grid.Background>
+                        <SolidColorBrush Color="Black" Opacity="0.2"></SolidColorBrush>
+                    </Grid.Background>
+                    <Image Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Chat50px.png"
+                       HorizontalAlignment="Left"
+                       Margin="15, 0, 0, 0">
+                    </Image>
+                    <TextBox x:Name="ChatNameDisplay"
+                         Text="{Binding ChatTitle, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Control}, Mode=OneWay}"
+                         FontWeight="DemiBold"
+                         FontSize="15"
+                         Grid.Row="0"
+                         Margin="0, 7, 0, 0"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         HorizontalAlignment="Center"
+                         Foreground="White">
+                    </TextBox>
+
+                    <!--BEGIN INVITE BUTTON -->
+
+                    <Button Template="{StaticResource SmallImageButton}" 
+                    Click="OnInviteButton"
+                    Visibility="{Binding InviteButtonVisibility, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Control}, Mode=OneWay}"
+                    Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\AddFriend30px.png"
+                    HorizontalAlignment="Right"
+                    Margin="0, 0, 0, 0"
+                    ToolTip="Invite a friend to this chat">
+                    </Button>
+
+                </Grid>
+                <!--BEGIN MESSAGE DISPLAY-->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"  
+                              Grid.Row="1"
+                              VerticalAlignment="Stretch"
+                              HorizontalAlignment="Stretch"
+                              Background="#30302c">
+                    <Grid Name ="MessagePanel" Background="#30302c">
+                        <ItemsControl x:Name="MessageDisplay">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Background="Transparent" PreviewMouseLeftButtonDown="OnMessageRightClick" Tag="{Binding Path=MessageID, Mode=OneWay}">
+                                        <Grid.Style>
+                                            <Style TargetType="{x:Type Grid}">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="Red"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+                                        <TextBlock Text="{Binding Path=MessageID, Mode=OneWay}"/>
+                                        <RichTextBox Margin="0, 4, 4, 4" BorderThickness="0" VerticalAlignment="Top" Background="#30302c" ToolTip="{Binding CreateTimestamp, Mode=OneWay}">
+                                            <FlowDocument>
+                                                <Paragraph>
+                                                    <Bold>
+                                                        <TextBlock Background="Transparent" 
                                                                Foreground="White"  
                                                                Text="{Binding SenderName, Mode=OneWay}"/>
-                                                <TextBlock Foreground="AntiqueWhite"  
+                                                        <TextBlock Foreground="AntiqueWhite"  
                                                                Text=":"/>
-                                            </Bold>
-                                            <TextBlock Foreground="White"  Text="{Binding Body, Mode=OneWay}"/>
-                                        </Paragraph>
-                                    </FlowDocument>
-                                </RichTextBox>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <!--Message options dropdown
-                IsOpen="{Binding IsButtonMenuOpen, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Grid}}, Mode=OneWay}" 
-                    -->
-                <Popup Name="ButtonMenu"
-                    AllowsTransparency="True"
-                    IsOpen="False" 
-                    StaysOpen="True" 
-                    MouseLeave="OnMouseLeaveButtonMenu"
-                    Height="Auto" Width="Auto">
-                    <Popup.Style>
-                        <Style TargetType="Popup">
-                            <Setter Property="Placement" Value="Center">
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsOpen" Value="True">
-                                    <Setter Property="Placement" Value="MousePoint">
-
+                                                    </Bold>
+                                                    <TextBlock Foreground="White"  Text="{Binding Body, Mode=OneWay}"/>
+                                                </Paragraph>
+                                            </FlowDocument>
+                                        </RichTextBox>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <!--Message options dropdown
+                         IsOpen="{Binding IsButtonMenuOpen, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Grid}}, Mode=OneWay}"-->
+                    <Popup Name="ButtonMenu"
+                        AllowsTransparency="True"
+                        IsOpen="False" 
+                        StaysOpen="True" 
+                        MouseLeave="OnMouseLeaveButtonMenu"
+                        Height="Auto" Width="Auto">
+                        <Popup.Style>
+                                <Style TargetType="Popup">
+                                    <Setter Property="Placement" Value="Center">
                                     </Setter>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Popup.Style>
-                    <Grid>
-                        <Grid.Background>
-                            <SolidColorBrush Opacity="0.7" Color="Black"></SolidColorBrush>
-                        </Grid.Background>
-                        <Grid.RowDefinitions>
-                            <RowDefinition></RowDefinition>
-                            <RowDefinition></RowDefinition>
-                            <RowDefinition></RowDefinition>
-                            <RowDefinition></RowDefinition>
-                        </Grid.RowDefinitions>
-                        <TextBlock Name="NoOptionsIndicator" 
+                                    <Style.Triggers>
+                                        <Trigger Property="IsOpen" Value="True">
+                                            <Setter Property="Placement" Value="MousePoint">
+
+                                            </Setter>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Popup.Style>
+                            <Grid>
+                                <Grid.Background>
+                                    <SolidColorBrush Opacity="0.7" Color="Black"></SolidColorBrush>
+                                </Grid.Background>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition></RowDefinition>
+                                    <RowDefinition></RowDefinition>
+                                    <RowDefinition></RowDefinition>
+                                    <RowDefinition></RowDefinition>
+                                </Grid.RowDefinitions>
+                                <TextBlock Name="NoOptionsIndicator" 
                                    Visibility="{Binding NoOptionsVisibility, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Control}}}"
                                    Text="No Options"
                                    Foreground="White"
@@ -148,61 +206,161 @@
                                    Height="25"
                                    Margin="5, 5, 0, 0"
                                    Width="100">
-                        </TextBlock>
-                        <Button Name="EditButton" 
+                                </TextBlock>
+                                <Button Name="EditButton" 
                                 Content="Edit"
                                 Visibility="{Binding EditButtonVisibility, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Control}}}"
                                 Grid.Row="0"
                                 Template="{StaticResource DropdownButton}" 
                                 Click="OnEditClick">
-                        </Button>
-                        <Button Name="DeleteButton" 
+                                </Button>
+                                <Button Name="DeleteButton" 
                                 Content="Delete"
                                 Visibility="{Binding DeleteButtonVisibility}"
                                 Grid.Row="1"
                                 Template="{StaticResource DropdownButton}" 
                                 Click="OnDeleteClick">
-                        </Button>
-                        <Button Name="RestrictButton" 
+                                </Button>
+                                <Button Name="RestrictButton" 
                                 Content="Restrict Uploads"
                                 Visibility="{Binding DeleteButtonVisibility}"
                                 Grid.Row="1"
                                 Template="{StaticResource DropdownButton}" 
                                 Click="OnRestrictClick">
-                        </Button>
-                        <Button Name="MuteButton" 
+                                </Button>
+                                <Button Name="MuteButton" 
                                 Content="Mute"
                                 Visibility="{Binding MuteButtonVisibility}"
                                 Grid.Row="2"
                                 Template="{StaticResource DropdownButton}" 
                                 Click="OnMuteClick">
-                        </Button>
-                        <Button Name="BanButton" 
+                                </Button>
+                                <Button Name="BanButton" 
                                 Content="Ban"
                                 Visibility="{Binding BanButtonVisibility}"
                                 Grid.Row="3"
                                 Template="{StaticResource DropdownButton}" 
                                 Click="OnBanClick">
-                        </Button>
+                                </Button>
+                            </Grid>
+                        </Popup>
                     </Grid>
-                </Popup>
+                </ScrollViewer>
+                <Grid Grid.Row="3">
+                    <TextBox Foreground="White" 
+                             Background="#3d3a38" 
+                             BorderBrush="DarkOrange" 
+                             BorderThickness="1,1, 1, 0" 
+                             Name="MessageEntry" 
+                             Height="50" 
+                             VerticalAlignment="Bottom" 
+                             TextWrapping="Wrap" 
+                             Margin="0, 0, 1, 0">
+                        <TextBox.Resources>
+                            <Style TargetType="{x:Type Border}">
+                                <Setter Property="CornerRadius" Value="0,0,10,10"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                </Grid>
             </Grid>
-        </ScrollViewer>
-        <TextBox Grid.Row="2"
-                 Foreground="White" 
-                 Background="#3d3a38" 
-                 BorderBrush="DarkOrange" 
-                 BorderThickness="1,1, 1, 0" 
-                 Name="MessageEntry" 
-                 Height="50" 
-                 VerticalAlignment="Bottom" 
-                 TextWrapping="Wrap" 
-                 Margin="0, 0, 1, 0">
-            <TextBox.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="0,0,30,30"/>
-                </Style>
-            </TextBox.Resources>
-        </TextBox>
+            <!--BEGIN INVITE SEARCH AREA-->
+        <Grid x:Name="SearchArea"
+              Panel.ZIndex="3"
+              Background="Transparent"
+              Visibility="{Binding InviteSearchVisibility, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Control}, Mode=OneWay}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.265*"></RowDefinition>
+                <RowDefinition Height="1*"></RowDefinition>
+                <RowDefinition Height="1*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Border Background="Black" Grid.Row="0">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="BorderBrush" Value="DarkOrange"></Setter>
+                        <Setter Property="BorderThickness" Value="0, 1, 0, 1"></Setter>
+                        <Style.Triggers>
+                            <Trigger Property="Tag" Value="True">
+                                <Setter Property="BorderBrush" Value="DarkOrange"></Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                        <ColumnDefinition Width="0.3*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid Background="Black">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height =".2*"></RowDefinition>
+                            <RowDefinition Height ="1*"></RowDefinition>
+                            <RowDefinition Height =".2*"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <TextBox Grid.Row="1"
+                                 Grid.Column="0"
+                                 FontSize="15"
+                                 Name="SearchBox"
+                                 ToolTip="Start typing the name of a friend"
+                                 BorderThickness="0"
+                                 Margin="5, 5, 0, 0"
+                                 Background="Transparent"
+                                 Foreground="White"
+                                 CaretBrush="White"
+                                 PreviewMouseLeftButtonDown="OnInviteButton"
+                                 TextChanged="OnSearch">
+                        </TextBox>
+                    </Grid>
+                    <Button Name="CancelInviteButton"
+                            BorderBrush="DarkOrange"
+                            ToolTip="Cancel search"
+                            Click="OnInviteCancel"
+                            Grid.Column="1"
+                            Template="{StaticResource CancelButton}"
+                            Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Cancel50px.png">
+                    </Button>
+                </Grid>
+            </Border>
+            <!--BEGIN INVITE DROPDOWN Visibility="{Binding InviteDropdownVisibility, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Control}}}"
+                 -->
+            <Grid Grid.Row="1"
+                  Panel.ZIndex="4" 
+                  Visibility="Visible"
+                  Background="Transparent">
+                <ScrollViewer Background="Black"
+                              VerticalScrollBarVisibility="Auto">
+                       <ItemsControl x:Name="InviteSearchResultsDisplay">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                <Grid Background="Transparent" 
+                                      PreviewMouseLeftButtonDown="OnResultClick" 
+                                      Tag="{Binding Path=UserID, Mode=OneWay}">
+                                        <Grid.Style>
+                                            <Style TargetType="{x:Type Grid}">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="Red"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+                                        <RichTextBox Margin="0, 4, 4, 4" BorderThickness="0" VerticalAlignment="Top" Background="#30302c">
+                                            <FlowDocument>
+                                                <Paragraph>
+                                                    <Bold>
+                                                        <TextBlock Background="Transparent" 
+                                                               Foreground="White"  
+                                                               Text="{Binding UserName, Mode=OneWay}"/>
+                                                    </Bold>
+                                                </Paragraph>
+                                            </FlowDocument>
+                                        </RichTextBox>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
     </Grid>
 </UserControl>

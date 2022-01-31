@@ -24,7 +24,8 @@
                         </Style.Triggers>
                     </Style>
                 </Grid.Style>
-                <Image Source="{Binding Tag, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Button}}}"/>
+                <Image Source="{Binding Tag, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Button}}}"
+                       Height="40"/>
             </Grid>
         </ControlTemplate>
         <ControlTemplate x:Key="DropdownButton" TargetType="Button">
@@ -61,29 +62,33 @@
 
 
         <Button Grid.Row="0" 
-                x:Name="MenuButton" 
-                Template="{StaticResource SidebarButton}" 
-                Height="40"
-                VerticalAlignment="Top"
-                Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\Clean Flat Icons\png_512\icon\icon_common\icon_common_5.png">
-        </Button>
-
-        <Button Grid.Row="1" 
                 x:Name="FriendsButton" 
                 Click="OnFriendsClick"
                 Template="{StaticResource SidebarButton}" 
-                Height="40"
+                Height="50"
                 VerticalAlignment="Top"
+                ToolTip="View your friends"
                 Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\PersonIcon50px.png">
         </Button>
 
-        <Button Grid.Row="2" 
+        <Button Grid.Row="1" 
                 x:Name="ChatsButton" 
                 Click="OnChatsClick"
                 Template="{StaticResource SidebarButton}" 
-                Height="40"
+                Height="50"
                 VerticalAlignment="Top"
+                ToolTip="View chats you're a member of"
                 Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Chat50px.png">
+        </Button>
+
+        <Button Grid.Row="2" 
+                x:Name="FindFriendsButton" 
+                Click="OnFindFriendsClick"
+                Template="{StaticResource SidebarButton}" 
+                Height="50"
+                VerticalAlignment="Top"
+                ToolTip="Find and add new friends"
+                Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\AddFriend30px.png">
         </Button>
 
     </Grid>

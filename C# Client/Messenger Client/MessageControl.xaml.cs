@@ -33,6 +33,57 @@ namespace Messenger_Client
 
         private int DebugMask = 32;
 
+        // Stores search results when inviting users to a chat.
+
+        private List<FriendUser> InviteSearchResults;
+
+        // Binding for displaying the Invite option
+        private Visibility inviteButtonVisibility = Visibility.Collapsed;
+        public Visibility InviteButtonVisibility
+        {
+            get
+            {
+                return inviteButtonVisibility;
+            }
+            set
+            {
+                inviteButtonVisibility = value;
+                OnPropertyChanged(nameof(InviteButtonVisibility));
+            }
+        }
+
+        // Binding for displaying the Invite search panel
+
+        private Visibility inviteSearchVisibility = Visibility.Collapsed;
+        public Visibility InviteSearchVisibility
+        {
+            get
+            {
+                return inviteSearchVisibility;
+            }
+            set
+            {
+                inviteSearchVisibility = value;
+                OnPropertyChanged(nameof(InviteSearchVisibility));
+            }
+        }
+
+        // Binding for displaying the Invite results dropdown
+
+        private Visibility inviteDropdownVisibility = Visibility.Collapsed;
+        public Visibility InviteDropdownVisibility
+        {
+            get
+            {
+                return inviteDropdownVisibility;
+            }
+            set
+            {
+                inviteDropdownVisibility = value;
+                OnPropertyChanged(nameof(InviteDropdownVisibility));
+            }
+        }
+
         // Binding for displaying the chat title
         private string chatTitle;
         public string ChatTitle
@@ -65,7 +116,8 @@ namespace Messenger_Client
         public MessageControl()
         {
 
-            MessageList = new();
+            MessageList = new List<Message>();
+            InviteSearchResults = new List<FriendUser>();
 
             MainWindow = Application.Current.MainWindow as MainWindow;
 
@@ -88,7 +140,7 @@ namespace Messenger_Client
             Debugger.Record("ChatName is: " + ActiveChat.ChatName, DebugMask);
             MessageList = ActiveChat.RetrieveAll();
 
-            ChatTitle = "Chat with " + ActiveChat.ChatName;
+            ChatTitle = ActiveChat.ChatName;
 
             PopulateMessages();
         }
@@ -96,6 +148,9 @@ namespace Messenger_Client
 
         private void PopulateMessages()
         {
+
+            InviteButtonVisibility = Visibility.Visible;
+
             try
             {
                 Application.Current.Dispatcher.Invoke((Action)delegate
@@ -111,14 +166,16 @@ namespace Messenger_Client
         }
 
 
+
         private string GetDateTimeString()
-        { 
+        {
             return DateTime.Now.ToString();
         }
-        
+
+
+
         private Message GetMessage(string messageID)
         {
-
             for (int i = 0; i < MessageList.Count; i++)
             {
                 Message tempMessage = MessageList[i];
@@ -132,9 +189,56 @@ namespace Messenger_Client
             throw new IndexOutOfRangeException("MessageControl.GetMessage(): Did not find messageID " + messageID);
         }
 
-        private void OnMessageKey(object sender, KeyEventArgs e)
+        private void PopulateInviteDropdown(List<FriendUser> searchResults)
         {
-            if (e.Key == Key.Enter)
+            InviteDropdownVisibility = Visibility.Visible;
+
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                InviteSearchResults = searchResults;
+                InviteSearchResultsDisplay.ItemsSource = InviteSearchResults;
+            });
+        }
+
+        public void OnInviteButton(object sender, RoutedEventArgs args)
+        {
+            InviteSearchVisibility = Visibility.Visible;
+        }
+
+        public void OnSearchSelect(object sender, RoutedEventArgs args)
+        {
+            SearchBox.Text = "";
+        }
+
+
+        private void OnSearch(object sender, TextChangedEventArgs args)
+        {
+            TextBox searchBox = sender as TextBox;
+
+            string searchText = searchBox.Text;
+
+            List<FriendUser> searchResults = Controller.FriendSearch(searchText);
+
+            PopulateInviteDropdown(searchResults);
+
+        }
+
+
+        public void OnInviteUser(object sender, RoutedEventArgs args)
+        {
+            InviteDropdownVisibility = Visibility.Collapsed;
+        }
+
+        public void OnInviteCancel(object sender, RoutedEventArgs args)
+        {
+            InviteSearchVisibility = Visibility.Collapsed;
+            InviteDropdownVisibility = Visibility.Collapsed;
+        }
+
+
+        private void OnMessageKey(object sender, KeyEventArgs args)
+        {
+            if (args.Key == Key.Enter)
             {
                 string newMessage = MessageEntry.Text;
 
@@ -178,7 +282,7 @@ namespace Messenger_Client
             for (int i = 0; i < MessageList.Count; i++)
             {
                 Message tempMessage = MessageList[i];
-                
+
                 if (tempMessage.MessageID == SelectedMessageID)
                 {
                     senderID = tempMessage.SenderID;
@@ -316,6 +420,21 @@ namespace Messenger_Client
         {
             Controller.RaiseNotificationPopupEvent("Banning users has not yet been implemented.");
             ButtonMenu.IsOpen = false;
+        }
+
+
+
+        /// <summary> 
+        /// 
+        /// </summary>
+        
+        public void OnResultClick(object sender, RoutedEventArgs args)
+        {
+            FrameworkElement element = sender as FrameworkElement;
+
+            int userID = (int)element.Tag;
+
+            Controller.SendChatInvitation(userID.ToString(), Controller.ActiveChat.ChatID);
         }
 
         //INotifyPropertyChanged members

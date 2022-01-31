@@ -21,7 +21,7 @@ namespace Messenger_Client
     /// <summary>
     /// Interaction logic for FindFriendsControl.xaml
     /// </summary>
-    public partial class FindFriendsControl : UserControl
+    public partial class FindFriendsControl : UserControl, INotifyPropertyChanged
     {
         private int DebugMask = 64;
 
@@ -31,17 +31,17 @@ namespace Messenger_Client
 
 
         // Binding for request confirmation popup
-        private bool isPopupOpen;
-        public bool IsPopupOpen
+        private Visibility confirmationPopupVisibility = Visibility.Collapsed;
+        public Visibility ConfirmationPopupVisibility
         {
             get
             {
-                return isPopupOpen;
+                return confirmationPopupVisibility;
             }
             set
             {
-                isPopupOpen = value;
-                OnPropertyChanged(nameof(IsPopupOpen));
+                confirmationPopupVisibility = value;
+                OnPropertyChanged(nameof(ConfirmationPopupVisibility));
             }
         }
 
@@ -68,7 +68,7 @@ namespace Messenger_Client
             InitializeComponent();
 
             Controller = Controller.ControllerInstance;
-            
+
             Controller.UpdateUserSearchEvent += OnUpdateUserSearchResults;
             SearchBox.TextChanged += OnSearch;
             SearchBox.GotFocus += OnSearchSelect;
@@ -100,9 +100,9 @@ namespace Messenger_Client
         {
             TextBox searchBox = sender as TextBox;
 
-            string searchText = searchBox.Text;
+            string searchText = searchBox.Text.ToLower();
 
-            if ((searchText == "") || (searchText== "Search"))
+            if ((searchText == "") || (searchText == "Search"))
             {
                 UserResults = new List<Tuple<string, string>>();
                 ShowResults(UserResults);
@@ -121,7 +121,7 @@ namespace Messenger_Client
 
             UserResults = new List<Tuple<string, string>>();
             ShowResults(UserResults);
-        
+
         }
 
         private void OnUpdateUserSearchResults(object sender, UpdateUserSearchEventArgs args)
@@ -150,7 +150,7 @@ namespace Messenger_Client
 
             Debug.WriteLine("On User Selected has been called. Tag is: " + userID);
 
-            int userIDint; 
+            int userIDint;
 
             try
             {
@@ -183,7 +183,7 @@ namespace Messenger_Client
 
                 if (friend.UserID == userIDint)
                 {
-                    Controller.ChatSelected(friend.ChatID, friend.UserName);
+                    Controller.ChatSelected(friend.ChatID);
                     return;
                 }
 
@@ -191,7 +191,50 @@ namespace Messenger_Client
 
             string message = "Would you like to send a friend request to " + username + "?";
 
-            Controller.RaiseSelectionPopupEvent(message, "Yes", userID, "No", "None", username, "True");
+            OnRequest(message, userIDint, username);
+        }
+
+
+        /// <summary> 
+        /// Called when a user is selected in FindFriends.
+        /// </summary>
+        public void OnRequest(string message, int userID, string username)
+        {
+            ConfirmationPopupVisibility = Visibility.Visible;
+            PopupText.Text = message;
+            PopupText.Tag = userID;
+            StorageBlock.Tag = username;
+        }
+
+        /// <summary> 
+        /// Called when a request is confirmed on the confirmation popup.
+        /// </summary>
+        public void OnConfirmRequest(object sender, RoutedEventArgs args)
+        {
+
+            Debugger.Record("Request confirm called", DebugMask);
+            ConfirmationPopupVisibility = Visibility.Hidden;
+
+            string friendID = PopupText.Tag.ToString();
+            string friendName = (string)StorageBlock.Tag;
+            Debugger.Record("Request confirm tags: " + friendID + " " + friendName, DebugMask);
+
+            Controller.SendFriendRequest(friendName, friendID);
+
+            PopupText.Tag = "";
+            StorageBlock.Tag = "";
+
+        }
+
+
+        /// <summary> 
+        /// Called when a request is cancelled on the confirmation popup.
+        /// </summary>
+        public void OnCancelRequest(object sender, RoutedEventArgs args)
+        {
+
+            Debugger.Record("Request cancel called", DebugMask);
+            ConfirmationPopupVisibility = Visibility.Hidden;
         }
 
 

@@ -62,7 +62,7 @@ namespace Messenger_Client.SupportClasses
                 Debugger.Record("A message contains an unparseable sender ID.", 1);
             }
 
-            if (((permissions & (int)Permissions.Delete) == (int)Permissions.Delete) || (intSenderID == controller.UserID))
+            if (((permissions & (int)Permissions.Delete) == (int)Permissions.Delete) || (intSenderID == Controller.UserID))
             {
                 DeleteVisibility = Visibility.Visible;
             }

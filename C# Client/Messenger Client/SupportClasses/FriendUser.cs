@@ -19,6 +19,9 @@ namespace Messenger_Client.SupportClasses
 
         public string UserName { get; private set; }
         public int UserID { get; private set; }
+
+        // Refers to the automatically-generated private chat this user shares with the logged in user.
+
         public int ChatID { get; private set; }
 
         public int FriendRanking { get; private set; }

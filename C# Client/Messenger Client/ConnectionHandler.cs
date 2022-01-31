@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace Messenger_Client
 {
@@ -15,33 +16,9 @@ namespace Messenger_Client
     /// 
     /// This class is a singleton that handles the server connection and stores 
     /// information about the currently active user.
-    /// It connects to the same server as the Unity client, but has a reduced set of useable 
-    /// request/receive codes. 
     ///
-    /// The core server opcodes (What this client transmits) with their bitmasks are:
-    ///
-    /// IR (Initial Registration):  001101  /  13
-    /// LR (Login Request):  001101   /   13
-    /// PF (Pull Friends):  011011  /   27
-    /// AF (Add Friend):  010111   / 23
-    /// PC (Pull User-Chat Pairs) / 010011 / 19
-    /// PM (Pull Messages From Chat):  110011    / 51
-    /// SM (Send Message):  110011   /   51
-    ///
-    /// The core client opcodes (What this client is responsible for receiving) with their bitmasks are:
-    ///
-    /// RU (Registration unsuccessful):  000101 / 5
-    /// RS (Registration successful):  000101 / 5
-    /// LU (Login unsuccessful):	 000101 / 5
-    /// LS (Login successful):  010111 / 7
-    /// FP (Friend Push): 010011 / 19
-    /// UR (User search Results) : 01001 / 9
-    /// CP (User-Chat Pairs Push): 010011 / 19
-    /// MP (Message Push for one chat): 110011 / 51
-    /// CN  (Chat Notification): 110011 / 51
-    /// AM (Administrative Message): 010011 / 19
-    ///</summary>
-
+    /// The core server opcodes (What this client transmits) with their bitmasks are outlined in the
+    /// Message Definitions documentation. 
     /// </summary>
 
 
@@ -63,13 +40,6 @@ namespace Messenger_Client
         // time. You should update the Connect(), Receive() and MessageReceived() error messages if you change this (They say 5 seconds).
         private const int ReconnectWait = 5100;
 
-        // Determine the packed size of transmitted items.
-        private const int UserNameLength = 32;
-        private const int UserIDLength = 32;
-        private const int PasswordLength = 128;
-        private const int ChatIDLength = 8;
-        private const int MessageIDLength = 32;
-
         // Connection-related variables
         Socket ServerSocket = null;
         Int32 Port = 4269;
@@ -83,7 +53,7 @@ namespace Messenger_Client
 
 
         /// <param name="controller">The Controller singleton</param>
-        public ConnectionHandler(Controller controller) 
+        public ConnectionHandler(Controller controller)
         {
             Controller = controller;
         }
@@ -91,25 +61,16 @@ namespace Messenger_Client
 
         Byte[] BytesReceived = new byte[1048];
 
-
-        // Declaring the message event delegate
-        public delegate void MessageEventHandler(object sender, MessageEventArgs e);
-
-        public event MessageEventHandler MessageEvent;
-
         private static string Username { get; set; } = "Not Logged In";
-
-
 
         /// <param name="username">The supplied username</param>
         /// <param name="password">The supplied password</param>
 
         public void Register(string username, string password)
         {
-            username = Parser.Pack(username, UserNameLength);
-            password = Parser.Pack(password, PasswordLength);
+            username = Parser.Pack(username, Controller.MaxUserNameLength);
+            password = Parser.Pack(password, Controller.MaxPasswordLength);
 
-            Debug.WriteLine("Registering with username: " + username + "\n");
             TransmissionHandler("IR" + username + password);
         }
 
@@ -121,13 +82,13 @@ namespace Messenger_Client
         /// 
         public void Login(string username, string password)
         {
-            TransmissionHandler("LR" + Parser.Pack(username, UserNameLength) + Parser.Pack(password, PasswordLength));
+            TransmissionHandler("LR" + Parser.Pack(username, Controller.MaxUserNameLength) + Parser.Pack(password, Controller.MaxPasswordLength));
         }
 
 
         public void Logout(int userID, string sessionID)
         {
-            TransmissionHandler("LO" + Parser.Pack(userID, UserIDLength) + sessionID);
+            TransmissionHandler("LO" + Parser.Pack(userID, Controller.MaxUserIDLength) + sessionID);
         }
 
         /// <summary> 
@@ -141,19 +102,19 @@ namespace Messenger_Client
 
             Debugger.Record("Sending pull requests request.", DebugMask);
 
-            string transmitString = "PR" + Parser.Pack(userID.ToString(), UserIDLength) + sessionID;
+            string transmitString = "PR" + Parser.Pack(userID.ToString(), Controller.MaxUserIDLength) + sessionID;
 
             TransmissionHandler(transmitString);
         }
 
 
-		/// <param name="userID">The ID of the user whose friends will be pulled</param>
-		/// <param name="sessionID">The sessionID used to verify the transmission.</param>					   
+        /// <param name="userID">The ID of the user whose friends will be pulled</param>
+        /// <param name="sessionID">The sessionID used to verify the transmission.</param>					   
         public void PullFriends(int userID, string sessionID)
         {
             Debugger.Record("Sending pull friends request.", DebugMask);
 
-            string transmitString = "PF" + Parser.Pack(userID.ToString(), UserIDLength) + sessionID;
+            string transmitString = "PF" + Parser.Pack(userID.ToString(), Controller.MaxUserIDLength) + sessionID;
 
             TransmissionHandler(transmitString);
         }
@@ -161,6 +122,21 @@ namespace Messenger_Client
 
 
 
+        /// <summary> 
+        /// Sends a request to create a new chat. The server will assign this user as the owner and with full permissions.
+        /// </summary>
+        /// <param name="param">description</param>
+        /// <param name="param">description</param>
+
+        public void CreateChat(int userID, string userName, string sessionID, string chatName)
+        {
+
+            Debugger.Record("Sending create chats request.", DebugMask);
+
+            string transmitString = "CC" + Parser.Pack(userID, Controller.MaxUserIDLength) + Parser.Pack(userName, Controller.MaxUserNameLength) + sessionID + chatName;
+
+            TransmissionHandler(transmitString);
+        }
 
 
         // This message pulls all of the chats the user is a member of, in the form of User-Chat Pairs.
@@ -169,7 +145,7 @@ namespace Messenger_Client
         {
             Debugger.Record("Sending pull chats request.", DebugMask);
 
-            string transmitString = "PC" + Parser.Pack(userID, UserIDLength) + sessionID;
+            string transmitString = "PC" + Parser.Pack(userID, Controller.MaxUserIDLength) + sessionID;
 
             TransmissionHandler(transmitString);
 
@@ -179,7 +155,7 @@ namespace Messenger_Client
         {
             Debugger.Record("Sending pull messages for chat request.", DebugMask);
 
-            string transmitString = "PM" + Parser.Pack(userID, UserIDLength) + sessionID + Parser.Pack(chatID, ChatIDLength);
+            string transmitString = "PM" + Parser.Pack(userID, Controller.MaxUserIDLength) + sessionID + Parser.Pack(chatID, Controller.ChatIDLength);
 
             TransmissionHandler(transmitString);
 
@@ -188,21 +164,21 @@ namespace Messenger_Client
         public void SendMessage(int userID, string username, string sessionID, int chatID, string message)
         {
 
-            string transmitString = "SM" + Parser.Pack(userID, UserIDLength) + Parser.Pack(username, UserNameLength) + sessionID + Parser.Pack(chatID, ChatIDLength) + message;
+            string transmitString = "SM" + Parser.Pack(userID, Controller.MaxUserIDLength) + Parser.Pack(username, Controller.MaxUserNameLength) + sessionID + Parser.Pack(chatID, Controller.ChatIDLength) + message;
 
             TransmissionHandler(transmitString);
         }
 
         public void EditMessage(int userID, string sessionID, int messageID, string message)
         {
-            string transmitString = "EM" + Parser.Pack(userID, UserIDLength) + sessionID + Parser.Pack(messageID, MessageIDLength) + message;
+            string transmitString = "EM" + Parser.Pack(userID, Controller.MaxUserIDLength) + sessionID + Parser.Pack(messageID, Controller.MaxMessageIDLength) + message;
             TransmissionHandler(transmitString);
         }
 
 
         public void DeleteMessage(int userID, string sessionID, string messageID)
         {
-            string transmitString = "DM" + Parser.Pack(userID, UserIDLength) + sessionID + Parser.Pack(messageID, MessageIDLength);
+            string transmitString = "DM" + Parser.Pack(userID, Controller.MaxUserIDLength) + sessionID + Parser.Pack(messageID, Controller.MaxMessageIDLength);
             TransmissionHandler(transmitString);
         }
 
@@ -218,13 +194,46 @@ namespace Messenger_Client
 
         public void SendFriendRequest(int userID, string sessionID, string friendUserID)
         {
-
             Debugger.Record("Sending friend request.", DebugMask);
 
-            string transmitString = "AF" + Parser.Pack(userID, UserIDLength) + Parser.Pack(friendUserID, UserIDLength) + sessionID;
+            Dictionary<String, String> requestDict = new();
+
+            requestDict.Add("RequestType", "FRIEND");
+            requestDict.Add("Parameter", "NONE");
+
+            string requestJson = JsonConvert.SerializeObject(requestDict);
+
+            string transmitString = "SR" + Parser.Pack(userID, Controller.MaxUserIDLength) + Parser.Pack(friendUserID, Controller.MaxUserIDLength) + sessionID + requestJson;
 
             TransmissionHandler(transmitString);
         }
+
+
+        public void ApproveRequest(int userID, string sessionID, int requestID)
+        {
+            string transmitString = "AR" + Parser.Pack(userID, Controller.MaxUserIDLength) + sessionID + requestID;
+            TransmissionHandler(transmitString);
+        }
+
+        /// <summary> 
+        /// This method sends a chat invitation to another user.
+        /// </summary>  
+        /// <param name="userID">The ID of the user requesting the friend invite.</param>
+        /// <param name="friendID">The ID of the user to be invited. </param>
+        /// <param name="sessionID">The sessionID used to verify the transmission.</param>
+        ///  /// <param name="chatID">The ID of the chat to invite them to.</param>
+
+
+        public void SendChatInvitation(int userID, string sessionID, string friendUserID, int chatID)
+        {
+            Debugger.Record("Sending chat invite.", DebugMask);
+
+            string transmitString = "CI" + Parser.Pack(userID, Controller.MaxUserIDLength) + Parser.Pack(friendUserID, Controller.MaxUserIDLength) + sessionID + chatID;
+
+            TransmissionHandler(transmitString);
+        }
+
+
 
         public void UserSearch(int userID, string searchString, string sessionID)
         {
@@ -248,7 +257,7 @@ namespace Messenger_Client
 
 
             while (successful == false)
-            { 
+            {
                 try
                 {
                     IPHostEntry hostEntry = null; // Container for host address info.
@@ -339,7 +348,7 @@ namespace Messenger_Client
         /// If it fails a read, it will loop continuously, presenting an initial error message followed by a looping error message.
         /// </summary>
 
-        private void MessageReceived(IAsyncResult result) 
+        private void MessageReceived(IAsyncResult result)
         {
 
             try
@@ -367,20 +376,19 @@ namespace Messenger_Client
 
         private void HeaderParser(string received)
         {
-
-            Debug.WriteLine("Recieved message: " + received + "\n");
-
             string message = "";
 
             try
             {
-                ////// Begin Transmission Buffer handling //////
-                ///
-                /// If the PartialIndicator is F, the function looks for a mapping to the opcode in the TransmissionBuffer.
-                /// If there is such a mapping and the value isn't an empty string, it adds the new message to the buffer,
-                /// sends it to the parser, and clears the buffer value for that transmission type.
 
-                string partialIndicator = received.Substring(0, 1);
+                Debug.WriteLine("\nConnection received: " + received);
+                ////// Begin Transmission Buffer handling //////
+               ///
+               /// If the PartialIndicator is F, the function looks for a mapping to the opcode in the TransmissionBuffer.
+               /// If there is such a mapping and the value isn't an empty string, it adds the new message to the buffer,
+               /// sends it to the parser, and clears the buffer value for that transmission type.
+
+               string partialIndicator = received.Substring(0, 1);
                 string opcode = received.Substring(1, 2);
 
                 string transmitMessage = "";
@@ -390,18 +398,16 @@ namespace Messenger_Client
 
                     if (TransmissionBuffer.ContainsKey(opcode) && (TransmissionBuffer[opcode] != ""))
                     {
-                        Debugger.Record("\nAdding to TransmissionBuffer: " + received.Substring(75).Replace("\0", ""), DebugMask);
+                        Debug.WriteLine("\nAdding to TransmissionBuffer: " + received.Substring(67).Replace("\0", ""));
 
-                        TransmissionBuffer[opcode] = TransmissionBuffer[opcode] + received.Substring(75).Replace("\0", "");
-                        Debugger.Record("\nWith results:" + TransmissionBuffer[opcode], DebugMask);
+                        TransmissionBuffer[opcode] = TransmissionBuffer[opcode] + received.Substring(67).Replace("\0", "");
+                        Debug.WriteLine("\nWith results:" + TransmissionBuffer[opcode]);
 
 
                         transmitMessage = TransmissionBuffer[opcode];
                         TransmissionBuffer[opcode] = "";
 
-                        Debugger.Record("\nEmptying TransmissionBuffer. Result: " + transmitMessage + "\n", DebugMask);
-
-
+                        Debug.WriteLine("\nEmptying TransmissionBuffer. Result: " + transmitMessage + "\n");
                     }
                     else
                     {
@@ -414,11 +420,11 @@ namespace Messenger_Client
                     if (TransmissionBuffer.ContainsKey(opcode) && TransmissionBuffer[opcode] != "")
                     {
                         Debugger.Record("\nAdding to TransmissionBuffer: " + received.Substring(75).Replace("\0", ""), DebugMask);
-                     
+
                         TransmissionBuffer[opcode] = TransmissionBuffer[opcode] + received.Substring(75).Replace("\0", "");
 
 
-                        Debugger.Record("\nWith results:"  + TransmissionBuffer[opcode], DebugMask);
+                        Debugger.Record("\nWith results:" + TransmissionBuffer[opcode], DebugMask);
 
                     }
                     else
@@ -437,7 +443,6 @@ namespace Messenger_Client
 
                 ////// End Transmission Buffer handling //////
 
-                RaiseMessageEvent(transmitMessage);
 
                 if (Controller == null)
                 {
@@ -448,7 +453,6 @@ namespace Messenger_Client
 
                 if (Parser.Parse(transmitMessage, out results) == true)
                 {
-                    Debug.WriteLine("\nParse successful. Sending message to controller.\n");
                     Controller.MessageHandler(results);
                 }
                 else
@@ -472,7 +476,7 @@ namespace Messenger_Client
             {
                 try
                 {
-                    Debug.WriteLine("Transmitting: " + messageOut);
+                    Debugger.Record("Transmitting: " + messageOut, DebugMask);
                     Byte[] sent = Encoding.ASCII.GetBytes("F" + messageOut + "\n");
                     ServerSocket.Send(sent);
                 }
@@ -490,17 +494,7 @@ namespace Messenger_Client
         private void MessageSent(IAsyncResult result)
         {
             int byteCount = ServerSocket.EndSend(result);
-
-            //string stringReceived = Encoding.ASCII.GetString(BytesReceived, 0, byteCount);
-
-            Debug.WriteLine("Message received\n");
             Receive();
-        }
-
-        private void RaiseMessageEvent(string message)
-        {
-            Debug.WriteLine("Raise event called\n");
-            MessageEvent?.Invoke(this, new MessageEventArgs(message));
         }
 
     }

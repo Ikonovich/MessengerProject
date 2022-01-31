@@ -19,18 +19,18 @@ namespace Messenger_Client
 
         // Determines whether or not the sort options dropdown is currently visible.
 
-        private bool isSortDropdownVisible = false;
+        private Visibility searchPanelVisibility = Visibility.Collapsed;
 
-        public bool IsSortDropdownVisible
+        public Visibility SearchPanelVisibility
         {
             get
             {
-                return isSortDropdownVisible;
+                return searchPanelVisibility;
             }
             set
             {
-                isSortDropdownVisible = value;
-                OnPropertyChanged(nameof(IsSortDropdownVisible));
+                searchPanelVisibility = value;
+                OnPropertyChanged(nameof(SearchPanelVisibility));
             }
         }
 
@@ -80,37 +80,8 @@ namespace Messenger_Client
             });
         }
 
-        //private void OnFriendSelected(object sender, MouseButtonEventArgs e)
-        //{
-        //    Console.WriteLine("Friend selected");
-        //    TextBlock senderBlock = sender as TextBlock;
+    
 
-        //    PointAnimation gradientAnim = new PointAnimation();
-        //    gradientAnim.Duration = TimeSpan.FromSeconds(1.3);
-        //    gradientAnim.From = new Point(0, 1);
-        //    gradientAnim.To = new Point(1, 0);
-        //    gradientAnim.AutoReverse = true;
-        //    senderBlock.Background.BeginAnimation(LinearGradientBrush.EndPointProperty, gradientAnim);
-        //}
-
-        // Begin sort handling functionality.
-
-        private void OnSortSelect(object sender, RoutedEventArgs e)
-        {
-
-            if (IsSortDropdownVisible == false)
-            {
-                IsSortDropdownVisible = true;
-            }
-            else
-            {
-                FrameworkElement element = sender as FrameworkElement;
-                string parameter = element.Name;
-
-                FriendSort(parameter);
-                IsSortDropdownVisible = false;
-            }
-        }
 
         private void FriendSort(string parameter)
         {
@@ -118,7 +89,7 @@ namespace Messenger_Client
             List<FriendUser> sortedFriends = FriendList;
 
             if (parameter == "ActiveSort")
-            { 
+            {
                 sortedFriends.Sort(ActiveCompare);
                 CurrentSort = "Active";
             }
@@ -137,7 +108,7 @@ namespace Messenger_Client
             else if (parameter == "FavoriteSort")
             {
                 sortedFriends.Sort(FavoriteCompare);
-                    
+
                 CurrentSort = "Favorite";
             }
 
@@ -212,70 +183,75 @@ namespace Messenger_Client
 
         // Begin event handlers
 
+        private void OnCancelSearch(object sender, RoutedEventArgs args)
+        {
+            SearchPanelVisibility = Visibility.Collapsed;
+        }
 
-        private void OnSearchSelect(object sender, RoutedEventArgs e)
+
+        private void OnOpenSearch(object sender, RoutedEventArgs args)
+        {
+            SearchPanelVisibility = Visibility.Visible;
+            SearchBox.Text = "Search";
+        }
+
+
+
+        private void OnSearchSelect(object sender, RoutedEventArgs args)
         {
             TextBox searchBox = sender as TextBox;
             searchBox.Clear();
         }
 
-        private void OnSearchDeselect(object sender, RoutedEventArgs e)
+        private void OnSearchDeselect(object sender, RoutedEventArgs args)
         {
             TextBox searchBox = sender as TextBox;
             searchBox.Text = "Search";
 
-            PopulateFriendsList(FriendList);
+            PopulateFriendsList(Controller.FriendsList);
         }
 
-        private void OnSearch(object sender, TextChangedEventArgs e)
+        private void OnSearch(object sender, TextChangedEventArgs args)
         {
             TextBox searchBox = sender as TextBox;
 
-            string searchText = searchBox.Text;
+            string searchText = searchBox.Text.ToLower();
 
-            List<FriendUser> foundItems = new List<FriendUser>();
+            List<FriendUser> searchResults = Controller.FriendSearch(searchText);
 
-            if (searchText != "")
+
+
+            if (searchResults.Count > 0)
             {
-                for (int i = 0; i < FriendList.Count; i++)
-                {
-                    string nameString = FriendList[i].UserName;
-
-                    if (nameString.Contains(searchText))
-                    {
-                        foundItems.Add(FriendList[i]);
-                    }
-                }
-                PopulateFriendsList(foundItems);
+                PopulateFriendsList(searchResults);
             }
             else
             {
-                PopulateFriendsList(FriendList);
+                PopulateFriendsList(Controller.FriendsList);
             }
         }
 
 
-        private void OnUpdateFriends(object sender, UpdateFriendsEventArgs e)
+        private void OnUpdateFriends(object sender, UpdateFriendsEventArgs args)
         {
 
             Debug.WriteLine("OnUpdateFriends activated in friends control.");
 
-            FriendList = e.Friends;
-            PopulateFriendsList(FriendList);
+            PopulateFriendsList(Controller.FriendsList);
         }
 
         // ---------- BEGIN EVENT DELEGATES --------- //
 
 
-        private void OnFriendSelected(object sender, RoutedEventArgs e)
+        private void OnFriendSelected(object sender, RoutedEventArgs args)
         {
             Button button = sender as Button;
 
-            int chatID = (int)button.Tag;
-            string chatName = (string)button.Content;
+            int friendID = (int)button.Tag;
 
-            Controller.ChatSelected(chatID, chatName);
+            Controller.FriendSelected(friendID);
         }
+
 
 
         //INotifyPropertyChanged members
@@ -283,7 +259,6 @@ namespace Messenger_Client
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-
             Debug.WriteLine("Property change called for property " + propertyName);
             var handler = PropertyChanged;
             if (handler != null)

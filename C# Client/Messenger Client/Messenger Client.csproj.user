@@ -28,9 +28,6 @@
     <Compile Update="RegistrationControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="RequestsControl.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="Sidebar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -58,9 +55,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="RegistrationControl.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="RequestsControl.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Sidebar.xaml">

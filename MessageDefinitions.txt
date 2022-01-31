@@ -13,36 +13,44 @@
 //
 //The bitmask order is as follows:
 //
-// 00001: UserID - 32 characters - Present for all messages except login and registration.
-// 00010: UserName - 32 characters - Present for login, registration, and when adding or searching for a friend.
-// 00100: Password - 128 characters - Present only for login and registration.
-// 01000: Session ID - 32 characters - Required for all non-login and non-registration interactions. Very weakly verifies connection
+// 000001 / 1: UserID - 32 characters - Present for all messages except login and registration.
+// 000010 / 2: UserName - 32 characters - Present for login and registration. Used to hold a Friend User ID
+for add friend, remove friend, and chat invite. Used to hold search name for user search.
+// 000100 / 4: Password - 128 characters - Present only for login and registration.
+// 001000 / 8: SessionID - 32 characters - Required for all non-login and non-registration interactions. Very weakly verifies connection
 // integrity.
-// 10000: Chat ID - 32 characters - Identifies a single chat between one or multiple people.
-//
+// 010000 / 16: ChatID - 32 characters - Identifies a single chat between one or multiple people.
+// 100000 / 32: MessageID - 32 characters - Identifies a single message.
+// XX / NULL: Message - No character limit. Often contains an extra parameter for running an opcode, or a message
+// displaying in a pop up. Places where the Message segment contains non-notification data are added below.
+
+
 // The final component of a received transmission, the Message, is whatever remains after the item determined by the bit mask are parsed out.
 //
 // The core server opcodes with their bitmasks are:
 //
-// IR (Initial Registration):  00110  /  6
-// LR (Login Request):  00110  /   6
-// LO (Logout Request):  01001  /   9
-// PF (Pull Friends):  01001  /   9
-// AF (Add Friend):  01011  / 11
-// RF (Remove Friend):  01011  / 11
-// PR (Pull Friend Requests): 01001 / 9
-// US (User Search): 01011 / 11
-// PC (Pull User-Chat Pairs) / 01001 / 9
-// PM (Pull Messages From Chat):  11001    / 25
-// CC (Create Chat): 01011 / 11  -- For this code, the "Message" component stores the desired chat name
-// CO (Command) 11001 / 9 -- For this code, the "Message" component stores a dictionary containing "Command" keys and an associated string as
+// IR (Initial Registration):  000110  /  6 
+// LR (Login Request):  000110  /   6
+// LO (Logout Request):  001001  /   9
+// PF (Pull Friends):  001001  /   9
+// RF (Remove Friend):  001011  / 11
+// AR (Approve Request): 001001 / 9 -- For this code, the "Message" component stores the RequestID to approve
+// DR (Delete Request): 001001 / 9 -- For this code, the "Message" component stores the RequestID to delete
+// SR (Send Request): 001011 / 11 -- For this code, the "Message" component contains a JSON request dictionary containing 
+// keys "RequestType" and "Parameter".
+// PR (Pull Requests): 001001 / 9
+// US (User Search): 001011 / 11
+// PC (Pull User-Chat Pairs) / 001001 / 9
+// PM (Pull Messages From Chat):  011001    / 25
+// CC (Create Chat): 001011 / 11  -- For this code, the "Message" component stores the desired chat name
+// CO (Command) 011001 / 9 -- For this code, the "Message" component stores a dictionary containing "Command" keys and an associated string as
 documented in Commands.txt. Depending on the specific command, the dictionary will be required to contain other components, such as the userID of the 
 user for the command to act on.
 
-// SM (Send Message):  11001   /   27
-// DM (Send Message):  01001   /   9 - For this code, the "Message" component stores the MessageID. The server determines if the user has permissions to 
+// SM (Send Message):  011001   /   27
+// DM (Delete Message):  101001   /   41 -- The server determines if the user has permissions to 
 delete that particular message (If the message is theres or they have delete permissions in the chat).
-// HB (Heartbeat): 00000 / 0
+// HB (Heartbeat): 000000 / 0
 
 // The core client opcodes with their bitmasks are:
 //
@@ -51,11 +59,11 @@ delete that particular message (If the message is theres or they have delete per
 // LU (Login unsuccessful):	 00010 / 2
 // LS (Login successful):  01011 / 3
 // FP (Friend Push): 01001 / 9
-// FR (Friend Request(s) Push): 01001 / 9
+// RP (Request(s) Push): 01001 / 9
 // UR (User search Results) : 01001 / 9
 // CP (User-Chat Pairs Push): 01001 / 9
 // MP (Message Push for one chat): 11011 / 27  
-// CN  (Chat Notification): 11001 / 25
+// CN (Chat Notification): 11001 / 25
 // AM (Administrative Message): 01001 / 9
 // HB (Heartbeat): 00000 / 0
 

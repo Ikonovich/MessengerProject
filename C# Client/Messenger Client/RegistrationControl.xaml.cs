@@ -84,7 +84,7 @@ namespace Messenger_Client
 
             // Provided parameters are acceptable, send them to the controller.
             Controller.Register(username, passwordOne);
-            
+
         }
 
         public void GoToLogin(object sender, RequestNavigateEventArgs e)

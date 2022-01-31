@@ -23,6 +23,8 @@ namespace Messenger_Client.SupportClasses
 
         public string ChatName { get; private set; }
 
+        public bool IsMember { get; private set; }
+
         public List<Message> Messages { get; private set; } // Stores all messages currently on-hand for this chat.
 
         private int LastRetrieved; // Stores the index of the last message that was gotten via Retrieve();
@@ -31,10 +33,11 @@ namespace Messenger_Client.SupportClasses
 
         /// <param name="chatID">The ID of the chat, provided by the server.</param>
         /// <param name="messages">The initializing set of messages of the chat, provided by the server.</param>
-        public Chat(int chatID, string chatName, List<Dictionary<string, string>> messages)
+        public Chat(int chatID, string chatName, bool isMember, List<Dictionary<string, string>> messages)
         {
             ChatName = chatName;
             ChatID = chatID;
+            IsMember = isMember;
             messages.Sort(CompareByDate);
             Messages = new List<Message>();
 
@@ -47,7 +50,7 @@ namespace Messenger_Client.SupportClasses
         public void ReplaceMessages(List<Dictionary<string, string>> newMessages)
         {
             Messages = new List<Message>();
-           
+
             for (int i = 0; i < newMessages.Count; i++)
             {
                 Messages.Add(new Message(newMessages[i]));

@@ -20,32 +20,46 @@ namespace Messenger_Client
 
         int DebugMask = 2;
 
+        // Defines the allowable sizes of certain entities.
+        public const int MaxUserNameLength = 32;
+        public const int MinUserNameLength = 8;
+        public const int MaxUserIDLength = 32;
+        public const int MaxPasswordLength = 128;
+        public const int MinPasswordLength = 8;
+        public const int ChatIDLength = 8;
+        public const int MaxChatNameLength = 32;
+        public const int MinChatNameLength = 8;
+        public const int MaxMessageIDLength = 32;
+
+
         // Determines how long the controller should wait for the GUI before connecting.
 
-        private const int GUI_WAIT = 5000; 
+        private const int GUI_WAIT = 5000;
+
+
 
         public static Chat ActiveChat { get; private set; } // Stores the currently active chat.
+
+        public static List<FriendUser> FriendsList { get; private set; } // Stores the current user's friends.
+
+        private static List<Chat> ChatList; // Stores all available chatpairs.
 
         private ConnectionHandler ConnectionHandler;
         private MainWindow MainWindow;
 
-        private Dictionary<string, string> CodeToRequestMap = new();
+        private static Dictionary<string, string> CodeToRequestMap = new();
 
 
-        public int UserID { get; private set; } = 0;
-        public string SessionID { get; private set; } = "";
-
-        public List<FriendUser> Friends{ get; private set; }
-
-        private List<Chat> Chats;
+        public static int UserID { get; private set; } = 0;
+        public static string SessionID { get; private set; } = "";
 
 
-        private string PendingUsername = "";
+        private static string PendingUsername = "";
 
 
         // Username control bindings
 
-        private string username = "Not Logged In";
+        private static string username = "Not Logged In";
         public string DisplayUsername
         {
             get
@@ -55,7 +69,7 @@ namespace Messenger_Client
             set
             {
                 username = value;
-                OnPropertyChanged("Username");
+                OnPropertyChanged("DisplayUsername");
             }
         }
 
@@ -79,6 +93,7 @@ namespace Messenger_Client
         {
 
             MainWindow = Application.Current.MainWindow as MainWindow;
+            FriendsList = new List<FriendUser>();
         }
 
         /// <summary> 
@@ -109,14 +124,15 @@ namespace Messenger_Client
 
             // Parameter checking //
 
-            if (username.Length < 8)
+            if (username.Length < MinUserNameLength)
             {
                 RaiseNotificationPopupEvent("Username must be at least 8 characters.");
                 return;
             }
-            else if (username.Length > 32)
+            else if (username.Length > MaxUserNameLength)
             {
                 RaiseNotificationPopupEvent("Username must be no more than 32 characters.");
+                return;
             }
 
             // Performs a regex match to ensure only underscores and alphanumeric characters are in the username.
@@ -132,12 +148,12 @@ namespace Messenger_Client
                 RaiseNotificationPopupEvent("Password must not contain asterisks.");
                 return;
             }
-            if (password.Length < 8)
+            if (password.Length < MinPasswordLength)
             {
                 RaiseNotificationPopupEvent("Password must be at least 8 characters.");
                 return;
             }
-            if (password.Length > 128)
+            if (password.Length > MaxPasswordLength)
             {
                 RaiseNotificationPopupEvent("Password must be 128 characters or less.");
                 return;
@@ -185,27 +201,85 @@ namespace Messenger_Client
         }
 
 
+        /// <param name="friendUserName">The username of the friend to be added.</param>
+        /// <param name="friendUserID">The user ID of the friend to be added.</param>
+        public void ApproveRequest(int requestID)
+        {
+            ConnectionHandler.ApproveRequest(UserID, SessionID, requestID);
+        }
+
+        /// <summary> 
+        /// Searches through friend lists for users with names containing a specific string.
+        /// </summary>
+        /// <param name="searchString">The string that will be looked for in usernames.</param>
+        public List<FriendUser> FriendSearch(string searchString)
+        {
+            List<FriendUser> results = new();
+
+            for (int i = 0; i < FriendsList.Count; i++)
+            {
+
+                FriendUser tempFriend = FriendsList[i];
+                string tempName = tempFriend.UserName.ToLower();
+
+                if (tempName.Contains(searchString))
+                {
+                    results.Add(tempFriend);
+                }
+            }
+
+            Debugger.Record("Friend search for " + searchString + " found " + results.Count + " friends.", DebugMask);
+            return results;
+        }
+
+        /// <summary> 
+        /// Sends a request to search the database for usernames containing a string.
+        /// </summary>
+        /// <param name="searchString">The string that will be looked for in usernames.</param>
+
         public void UserSearch(string searchString)
         {
             ConnectionHandler.UserSearch(UserID, searchString, SessionID);
         }
 
+        public bool CreateChat(string newChatName)
+        {
+
+            // Parameter checking //
+
+
+            if (newChatName.Length < ChatIDLength)
+            {
+                RaiseNotificationPopupEvent("Chat title must be at least 8 characters.");
+                return false;
+            }
+            else if (newChatName.Length > MaxChatNameLength)
+            {
+                RaiseNotificationPopupEvent("Chat title must be no more than 32 characters.");
+                return false;
+            }
+
+            // Performs a regex match to ensure no asterisks are in the chat name.
+            Regex reg = new Regex("[*]", RegexOptions.None);
+
+            if (reg.Match(newChatName).Success == true)
+            {
+                RaiseNotificationPopupEvent("Chat title must contain only Alphanumeric characters or underscores.");
+                return false;
+            }
+
+            ConnectionHandler.CreateChat(UserID, DisplayUsername, SessionID, newChatName);
+
+            return true;
+        }
+
+        public void SendChatInvitation(string friendUserID, int chatID)
+        {
+            ConnectionHandler.SendChatInvitation(UserID, SessionID, friendUserID, chatID);
+        }
 
 
         //----------BEGIN MESSAGE HANDLING CODE ------------- //
-
-        /// </summary>
-        /// After a message is received by the ConnectionHandler and parsed by the Parser, 
-        /// this method takes the result of the parse and uses the ReceiptCode to decide how to handle the message.
-        /// Available receipt codes are:
-        ///
-        /// RS - Registration Successful - Should be accompanied by username.
-        /// LS - Login Successful - Should be accompanied by sessionID, and username.
-        /// LU - Login Unsuccessful - Should be accompanied by username, and an error message.
-        /// PR - Pull Message Request - Sent to indicate that a new message has been sent and a pull request should be made
-        /// for a specific user. Accompanied by receiving username, sending username, and session ID.
-        /// AM - Administrative message - A generic response code that should be accompanied by a session ID, username, and message.
-        /// </summary>
 
 
         /// <param name="input">The dictionary produced by the parser from a string received by the socket.</param>
@@ -215,7 +289,8 @@ namespace Messenger_Client
 
 
             string opcode = "";
-            try {
+            try
+            {
                 opcode = input["Opcode"];
             }
             catch (Exception e)
@@ -244,8 +319,8 @@ namespace Messenger_Client
                 case "FP":
                     FriendsPush(input);
                     break;
-                case "FR":
-                    FriendRequestsPush(input);
+                case "RP":
+                    RequestsPush(input);
                     break;
                 case "MP":
                     MessagePush(input);
@@ -267,7 +342,7 @@ namespace Messenger_Client
                     break;
                 default:
                     Debugger.Record("An invalid opcode of " + opcode + " has been received by the Controller.", DebugMask);
-                    break; 
+                    break;
             }
 
         }
@@ -300,7 +375,8 @@ namespace Messenger_Client
             string message = input["Message"];
 
 
-            if (username == PendingUsername) {
+            if (username == PendingUsername)
+            {
 
                 PendingUsername = "";
                 RaiseNotificationPopupEvent(message);
@@ -356,7 +432,7 @@ namespace Messenger_Client
 
             Debugger.Record("Login unsuccessful called.", DebugMask);
             string message = input["Message"];
-            
+
             PendingUsername = "";
             RaiseNotificationPopupEvent(message);
 
@@ -380,24 +456,24 @@ namespace Messenger_Client
 
         }
 
-        public void FriendRequestsPush(Dictionary<string, string> input)
+        public void RequestsPush(Dictionary<string, string> input)
         {
 
-            Debugger.Record("FriendsRequestsPush called with input: " + string.Join(Environment.NewLine, input) + "\n", DebugMask);
+            Debug.WriteLine("RequestsPush called with input: " + string.Join(Environment.NewLine, input));
 
             if (VerifyMessage(input) == true)
             {
-                List<Dictionary<string, string>> friendRequests = new();
+                List<Dictionary<string, string>> requests = new();
 
                 try
                 {
                     string requestsString = input["Message"];
-                    friendRequests = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(requestsString);
-                    RaiseUpdateRequestsEvent(friendRequests);
+                    requests = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(requestsString);
+                    RaiseUpdateRequestsEvent(requests);
                 }
                 catch (Exception e)
                 {
-                    Debugger.Record("JSON parsing exception in friend requests: " + e.Message, DebugMask);
+                    Debugger.Record("JSON parsing exception in requests: " + e.Message, DebugMask);
                 }
             }
         }
@@ -407,7 +483,8 @@ namespace Messenger_Client
             Debugger.Record("FriendsPush called with input: " + string.Join(Environment.NewLine, input) + "\n", DebugMask);
 
 
-            if (VerifyMessage(input) == true) {
+            if (VerifyMessage(input) == true)
+            {
 
                 List<Dictionary<string, string>> friendsList = new();
                 try
@@ -431,7 +508,7 @@ namespace Messenger_Client
                     Debug.WriteLine("Added friend with ID: " + dict["FriendUserID"]);
                 }
 
-                Friends = friends;
+                FriendsList = friends;
                 RaiseUpdateFriendsEvent(friends);
             }
         }
@@ -455,10 +532,11 @@ namespace Messenger_Client
 
                     foreach (Dictionary<string, string> chat in tempList)
                     {
-                        string chatName = chat["ChatID"];
+                        string chatName = chat["ChatName"];
                         int chatID = int.Parse(chat["ChatID"]);
+                        bool isMember = int.Parse(chat["IsMember"]) == 1 ? true : false;
 
-                        chatList.Add(new Chat(chatID, chatName, new List<Dictionary<string, string>>()));
+                        chatList.Add(new Chat(chatID, chatName, isMember, new List<Dictionary<string, string>>()));
                     }
 
                     Debug.WriteLine("Pushing chats");
@@ -508,7 +586,7 @@ namespace Messenger_Client
                 }
                 if (ActiveChat == null || ActiveChat.ChatID != chatID)
                 {
-                    ActiveChat = new Chat(chatID, "No Chat Name", messageList);
+                    ActiveChat = new Chat(chatID, "No Chat Name", false, messageList);
                 }
                 else
                 {
@@ -525,8 +603,17 @@ namespace Messenger_Client
 
             string messageString = input["Message"];
 
-            List<Dictionary<string, string>> resultsList = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(messageString);
-     
+            List<Dictionary<string, string>> resultsList = new();
+
+            try
+            {
+                resultsList = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(messageString);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Json conversion on user search results failed: " + e.Message);
+            }
+
             RaiseUpdateUserSearchEvent(resultsList);
 
         }
@@ -578,25 +665,57 @@ namespace Messenger_Client
         }
 
 
+
         public string GetUsername()
         {
             return DisplayUsername;
         }
 
-        public void ChatSelected(int chatID, string chatName)
+
+
+        public void ChatSelected(int chatID)
         {
 
             Debug.WriteLine("ChatSelected called in controller: " + chatID);
 
 
-
-            ActiveChat = new Chat(chatID, chatName, new List<Dictionary<string, string>>());
+            for (int i = 0; i < ChatList.Count; i++)
+            {
+                if (ChatList[i].ChatID == chatID)
+                {
+                    ActiveChat = ChatList[i];
+                }
+            }
 
             ConnectionHandler.PullMessagesForChat(UserID, SessionID, chatID);
             RaiseChangeViewEvent(Segment.Right, ViewType.MessageView);
             RaiseChangeChatEvent();
 
         }
+
+        public void FriendSelected(int userID)
+        {
+
+            Debug.WriteLine("FriendSelected called in controller: " + userID);
+
+            for (int i = 0; i < FriendsList.Count; i++)
+            {
+                FriendUser tempFriend = FriendsList[i];
+
+                if (tempFriend.UserID == userID)
+                {
+
+                    ActiveChat = new Chat(tempFriend.ChatID, "Chat with " + tempFriend.UserName, false, new List<Dictionary<string, string>>());
+
+                    ConnectionHandler.PullMessagesForChat(UserID, SessionID, tempFriend.ChatID);
+                    RaiseChangeViewEvent(Segment.Right, ViewType.MessageView);
+                    RaiseChangeChatEvent();
+
+                    break;
+                }
+            }
+        }
+
 
 
         // ---------- BEGIN EVENT DELEGATES --------- //
@@ -632,7 +751,7 @@ namespace Messenger_Client
 
         // Called to display a notification popup.
 
-        public delegate void NotificationPopupEventHandler(object sender, NotificationPopupEventArgs e);
+        public delegate void NotificationPopupEventHandler(object sender, NotificationPopupEventArgs args);
 
         public event NotificationPopupEventHandler NotificationPopupEvent;
 
@@ -680,7 +799,7 @@ namespace Messenger_Client
 
         // Called to update the list of user search results in FindFriends view.
 
-        public delegate void UpdateUserSearchEventHandler(object sender, UpdateUserSearchEventArgs e);
+        public delegate void UpdateUserSearchEventHandler(object sender, UpdateUserSearchEventArgs args);
 
         public event UpdateUserSearchEventHandler UpdateUserSearchEvent;
         public void RaiseUpdateUserSearchEvent(List<Dictionary<string, string>> resultsList)
@@ -690,7 +809,7 @@ namespace Messenger_Client
 
         // Called to change the username displayed by the main window.
 
-        public delegate void ChangeUsernameEventHandler(object sender, MessageEventArgs e);
+        public delegate void ChangeUsernameEventHandler(object sender, MessageEventArgs args);
 
         public event ChangeUsernameEventHandler ChangeUsernameEvent;
 
@@ -701,24 +820,26 @@ namespace Messenger_Client
 
         // Called to update the list of friends in the Friends control.
 
-        public delegate void UpdateFriendsEventHandler(object sender, UpdateFriendsEventArgs e);
+        public delegate void UpdateFriendsEventHandler(object sender, UpdateFriendsEventArgs args);
 
         public event UpdateFriendsEventHandler UpdateFriendsEvent;
 
         public void RaiseUpdateFriendsEvent(List<FriendUser> friends)
         {
             Debug.WriteLine("Raise update friends called.\n");
+            FriendsList = friends;
             UpdateFriendsEvent?.Invoke(this, new UpdateFriendsEventArgs(friends));
         }
 
         // Called to update the chat display in the Chats View control.
 
-        public delegate void UpdateChatEventHandler(object sender, UpdateChatEventArgs e);
+        public delegate void UpdateChatEventHandler(object sender, UpdateChatEventArgs args);
 
         public event UpdateChatEventHandler UpdateChatEvent;
 
         public void RaiseUpdateChatEvent(List<Chat> chatList)
         {
+            ChatList = chatList;
             UpdateChatEvent?.Invoke(this, new UpdateChatEventArgs(chatList));
         }
 
@@ -726,7 +847,7 @@ namespace Messenger_Client
 
         // Called to update the message display in the Message control.
 
-        public delegate void ChangeChatEventHandler(object sender, ChangeChatEventArgs e);
+        public delegate void ChangeChatEventHandler(object sender, ChangeChatEventArgs args);
 
         public event ChangeChatEventHandler ChangeChatEvent;
 

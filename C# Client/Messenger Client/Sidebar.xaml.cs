@@ -43,5 +43,10 @@ namespace Messenger_Client
         {
             Controller.RaiseChangeViewEvent(Segment.Left, ViewType.ChatsView);
         }
+
+        private void OnFindFriendsClick(object sender, RoutedEventArgs args)
+        {
+            Controller.RaiseChangeViewEvent(Segment.Right, ViewType.FindFriendsView);
+        }
     }
 }

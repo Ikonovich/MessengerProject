@@ -6,10 +6,9 @@
              xmlns:c="clr-namespace:Messenger_Client"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-
     <Control.Resources>
-        <ControlTemplate x:Key="CancelSearchButton" TargetType="Button">
-            <Grid Margin="2"> 
+        <ControlTemplate x:Key="StyledButton" TargetType="Button">
+            <Grid Margin="2">
                 <Grid.Style>
                     <Style TargetType="Grid">
                         <Setter Property="Background" Value="Transparent">
@@ -25,7 +24,8 @@
                         </Style.Triggers>
                     </Style>
                 </Grid.Style>
-                <Image Source="{Binding Tag, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Button}}}"/>
+                <Image Height="30"
+                    Source="{Binding Tag, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Button}}}"/>
             </Grid>
         </ControlTemplate>
     </Control.Resources>
@@ -34,8 +34,9 @@
             <RowDefinition Height="0.1*"></RowDefinition>
             <RowDefinition Height="1*"></RowDefinition>
         </Grid.RowDefinitions>
-        <TextBlock FontWeight="DemiBold"
-                   Grid.Row="0"
+        <Grid Grid.Row="0">
+            <TextBlock Panel.ZIndex="0"
+                   FontWeight="DemiBold"
                    Text="Friend List"
                    Foreground="White"
                    FontSize="15"
@@ -44,8 +45,8 @@
         <Grid Width="40" HorizontalAlignment="Right">
             <Grid.Style>
                 <Style TargetType="Grid">
-                    <Setter Property="Background" Value="Transparent"></Setter>
-                    <Style.Triggers>
+                        <Setter Property="Background" Value="Transparent"></Setter>
+                        <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Background">
                                 <Setter.Value>
@@ -57,26 +58,70 @@
                     </Style.Triggers>
                 </Style>
             </Grid.Style>
-            <Grid x:Name="SearchArea">
-                <Image Height="20" 
-                   HorizontalAlignment="Center"
-                   Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\SearchIcon30px.png"></Image>
-                <!---->
-                <Popup IsOpen="True"
-                       StaysOpen="True"
-                       Height="50"
-                       Width="{Binding ElementName=FriendsDisplay, Path=ActualWidth}">
+            <Grid x:Name="SearchArea" Panel.ZIndex="0">
+                <Button Name="SearchButton"
+                    ToolTip="Search friends list"
+                    Template="{StaticResource StyledButton}"
+                    Click="OnOpenSearch"
+                    Height="Auto"
+                    Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\SearchIcon30px.png">
+                </Button>
+            </Grid>
+        </Grid>
+            <Grid x:Name="SearchPanel"
+                      Panel.ZIndex="2"
+                      Background="Black"
+                      Width="{Binding ElementName=FriendsDisplay, Path=ActualWidth}"
+                      Visibility="{Binding SearchPanelVisibility, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Control}}}">
+                <Border>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="BorderBrush" Value="DarkOrange"></Setter>
+                            <Setter Property="BorderThickness" Value="0, 1, 0, 1"></Setter>
+                            <Style.Triggers>
+                                <Trigger Property="Tag" Value="True">
+                                    <Setter Property="BorderBrush" Value="DarkOrange"></Setter>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*"></ColumnDefinition>
                             <ColumnDefinition Width="0.3*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="1"
-                                Template="{StaticResource CancelSearchButton}"
-                                Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Cancel50px.png">
+                    
+                    <Grid Background="Black">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height =".2*"></RowDefinition>
+                            <RowDefinition Height ="1*"></RowDefinition>
+                            <RowDefinition Height =".2*"></RowDefinition>
+                        </Grid.RowDefinitions>
+
+                        <TextBox Grid.Row="1"
+                                 Grid.Column="0"
+                                 FontSize="15"
+                                 Name="SearchBox"
+                                 ToolTip="Start typing the name of a friend"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Foreground="White"
+                                 CaretBrush="White"
+                                 PreviewMouseLeftButtonDown="OnSearchSelect"
+                                 LostFocus="OnSearchDeselect"
+                                 TextChanged="OnSearch">
+                        </TextBox>
+                    </Grid>
+                        <Button Name="CancelSearchButton"
+                              BorderBrush="DarkOrange"
+                              ToolTip="Cancel search"
+                              Click="OnCancelSearch"
+                              Grid.Column="1"
+                              Template="{StaticResource StyledButton}"
+                              Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Cancel50px.png">
                         </Button>
                     </Grid>
-                </Popup>
+                </Border>
             </Grid>
         </Grid>
         <ScrollViewer
@@ -90,13 +135,12 @@
                         <DataTemplate>
                             <Border BorderBrush="Black" BorderThickness="0" Background="#3f4240">
                                 <Button 
-                                        Width="100" Height="30" 
+                                        Height="30" 
+                                        HorizontalAlignment="Stretch"
                                         Content="{Binding UserName}" 
-                                        Tag="{Binding ChatID}" 
+                                        Tag="{Binding UserID}" 
                                         Click ="OnFriendSelected" 
-                                        HorizontalAlignment ="Center" 
-                                        VerticalAlignment="Top"
-                                        Margin="0, 0, 0, 0">
+                                        VerticalAlignment="Top">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="30">
@@ -144,7 +188,7 @@
                                                                Foreground="DarkGray">
                                                     </TextBlock>
                                                     <Image Grid.Column="0"
-                                                           Margin="-15, 5, 0, 0"
+                                                           Margin="10, 5, 0, 0"
                                                            Height="20" 
                                                            HorizontalAlignment="Left"
                                                            Source="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\PersonIconDefault30px.png"></Image>

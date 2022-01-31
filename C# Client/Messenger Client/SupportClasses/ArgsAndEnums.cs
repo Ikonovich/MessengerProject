@@ -89,8 +89,8 @@ namespace Messenger_Client
     {
         public ChangeViewEventArgs(Segment segment, ViewType viewType)
         {
-            Segment = segment; 
-            ViewType = viewType; 
+            Segment = segment;
+            ViewType = viewType;
         }
         public Segment Segment { get; }
         public ViewType ViewType { get; }
@@ -106,8 +106,8 @@ namespace Messenger_Client
     /// <param name="Parameter">The parameter provided to the functions called.</param>
     public class SelectionPopupEventArgs
     {
-        public SelectionPopupEventArgs(string message, string optionOneText, string optionOneTag, string optionTwoText, string optionTwoTag, string parameterOne, string parameterTwo) 
-        { 
+        public SelectionPopupEventArgs(string message, string optionOneText, string optionOneTag, string optionTwoText, string optionTwoTag, string parameterOne, string parameterTwo)
+        {
             Message = message;
             OptionOneText = optionOneText;
             OptionOneTag = optionOneTag;

@@ -6,14 +6,66 @@
              xmlns:local="clr-namespace:Messenger_Client"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <Control.Resources>
+        <ControlTemplate x:Key="SmallImageButton" TargetType="Button">
+            <Grid Margin="2">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Background" Value="Transparent">
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Opacity="0.7" Color="Gray"></SolidColorBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Image Height="20"
+                    Source="{Binding Tag, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Button}}}"/>
+            </Grid>
+        </ControlTemplate>
+    </Control.Resources>
     <Grid>
-        <ScrollViewer Height="350" VerticalScrollBarVisibility="Auto" Margin="10, 5, 10, 0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.1*"></RowDefinition>
+            <RowDefinition Height="1*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"></ColumnDefinition>
+                <ColumnDefinition Width="0.3*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <TextBlock Panel.ZIndex="0"
+                       Grid.Column="0"
+                   FontWeight="DemiBold"
+                   Text="Chat List"
+                   Foreground="White"
+                   FontSize="15"
+                   Margin="15, 8, 0, 0">
+            </TextBlock>
+            <Button Name="NewChatButton"
+                    Grid.Column="1"
+                    ToolTip="Start a new chat"
+                    Template="{StaticResource SmallImageButton}"
+                    Click="OnOpenCreateChat"
+                    Height="Auto"
+                    Tag="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Add30px.png">
+            </Button>
+        </Grid>
+        <ScrollViewer Panel.ZIndex="0"
+                      VerticalScrollBarVisibility="Auto" 
+                      Margin="10, 5, 10, 0" 
+                      Grid.Row="1">
             <StackPanel>
                 <ItemsControl x:Name="ChatsDisplay">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border BorderBrush="Black" BorderThickness="0" Background="#3f4240">
-                                <Button Width="200" Height="30" Content="{Binding ChatName}" Tag="{Binding ChatID}" Click ="OnChatSelected" HorizontalAlignment ="Left" VerticalAlignment="Top">
+                                <Button Width="200" Height="30" Content="{Binding ChatName}" Tag ="{Binding ChatID}" Click ="OnChatSelected" HorizontalAlignment ="Left" VerticalAlignment="Top">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <Canvas x:Name="UserCanvas" Background="Transparent" Width="200" Height="30">
@@ -43,7 +95,18 @@
                                                         </BeginStoryboard>
                                                     </EventTrigger>
                                                 </Canvas.Triggers>
-                                                <TextBlock Name="UserBlock" Text="{TemplateBinding Content}" Tag="{TemplateBinding Tag}" Margin="10, 5, 0, 0"  FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" FontWeight="Bold" Foreground="DarkGray">
+                                                <TextBlock Name="ChatNameBlock" 
+                                                           TextWrapping="Wrap"
+                                                           Text="{TemplateBinding Content}" 
+                                                           Tag="{TemplateBinding Tag}" 
+                                                           ToolTip="{TemplateBinding Content}" 
+                                                           Margin="10, 5, 0, 0"  
+                                                           FontSize="14" 
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center" 
+                                                           Background="Transparent" 
+                                                           FontWeight="Bold" 
+                                                           Foreground="DarkGray">
                                                 </TextBlock>
                                             </Canvas>
                                         </ControlTemplate>
@@ -55,5 +118,52 @@
                 </ItemsControl>
             </StackPanel>
         </ScrollViewer>
+        <Grid Grid.Row="1"
+              Panel.ZIndex="1"
+              Background="#333336"
+              Visibility="{Binding CreateChatVisibility, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type Control}}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.1*"></RowDefinition>
+                <RowDefinition Height="0.07*"></RowDefinition>
+                <RowDefinition Height="0.3*"></RowDefinition>
+                <RowDefinition Height="0.5*"></RowDefinition>
+                <RowDefinition Height=".7*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="1"
+                       Text="Creating a new chat..."
+                       Margin="5, 0, 0, 0"
+                       FontWeight="Bold"
+                       Foreground="White">
+               
+            </TextBlock>
+            <Grid Grid.Row="2">
+                <TextBlock Margin="5"
+                           HorizontalAlignment="Left" VerticalAlignment="Center" 
+                           TextWrapping="Wrap" 
+                           ToolTip="Between 8-32 characters. Alphanumeric characters and underscores only.">
+                <Bold Foreground="White">Chat Title:</Bold>
+                </TextBlock>
+                <TextBox Margin="5, 45, 5, 0" 
+                     Name="ChatTitleEntry" 
+                     Foreground ="White" 
+                     Background="Black" 
+                     HorizontalAlignment="Stretch" VerticalAlignment="Center" 
+                     Height="20" 
+                     MaxLength="32"
+                     ToolTip="Between 8-32 characters. Alphanumeric characters and underscores only."/>
+            </Grid>
+            <Grid Grid.Row="3">
+                <TextBlock HorizontalAlignment="Right" Margin="10, 10, 0, 0">
+                    <Hyperlink NavigateUri="None" RequestNavigate="OnCancelCreateChat" TextDecorations="None">
+                        <Bold Foreground="White">Cancel</Bold>. <LineBreak/>
+                    </Hyperlink>
+                </TextBlock>
+                <TextBlock HorizontalAlignment="Left" Margin="10, 10, 0, 0">
+                    <Hyperlink NavigateUri="None" RequestNavigate="OnCreateChat" TextDecorations="None">
+                        <Bold Foreground="White">Create</Bold>. <LineBreak/>
+                    </Hyperlink>
+                </TextBlock>
+            </Grid>
+        </Grid>
     </Grid>
 </UserControl>

@@ -11,7 +11,7 @@
         Title="Messenger" Height="450" Width="450">
     <Grid>
         <Grid.Background>
-            <SolidColorBrush Color="#333333"/>
+            <SolidColorBrush Color="#333336"/>
 
             <!--<ImageBrush stretch ="UniformToFill" ImageSource ="C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\Images\Clouds.jpg"/>-->
         </Grid.Background>

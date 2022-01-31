@@ -56,6 +56,33 @@ C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\UbuntuMysql\C# Cli
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\UbuntuMysql\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.genruntimeconfig.cache
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\UbuntuMysql\C# Client\Messenger Client\bin\Debug\net5.0-windows\Images\Clouds.jpg
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\UbuntuMysql\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client_Content.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\BlankControl.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\ChatsViewControl.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\FindFriendsControl.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\FriendsControl.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\LoginControl.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\MainWindow.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\MessageControl.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RegistrationControl.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Sidebar.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\App.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client_MarkupCompile.cache
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client_MarkupCompile.lref
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RequestsControl.g.cs
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\BlankControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\ChatsViewControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\FindFriendsControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\FriendsControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\LoginControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\MainWindow.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\MessageControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RegistrationControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RequestsControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Sidebar.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.dll
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\ref\Messenger Client.dll
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.pdb
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.csproj.AssemblyReference.cache
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\bin\Debug\net5.0-windows\Messenger Client.exe
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\bin\Debug\net5.0-windows\Messenger Client.deps.json
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\bin\Debug\net5.0-windows\Messenger Client.runtimeconfig.json
@@ -63,37 +90,10 @@ C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\bin\Debug\net5.0-windows\Messenger Client.dll
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\bin\Debug\net5.0-windows\ref\Messenger Client.dll
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\bin\Debug\net5.0-windows\Messenger Client.pdb
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.csproj.AssemblyReference.cache
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\FriendsControl.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\LoginControl.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\MainWindow.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\MessageControl.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\App.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client_MarkupCompile.cache
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client_MarkupCompile.lref
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\FriendsControl.baml
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\LoginControl.baml
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\MainWindow.baml
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\MessageControl.baml
+C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\bin\Debug\net5.0-windows\Newtonsoft.Json.dll
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.g.resources
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.AssemblyInfoInputs.cache
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.AssemblyInfo.cs
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.csproj.CoreCompileInputs.cache
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.dll
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\ref\Messenger Client.dll
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.pdb
 C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Messenger Client.genruntimeconfig.cache
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RegistrationControl.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RegistrationControl.baml
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\bin\Debug\net5.0-windows\Newtonsoft.Json.dll
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\FindFriendsControl.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\FindFriendsControl.baml
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\BlankControl.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\BlankControl.baml
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\ChatsViewControl.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\ChatsViewControl.baml
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RequestsControl.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\RequestsControl.baml
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Sidebar.g.cs
-C:\Users\evanh\Documents\Auto Network Storage\Docker Projects\MessengerProject\C# Client\Messenger Client\obj\Debug\net5.0-windows\Sidebar.baml

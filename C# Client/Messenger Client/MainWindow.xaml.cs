@@ -343,7 +343,7 @@ namespace Messenger_Client
         public LoginControl LoginControl;
         public FriendsControl FriendsControl;
         public FindFriendsControl FindFriendsControl;
-        public MessageControl MessageControl; 
+        public MessageControl MessageControl;
         public RegistrationControl RegistrationControl;
         public ChatsViewControl ChatsViewControl;
         public RequestsControl RequestsControl;
@@ -376,7 +376,6 @@ namespace Messenger_Client
             MouseDown += OnMouseDown;
             KeyDown += OnKeyDown;
 
-            Controller.SelectionPopupEvent += OnSelectionPopupEvent;
             Controller.NotificationPopupEvent += OnNotificationPopupEvent;
             Controller.ChangeViewEvent += OnChangeView;
             Controller.ChangeUsernameEvent += OnChangeUsername;
@@ -545,7 +544,7 @@ namespace Messenger_Client
         }
 
         // Used to close any popup
-        
+
         private void OnClosePopup(object sender, RoutedEventArgs args)
         {
             IsNotificationPopupOpen = false;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Messenger_Client.SupportClasses;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -17,18 +18,62 @@ using System.Windows.Shapes;
 
 namespace Messenger_Client
 {
+
     /// <summary>
     /// Interaction logic for RequestsControl.xaml
     /// </summary>
-    public partial class RequestsControl : UserControl
+    public partial class RequestsControl : UserControl, INotifyPropertyChanged
     {
+
+        private static readonly int DebugMask = 64;
 
         //////// BOUND PROPERTIES ///////
 
-        // List of requests that will be displayed
-        private List<Tuple<string, string>> RequestList;
 
 
+        // Binding for request confirmation popup
+        private Visibility confirmationPopupVisibility = Visibility.Collapsed;
+        public Visibility ConfirmationPopupVisibility
+        {
+            get
+            {
+                return confirmationPopupVisibility;
+            }
+            set
+            {
+                confirmationPopupVisibility = value;
+                OnPropertyChanged(nameof(ConfirmationPopupVisibility));
+            }
+        }
+
+
+        private string popupMessage = "";
+        public string PopupMessage
+        {
+            get
+            {
+                return popupMessage;
+            }
+            set
+            {
+                popupMessage = value;
+                OnPropertyChanged(nameof(PopupMessage));
+            }
+        }
+
+        // Stores the ID of any currently selected request
+        int SelectedRequestID;
+
+        // Contains all requests
+        private List<Request> RequestList;
+
+
+        // Contains the display items specifically for incoming requests.
+        private List<Request> Inbox;
+
+
+        // Contains the display items specifically for outgoing requests.
+        private List<Request> Outbox;
 
         //////// END BOUND PROPERTIES ///////
 
@@ -37,7 +82,7 @@ namespace Messenger_Client
 
         public RequestsControl()
         {
-            RequestList = new List<Tuple<string, string>>();
+            RequestList = new List<Request>();
             InitializeComponent();
 
             Controller = Controller.ControllerInstance;
@@ -48,55 +93,133 @@ namespace Messenger_Client
 
         private void PopulateRequests()
         {
-
             Application.Current.Dispatcher.Invoke((Action)delegate
             {
-               RequestsDisplay.ItemsSource = RequestList;
+               InboxDisplay.ItemsSource = Inbox;
 
-               if (RequestList.Count < 1)
-               {
-                    DisplayMessage.Text = "You have 0 requests waiting.";
-               }
-               else if (RequestList.Count == 1)
-               {
-                    DisplayMessage.Text = "You have 1 request waiting.";
-               }
-               else
-               { 
-                    DisplayMessage.Text = "You have " + RequestList.Count + " requests waiting.";
-               }
-
+                if (Inbox.Count < 1)
+                {
+                    InboxMessage.Text = "You have 0 requests waiting.";
+                }
+                else if (Inbox.Count == 1)
+                {
+                    InboxMessage.Text = "You have 1 request waiting.";
+                }
+                else
+                {
+                    InboxMessage.Text = "You have " + RequestList.Count + " requests waiting.";
+                }
 
             });
         }
 
-        public void OnUpdateRequests(object sender, UpdateRequestsEventArgs e)
+        public void OnUpdateRequests(object sender, UpdateRequestsEventArgs args)
         {
-            RequestList = new List<Tuple<string, string>>();
 
-            for (int i = 0; i < e.Requests.Count; i++)
+            Debug.WriteLine("Requests updating. Request count: " + args.Requests.Count);
+
+
+           Debugger.Record("Requests updating. Request count: " + args.Requests.Count, DebugMask);
+
+            RequestList = new List<Request>();
+            Inbox = new List<Request>();
+            Outbox = new List<Request>();
+
+            for (int i = 0; i < args.Requests.Count; i++)
             {
-                Dictionary<string, string> requestDict = e.Requests[i];
-                Tuple<string, string> request = new Tuple<string, string>(requestDict["UserName"], requestDict["UserID"]);
-                RequestList.Add(request);
+                Dictionary<string, string> requestDict = args.Requests[i];
+
+                Request newRequest = new Request(requestDict);
+
+                RequestList.Add(newRequest);
+
+                if (newRequest.IsInbox == true)
+                {
+                    Inbox.Add(newRequest);
+                }
+                else
+                {
+                    Outbox.Add(newRequest);
+                }
             }
 
             PopulateRequests();
         }
 
-        public void OnRequestSelected(object sender, RoutedEventArgs e)
+
+      
+        /// <summary> 
+        /// Responsible for displaying a selected request.
+        /// </summary>
+        public void OnRequestClick(object sender, RoutedEventArgs e)
         {
 
-            Button button = sender as Button;
-            string username = button.Content as string;
-            string userID = button.Tag as string;
+
+            FrameworkElement source = sender as FrameworkElement;
+            int requestID = (int)source.Tag;
 
 
-            Debug.WriteLine("On Request Selected has been called. Button tag is: " + userID);
+            Debug.WriteLine("ID of selected request: " + requestID);
 
-            string message = "Would you like to add " + username + " as a friend?";
 
-            Controller.RaiseSelectionPopupEvent(message, "Yes", userID, "No", "None", username, "False");
+            SelectedRequestID = requestID;
+            Request requestActual = RequestList[0];
+
+            for (int i = 0; i < RequestList.Count; i++)
+            {
+
+                if (RequestList[i].RequestID == SelectedRequestID)
+                {
+                    requestActual = RequestList[i];
+                    break;
+                }
+            }
+
+            if (requestActual.RequestType == "INVITE")
+            {
+                ConfirmationText.Text = "Accept the invite to " + requestActual.ChatName + "?";
+            }
+
+            else if (requestActual.RequestType == "FRIEND")
+            {
+                ConfirmationText.Text = "Accept the friend request from " + requestActual.SenderName + "?";
+            }
+
+            ConfirmationPopupVisibility = Visibility.Visible;
+        }
+
+
+
+        /// <summary> 
+        /// Responsible for approving a selected request.
+        /// </summary>
+        public void OnRequestApprove(object sender, RoutedEventArgs e)
+        {
+
+            Debug.WriteLine("ID of selected request: " + SelectedRequestID);
+
+            ConfirmationPopupVisibility = Visibility.Collapsed;
+
+            Controller.ApproveRequest(SelectedRequestID);
+
+            SelectedRequestID = 0;
+        }
+
+
+        /// <summary> 
+        /// Responsible for declining a selected request.
+        /// </summary>
+        public void OnRequestDecline(object sender, RoutedEventArgs e)
+        {
+            FrameworkElement source = sender as FrameworkElement;
+            int requestID = (int)source.Tag;
+
+
+            Debug.WriteLine("ID of selected request: " + SelectedRequestID);
+
+            SelectedRequestID = 0;
+            ConfirmationPopupVisibility = Visibility.Collapsed;
+
         }
 
 

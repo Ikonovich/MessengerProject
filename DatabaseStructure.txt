@@ -23,14 +23,17 @@ CREATE TABLE RegisteredUsers (
 	CONSTRAINT identifiers UNIQUE (UserID, UserName)
 );
 
-FriendRequests:
-CREATE TABLE FriendRequests (
+Requests:
+CREATE TABLE Requests (
+	RequestID INT NOT NULL AUTO_INCREMENT,
 	UserID INT NOT NULL,
 	UserName VARCHAR(32) NOT NULL,
 	FriendUserID INT NOT NULL,
 	FriendUserName VARCHAR(32) NOT NULL,
+	RequestType VARCHAR(32) NOT NULL,
+	Parameter VARCHAR(64) NULL, 
 	RequestAddedTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-	PRIMARY KEY(UserID, FriendUserID),
+	PRIMARY KEY(RequestID),
 	FOREIGN KEY(UserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE,
 	FOREIGN KEY(FriendUserID) REFERENCES RegisteredUsers(UserID) ON DELETE CASCADE
 );
@@ -92,6 +95,7 @@ IsMember            INT           NO
 CREATE TABLE UserChatPairs (
 	UserID INT NOT NULL,
 	ChatID INT NOT NULL,
+	ChatName VACHAR(32) NOT NULL,
 	IsMember BOOLEAN NOT NULL DEFAULT false,
 	Permissions INT NOT NULL,
 	PRIMARY KEY(UserID, ChatID),
